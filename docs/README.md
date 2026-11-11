@@ -4,7 +4,7 @@ Everything decided about this project lives here.
 
 | Path | What |
 |---|---|
-| [design.md](design.md) | The full design: scope, domain rules, routes, data model, stack. Start here. |
+| [technical-design.md](technical-design.md) | The full design: scope, domain rules, routes, data model, stack. Start here. |
 | `<area>/overview.md` + `<area>/tickets/` | Tickets, organised by feature area (see below). |
 | [adr/](adr/) | Architecture decision records: why the non-obvious choices were made. |
 | [research/](research/) | Fact-finding behind the ADRs, with sources (as of 2026-11-11). |

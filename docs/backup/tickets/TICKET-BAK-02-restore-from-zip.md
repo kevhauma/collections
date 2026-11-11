@@ -2,7 +2,7 @@
 
 - **Area:** Backup
 - **Released in:** _unreleased_ (planned for v2)
-- **Traceability:** [design.md § Scope](../../design.md#scope) (v2), [design.md § Export (backup)](../../design.md#export-backup)
+- **Traceability:** [technical-design.md § Scope](../../technical-design.md#scope) (v2), [technical-design.md § Export (backup)](../../technical-design.md#export-backup)
 
 ## User story
 

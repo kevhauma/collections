@@ -2,7 +2,7 @@
 
 - **Area:** Collections
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Collection](../../design.md#collection), [design.md § Slugs](../../design.md#slugs), [ADR 0005](../../adr/0005-plain-public-slugs.md)
+- **Traceability:** [technical-design.md § Collection](../../technical-design.md#collection), [technical-design.md § Slugs](../../technical-design.md#slugs), [ADR 0005](../../adr/0005-plain-public-slugs.md)
 
 ## User story
 

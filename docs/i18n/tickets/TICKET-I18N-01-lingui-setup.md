@@ -2,7 +2,7 @@
 
 - **Area:** i18n
 - **Released in:** _unreleased_
-- **Traceability:** [ADR 0002](../../adr/0002-lingui-explicit-ids.md), [research/lingui-rsc.md](../../research/lingui-rsc.md), [design.md § Stack](../../design.md#stack)
+- **Traceability:** [ADR 0002](../../adr/0002-lingui-explicit-ids.md), [research/lingui-rsc.md](../../research/lingui-rsc.md), [technical-design.md § Stack](../../technical-design.md#stack)
 
 ## User story
 

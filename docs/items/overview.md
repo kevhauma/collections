@@ -1,6 +1,6 @@
 # Items: overview
 
-Prefix `ITM`. Item validation, CRUD, want ranking, images, list views. Design: [design.md § Item](../design.md#item).
+Prefix `ITM`. Item validation, CRUD, want ranking, images, list views. Design: [technical-design.md § Item](../technical-design.md#item).
 
 - [ ] [TICKET-ITM-01](./tickets/TICKET-ITM-01-item-schema-builder.md): Item schema builder (§ Item, § Stack: Validation). Needs TICKET-COL-02 · _unreleased_
 - [ ] [TICKET-ITM-02](./tickets/TICKET-ITM-02-item-crud.md): Create, edit and delete items (§ Item, § Want ranking). Needs TICKET-ITM-01 · _unreleased_

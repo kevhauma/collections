@@ -2,7 +2,7 @@
 
 - **Area:** Platform
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Stack](../../design.md#stack), [ADR 0001](../../adr/0001-rsc-react-router-vite.md), [ADR 0002](../../adr/0002-lingui-explicit-ids.md)
+- **Traceability:** [technical-design.md § Stack](../../technical-design.md#stack), [ADR 0001](../../adr/0001-rsc-react-router-vite.md), [ADR 0002](../../adr/0002-lingui-explicit-ids.md)
 
 ## User story
 

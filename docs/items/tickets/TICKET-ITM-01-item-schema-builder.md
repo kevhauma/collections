@@ -2,7 +2,7 @@
 
 - **Area:** Items
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Item](../../design.md#item), [design.md § Stack](../../design.md#stack) (Validation row)
+- **Traceability:** [technical-design.md § Item](../../technical-design.md#item), [technical-design.md § Stack](../../technical-design.md#stack) (Validation row)
 
 ## User story
 

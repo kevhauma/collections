@@ -2,7 +2,7 @@
 
 - **Area:** Items
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Routes](../../design.md#routes), [design.md § Data model](../../design.md#data-model) (search/sort notes), [ADR 0003](../../adr/0003-plain-sql.md)
+- **Traceability:** [technical-design.md § Routes](../../technical-design.md#routes), [technical-design.md § Data model](../../technical-design.md#data-model) (search/sort notes), [ADR 0003](../../adr/0003-plain-sql.md)
 
 ## User story
 

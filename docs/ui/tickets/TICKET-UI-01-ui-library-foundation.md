@@ -2,7 +2,7 @@
 
 - **Area:** UI
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Stack](../../design.md#stack) (Styling, UI library rows)
+- **Traceability:** [technical-design.md § Stack](../../technical-design.md#stack) (Styling, UI library rows)
 
 ## User story
 

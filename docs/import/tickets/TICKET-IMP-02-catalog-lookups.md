@@ -2,7 +2,7 @@
 
 - **Area:** Import
 - **Released in:** _unreleased_ (planned for v2)
-- **Traceability:** [design.md § Scope](../../design.md#scope) (v2)
+- **Traceability:** [technical-design.md § Scope](../../technical-design.md#scope) (v2)
 
 ## User story
 

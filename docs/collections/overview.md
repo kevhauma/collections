@@ -1,6 +1,6 @@
 # Collections: overview
 
-Prefix `COL`. Collections, slugs, the field editor, schema evolution. Design: [design.md § Domain](../design.md#domain).
+Prefix `COL`. Collections, slugs, the field editor, schema evolution. Design: [technical-design.md § Domain](../technical-design.md#domain).
 
 - [ ] [TICKET-COL-01](./tickets/TICKET-COL-01-collection-management.md): Collection management: create, settings, delete (§ Collection, § Slugs, ADR 0005). Needs TICKET-AUTH-02, TICKET-UI-02 · _unreleased_
 - [ ] [TICKET-COL-02](./tickets/TICKET-COL-02-field-editor.md): Field editor (§ Field, § Schema evolution). Needs TICKET-COL-01 · _unreleased_

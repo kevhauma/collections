@@ -2,7 +2,7 @@
 
 - **Area:** Sharing
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Routes](../../design.md#routes) (`/:slug`, `/:slug/want`), [design.md § Field](../../design.md#field) (private fields never leave the server), [ADR 0005](../../adr/0005-plain-public-slugs.md)
+- **Traceability:** [technical-design.md § Routes](../../technical-design.md#routes) (`/:slug`, `/:slug/want`), [technical-design.md § Field](../../technical-design.md#field) (private fields never leave the server), [ADR 0005](../../adr/0005-plain-public-slugs.md)
 
 ## User story
 

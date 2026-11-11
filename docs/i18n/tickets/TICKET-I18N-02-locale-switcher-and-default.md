@@ -2,7 +2,7 @@
 
 - **Area:** i18n
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Routes](../../design.md#routes) (`POST /locale`, `/admin/settings`), [ADR 0002](../../adr/0002-lingui-explicit-ids.md)
+- **Traceability:** [technical-design.md § Routes](../../technical-design.md#routes) (`POST /locale`, `/admin/settings`), [ADR 0002](../../adr/0002-lingui-explicit-ids.md)
 
 ## User story
 

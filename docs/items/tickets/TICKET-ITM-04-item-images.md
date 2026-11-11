@@ -2,7 +2,7 @@
 
 - **Area:** Items
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Images](../../design.md#images)
+- **Traceability:** [technical-design.md § Images](../../technical-design.md#images)
 
 ## User story
 

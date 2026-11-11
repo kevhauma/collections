@@ -2,7 +2,7 @@
 
 - **Area:** Platform
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Stack](../../design.md#stack) (Deploy row), [design.md § Auth and security](../../design.md#auth-and-security) (TLS)
+- **Traceability:** [technical-design.md § Stack](../../technical-design.md#stack) (Deploy row), [technical-design.md § Auth and security](../../technical-design.md#auth-and-security) (TLS)
 
 ## User story
 

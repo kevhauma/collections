@@ -2,7 +2,7 @@
 
 - **Area:** Import
 - **Released in:** _unreleased_ (planned for v2)
-- **Traceability:** [design.md § Parked](../../design.md#parked)
+- **Traceability:** [technical-design.md § Parked](../../technical-design.md#parked)
 
 ## User story
 
@@ -52,7 +52,7 @@ Open questions, with the starting proposals from the design session:
 
 ## Acceptance criteria
 
-- [ ] Design session held. Open questions 1–5 answered and recorded in this ticket and in `design.md`.
+- [ ] Design session held. Open questions 1–5 answered and recorded in this ticket and in `technical-design.md`.
 - [ ] To-be and acceptance criteria rewritten from the answers before implementation starts.
 
 ## Notes

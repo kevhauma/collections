@@ -1,4 +1,4 @@
-# Design
+# Technical design
 
 A self-hosted web app to manage collections of anything (vinyl records, LEGO, card decks, …) with
 user-defined fields, and to share a **have** and **want** list per collection.

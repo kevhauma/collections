@@ -2,7 +2,7 @@
 
 - **Area:** Items
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Want ranking](../../design.md#want-ranking), [ADR 0004](../../adr/0004-dense-integer-ranks.md)
+- **Traceability:** [technical-design.md § Want ranking](../../technical-design.md#want-ranking), [ADR 0004](../../adr/0004-dense-integer-ranks.md)
 
 ## User story
 

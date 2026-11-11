@@ -2,7 +2,7 @@
 
 - **Area:** Auth
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Auth and security](../../design.md#auth-and-security), [design.md § Routes](../../design.md#routes) (`/setup`)
+- **Traceability:** [technical-design.md § Auth and security](../../technical-design.md#auth-and-security), [technical-design.md § Routes](../../technical-design.md#routes) (`/setup`)
 
 ## User story
 

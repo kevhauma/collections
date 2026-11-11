@@ -41,7 +41,7 @@ back"). Rules for delegating:
 Read the **whole** ticket: User story, Description, Current situation (follow its links), Desired result,
 UI requirements, Acceptance criteria, Notes. Then read what it points to:
 
-- the linked sections of `docs/design.md` and any linked ADRs
+- the linked sections of `docs/technical-design.md` and any linked ADRs
 - the code that its predecessors created (as-is links, or a glob of `src/` for the files the to-be names)
 - `.claude/skills/coding-conventions/SKILL.md`
 - for PLAT-01-dependent decisions: `docs/research/spike-results.md` once it exists
@@ -73,7 +73,7 @@ out-of-scope findings instead of doing them.
 change: strike through the old wording and say what is being built instead and why. A box describing code that
 doesn't exist is worse than an open box.
 
-If the spike or real code proves a design decision wrong, update `docs/design.md` in the same change. If it
+If the spike or real code proves a design decision wrong, update `docs/technical-design.md` in the same change. If it
 reverses an ADR, add a new ADR that supersedes it rather than rewriting history.
 
 ## Step 5: Verify, then tick each criterion

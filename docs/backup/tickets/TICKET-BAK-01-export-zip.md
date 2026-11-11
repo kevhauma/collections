@@ -2,7 +2,7 @@
 
 - **Area:** Backup
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Export (backup)](../../design.md#export-backup)
+- **Traceability:** [technical-design.md § Export (backup)](../../technical-design.md#export-backup)
 
 ## User story
 

@@ -2,7 +2,7 @@
 
 - **Area:** Collections
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Field](../../design.md#field), [design.md § Schema evolution](../../design.md#schema-evolution) (rename, reorder, delete)
+- **Traceability:** [technical-design.md § Field](../../technical-design.md#field), [technical-design.md § Schema evolution](../../technical-design.md#schema-evolution) (rename, reorder, delete)
 
 ## User story
 

@@ -6,7 +6,7 @@ paths: "**/*.ts,**/*.tsx,**/*.css,**/*.sql"
 
 # Coding conventions
 
-The design is the source of truth: [docs/design.md](../../../docs/design.md), with the *why* in
+The design is the source of truth: [docs/technical-design.md](../../../docs/technical-design.md), with the *why* in
 [docs/adr/](../../../docs/adr/). This skill turns those decisions into rules for code. When a ticket establishes or
 changes a pattern, update this file in the same change (one or two sentences, in the matching section), and prefer
 linking an exemplar file over describing it.
@@ -94,7 +94,7 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - Rank changes follow ADR 0004 (dense 1..n, shift + set in one transaction) and reuse `moveInList` from
   `src/lib/order.ts`.
 - **Schema changes are a new numbered migration. Never edit a shipped one.** Update the hand-written row types and
-  `docs/design.md § Data model` in the same change.
+  `docs/technical-design.md § Data model` in the same change.
 - File writes paired with DB writes (images): write new files first, commit the DB transaction, delete old files
   after the commit, and delete the new files if the transaction fails.
 

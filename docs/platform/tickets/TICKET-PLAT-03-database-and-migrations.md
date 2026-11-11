@@ -2,7 +2,7 @@
 
 - **Area:** Platform
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Data model](../../design.md#data-model), [ADR 0003](../../adr/0003-plain-sql.md)
+- **Traceability:** [technical-design.md § Data model](../../technical-design.md#data-model), [ADR 0003](../../adr/0003-plain-sql.md)
 
 ## User story
 

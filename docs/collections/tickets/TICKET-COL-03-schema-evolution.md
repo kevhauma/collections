@@ -2,7 +2,7 @@
 
 - **Area:** Collections
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Schema evolution](../../design.md#schema-evolution)
+- **Traceability:** [technical-design.md § Schema evolution](../../technical-design.md#schema-evolution)
 
 ## User story
 

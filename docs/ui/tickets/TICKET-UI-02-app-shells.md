@@ -2,7 +2,7 @@
 
 - **Area:** UI
 - **Released in:** _unreleased_
-- **Traceability:** [design.md § Routes](../../design.md#routes)
+- **Traceability:** [technical-design.md § Routes](../../technical-design.md#routes)
 
 ## User story
 

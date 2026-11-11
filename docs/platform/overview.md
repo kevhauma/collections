@@ -1,6 +1,6 @@
 # Platform: overview
 
-Prefix `PLAT`. Stack proof, project skeleton, database and deployment. Design: [design.md § Stack](../design.md#stack).
+Prefix `PLAT`. Stack proof, project skeleton, database and deployment. Design: [technical-design.md § Stack](../technical-design.md#stack).
 
 - [ ] [TICKET-PLAT-01](./tickets/TICKET-PLAT-01-stack-spike.md): Stack spike, throwaway (§ Stack, ADR 0001/0002). Independent, do first · _unreleased_
 - [ ] [TICKET-PLAT-02](./tickets/TICKET-PLAT-02-project-scaffold.md): Project scaffold (§ Stack). Needs TICKET-PLAT-01 · _unreleased_
