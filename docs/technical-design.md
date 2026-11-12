@@ -150,18 +150,22 @@ sessions(token_hash TEXT PRIMARY KEY, expires_at INTEGER NOT NULL)
 settings(id INTEGER PRIMARY KEY CHECK (id = 1), default_locale TEXT NOT NULL DEFAULT 'en')
 collections(id INTEGER PRIMARY KEY, slug TEXT UNIQUE NOT NULL, name TEXT NOT NULL,
             is_public INTEGER NOT NULL DEFAULT 0, default_view TEXT NOT NULL DEFAULT 'table',
-            title_field_id INTEGER, created_at, updated_at)
+            title_field_id INTEGER, created_at INTEGER, updated_at INTEGER)
 fields(id INTEGER PRIMARY KEY, collection_id INTEGER NOT NULL REFERENCES collections ON DELETE CASCADE,
        label TEXT NOT NULL, type TEXT NOT NULL, options_json TEXT, required INTEGER NOT NULL DEFAULT 0,
        is_public INTEGER NOT NULL DEFAULT 1, position INTEGER NOT NULL)
 items(id INTEGER PRIMARY KEY, collection_id INTEGER NOT NULL REFERENCES collections ON DELETE CASCADE,
       status TEXT NOT NULL CHECK (status IN ('have','want')),
       quantity INTEGER, rank INTEGER,
-      values_json TEXT NOT NULL DEFAULT '{}', image TEXT, created_at, updated_at,
-      CHECK ((status = 'have' AND quantity >= 1 AND rank IS NULL)
-          OR (status = 'want' AND rank >= 1 AND quantity IS NULL)))
+      values_json TEXT NOT NULL DEFAULT '{}', image TEXT, created_at INTEGER, updated_at INTEGER,
+      CHECK ((status = 'have' AND coalesce(quantity, 0) >= 1 AND rank IS NULL)
+          OR (status = 'want' AND coalesce(rank, 0) >= 1 AND quantity IS NULL)))
 ```
 
+- `created_at` / `updated_at` are unix seconds (`DEFAULT (unixepoch())`).
+- The CHECK uses `coalesce` because a bare `quantity >= 1` is NULL for a NULL quantity, and SQLite's CHECK only
+  rejects FALSE: a `have` without a quantity would slip through.
+- The schema lives in [migrations/001-initial.sql](../migrations/001-initial.sql); later changes are new numbered files.
 - Values in `values_json` are keyed by field id as a string: `{"12": "Kind of Blue", "13": 1959}`.
 - Search uses `json_each(values_json)` restricted to text-like field ids. Sort uses
   `json_extract(values_json, '$."<id>"')`.

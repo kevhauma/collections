@@ -47,6 +47,11 @@ export default function handler(request: Request): Promise<Response> {
   });
 }
 
+// Exported for server.ts: opens and migrates the DB before it listens, so a failing migration aborts startup.
+export const initDb = (): void => {
+  db();
+};
+
 // Exported for server.ts so /healthz checks the same DB connection the app uses, inside this bundle.
 export const healthz = (): boolean => {
   try {

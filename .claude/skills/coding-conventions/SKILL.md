@@ -108,6 +108,10 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   (`json_extract`, `json_each`, `json_set`, `json_remove`) rather than loading and rewriting rows in JS.
 - Rank changes follow ADR 0004 (dense 1..n, shift + set in one transaction) and reuse `moveInList` from
   `src/lib/order.ts`.
+- The connection is `db()` from [src/db/connection.ts](../../../src/db/connection.ts) (WAL, `foreign_keys = ON`,
+  migrated on open by [src/db/migrate.ts](../../../src/db/migrate.ts)). Repository tests open a temp DB with
+  `openDatabase(tempDir)`, as in [src/db/migrate.test.ts](../../../src/db/migrate.test.ts).
+- In CHECK constraints, wrap nullable columns in `coalesce`: CHECK only rejects FALSE, and a comparison with NULL is NULL.
 - **Schema changes are a new numbered migration. Never edit a shipped one.** Update the hand-written row types and
   `docs/technical-design.md § Data model` in the same change.
 - File writes paired with DB writes (images): write new files first, commit the DB transaction, delete old files

@@ -33,6 +33,7 @@ const loadEntry = async (): Promise<() => Promise<RscEntry>> => {
 };
 
 const entry = await loadEntry();
+(await entry()).initDb();
 
 app.get("/healthz", async (_req, res) => {
   res.sendStatus((await entry()).healthz() ? 200 : 503);
