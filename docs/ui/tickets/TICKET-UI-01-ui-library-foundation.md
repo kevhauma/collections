@@ -51,6 +51,10 @@ default, with native HTML for interactivity.
 - [ ] Live browser check of each component on the placeholder route. There is deliberately **no** showcase page;
       remove the usages once real screens use them.
 - [ ] `src/ui/README.md` documents each component's props and which ones are client components.
+- [ ] Tokens and components implement the design direction in
+      [.impeccable/surfaces/src-ui.md](../../../.impeccable/surfaces/src-ui.md): squared paper ground, ballpoint
+      ink, red-pen and highlighter accents, hand-drawn outlines, post-it image frame. `DESIGN.md` is written from
+      the result.
 - [ ] Verified with the fallow skill.
 
 ## Notes

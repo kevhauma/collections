@@ -65,6 +65,7 @@ As a <role>, I want <capability>, so <benefit>.
 - [ ] <Specific, testable outcome.>
 - [ ] <Persistence goes through the store/repository, never a direct API call from a component or store — if data is touched.>
 - [ ] <Unit tests cover: … (name the cases).>
+- [ ] <UI follows the design direction in `.impeccable/surfaces/src-ui.md` (or `DESIGN.md` once it exists); live browser check at 360 px and desktop — if the ticket has UI.>
 - [ ] <Verified via the fallow skill and coding-conventions skill>
 
 ## Notes

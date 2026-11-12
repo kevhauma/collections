@@ -125,6 +125,10 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 
 ## UI library and styling
 
+- **Every screen follows the design direction** in [.impeccable/surfaces/src-ui.md](../../../.impeccable/surfaces/src-ui.md)
+  (ballpoint on squared paper, hand-drawn outlines, post-it item images), and `DESIGN.md` once it exists, which then
+  wins. New UI uses its palette, type, outlines and states; a screen that looks like a generic grey app is a bug.
+  Work on UI through the `impeccable` skill.
 - Use `src/ui/` components before writing markup. If a pattern appears twice, it belongs in `src/ui/`.
 - Variants are declared with `cva`. Callers pick `variant` / `size` props, never colour or variant classes. Merge a
   caller's `className` with `cn()` (tailwind-merge).

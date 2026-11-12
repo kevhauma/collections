@@ -44,6 +44,8 @@ UI requirements, Acceptance criteria, Notes. Then read what it points to:
 - the linked sections of `docs/technical-design.md` and any linked ADRs
 - the code that its predecessors created (as-is links, or a glob of `src/` for the files the to-be names)
 - `.claude/skills/coding-conventions/SKILL.md`
+- for a ticket with UI: the design direction in `.impeccable/surfaces/src-ui.md` (and `DESIGN.md` once it exists).
+  Build the UI with the `impeccable` skill so it follows that direction
 - for PLAT-01-dependent decisions: `docs/research/spike-results.md` once it exists
 
 Restate the ticket's intent in one or two sentences so the user can confirm.
@@ -87,6 +89,9 @@ A criterion is ticked **only when it verifiably passes**.
 3. For "Live browser check" criteria, drive the real app with the `run` or `supermatt:qa` skill. Reproduce the
    scenario, including **with JavaScript disabled** where the ticket says so, and capture the evidence. Ask the user
    first if a browser session needs their involvement.
+   For a ticket with UI, the same check compares the screens against the design direction
+   (`.impeccable/surfaces/src-ui.md` / `DESIGN.md`) at 360 px and desktop width. A screen that drifts from it does
+   not pass.
 4. Tick a satisfied criterion by changing `- [ ]` → `- [x]` and **appending the evidence in parentheses**: the file,
    test name, or observed behaviour. It must be answerable from the ticket alone months later. A tick without
    evidence is not a tick.
