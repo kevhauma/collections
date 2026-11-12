@@ -128,10 +128,10 @@ All parts work, in all three environments, dev and prod:
   Note: `i18n._(descriptor, values)` is a **type error** in 6.12. Put the values in the `msg` template instead.
 - `lingui extract` with explicit ids and `formatter({ style: "minimal" })` produces flat `{id: message}` JSON and
   keeps existing translations.
-- **Windows install gotcha**: a clean `npm i` skipped the optional native binary `@lingui/native-tools-win32-x64-msvc`.
-  The dev server then fails with "Cannot find native binding" (npm optional-deps bug, npm/cli#4828). An explicit
-  `npm i @lingui/native-tools-win32-x64-msvc@0.2.0` fixed it. In the scaffold, list it under `optionalDependencies`
-  (pinned) so a clean install on Windows works. Linux (Docker) picked its binary up correctly.
+- **Node engine gotcha**: Lingui 6.12 packages require **Node ≥ 22.19.0**. On Node 22.18 a clean `npm i` silently
+  skips the optional native binary (`@lingui/native-tools-<platform>`) because its engine doesn't match. The dev
+  server then fails with "Cannot find native binding". (Corrected in TICKET-PLAT-02: the spike first blamed
+  npm/cli#4828.) Fix: run Node ≥ 22.19. The project pins `engines.node` to `>=26` to match Docker.
 - The full catalog for the locale is serialized into the RSC payload as the client provider's props (about 1 KB per
   20 messages). That's fine for this app's size.
 

@@ -1,7 +1,7 @@
 # TICKET-PLAT-02: Project scaffold
 
 - **Area:** Platform
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Traceability:** [technical-design.md § Stack](../../technical-design.md#stack), [ADR 0001](../../adr/0001-rsc-react-router-vite.md)
 
 ## User story
@@ -50,13 +50,28 @@ a per-request context, Tailwind, vitest and the folder layout every later ticket
 
 ## Acceptance criteria
 
-- [ ] `npm run dev` serves the placeholder route with HMR.
-- [ ] `npm run build && npm start` serves the same route from the production build.
-- [ ] Every dependency in the RSC/i18n layer is pinned to an exact version recorded in the spike results.
-- [ ] Server components and server actions can read the request context (request, cookies) through `src/context.ts`.
-- [ ] `/healthz` returns 200.
-- [ ] `npm run typecheck` and `npm test` pass (one trivial vitest test proves the runner works).
-- [ ] Verified with the fallow skill (no unused files or dependencies).
+Verified on 2026-11-12 with a throwaway probe script (fetch + Chrome 157 over raw CDP), on Node 22.18 locally.
+
+- [x] `npm run dev` serves the placeholder route with HMR. (`<h1 class="text-2xl font-bold">Collections</h1>` served. Editing
+      `src/routes/home.tsx` updated the h1 in Chrome with no full reload. That needed the `rsc:update` →
+      router `revalidate()` hook in [src/entry.browser.tsx](../../../src/entry.browser.tsx).)
+- [x] `npm run build && npm start` serves the same route from the production build. (Same h1, Tailwind CSS from
+      `/assets/root-*.css` contains `.text-2xl`, and [src/server.ts](../../../src/server.ts) sets `NODE_ENV=production`.)
+- [x] Every dependency in the RSC/i18n layer is pinned to an exact version recorded in the spike results. (`package.json`:
+      react/react-dom 19.3.1, react-router 8.5.1, @vitejs/plugin-rsc 0.5.39, @lingui/cli, conf and format-json 6.12.0, with no
+      `^`/`~`. `@lingui/core`, `@lingui/react` and `@lingui/vite-plugin` are added in TICKET-I18N-01, the first ticket that
+      uses them, at 6.12.0. `engines.node` is `>=26`, the Docker LTS.)
+- [x] Server components and server actions can read the request context (request, cookies) through `src/context.ts`.
+      (`getCookie("probe")` returned `hello world` in a server component and in a `'use server'` action, after a no-JS
+      form post, in dev and prod. The temporary probe route was removed afterwards. Unit-tested in
+      [src/context.test.ts](../../../src/context.test.ts).)
+- [x] `/healthz` returns 200. (200 in dev and prod. It also returned 200 with `PORT=3005 DATA_DIR=<tmp>`, which created
+      `<tmp>/db.sqlite`.)
+- [x] `npm run typecheck` and `npm test` pass (one trivial vitest test proves the runner works). (tsc is clean. vitest:
+      2 files, 13 tests, covering `parseCookies`/`getCookie`/`requestContext` and `parseTrustProxy`.)
+- [x] Verified with the fallow skill (no unused files or dependencies). (fallow 3.42.0: dead-code 0, dupes 0, health 0.
+      The plugin-rsc entries and `lingui.config.ts` are declared as entry points in `.fallowrc.json`, because they are loaded by
+      string path. `@vitejs/plugin-rsc` moved to `dependencies` because the entries import its runtime.)
 
 ## Notes
 

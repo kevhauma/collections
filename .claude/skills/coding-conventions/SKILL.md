@@ -11,10 +11,10 @@ The design is the source of truth: [docs/technical-design.md](../../../docs/tech
 changes a pattern, update this file in the same change (one or two sentences, in the matching section), and prefer
 linking an exemplar file over describing it.
 
-> Until TICKET-PLAT-02 lands, paths and commands here are the planned ones. Once the spike (TICKET-PLAT-01) and
-> scaffold exist, replace anything that turned out differently and link the real files. The spike's proven entry,
-> server, Lingui and Dockerfile snippets and pinned versions are in
-> [docs/research/spike-results.md](../../../docs/research/spike-results.md).
+> The scaffold (TICKET-PLAT-02) exists: commands and paths below are real unless a later ticket is named. The spike's
+> proven Lingui and Dockerfile snippets and the pinned versions are in
+> [docs/research/spike-results.md](../../../docs/research/spike-results.md). Node is `>=26` (`engines`; Lingui needs
+> ≥ 22.19, and an older Node makes npm silently skip its native binary).
 
 ## Commands
 
@@ -45,6 +45,16 @@ src/
 migrations/        # NNN-name.sql
 scripts/           # CLI scripts, run with plain `node` (native TS type stripping)
 ```
+
+- [src/server.ts](../../../src/server.ts) runs under plain `node` (dev: Vite middleware mode; `--prod`: serves `dist/`
+  and sets `NODE_ENV=production` before loading it). Anything it needs from the app (e.g. `healthz`) is a named export
+  of [src/entry.rsc.tsx](../../../src/entry.rsc.tsx), so app code stays inside the Vite bundle. Its own relative
+  imports need the `.ts` extension.
+- Env: `PORT` (3000), `DATA_DIR` (`./data`, holds `db.sqlite`), `TRUST_PROXY` (parsed by `src/lib/env.ts`).
+- Files loaded only by string path (the RSC entries, `lingui.config.ts`) are listed as `entry` in `.fallowrc.json`.
+  Add new ones there instead of suppressing fallow findings.
+- Server-component HMR depends on the `rsc:update` → router `revalidate()` hook in
+  [src/entry.browser.tsx](../../../src/entry.browser.tsx).
 
 ## General style
 
@@ -151,6 +161,8 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - vitest **unit tests** for logic: validators, parsers, slug and rank functions, conversions, repositories against a
   **temp SQLite file per test**. Name the cases the ticket lists.
 - No component tests unless a ticket or the user asks for them.
+- vitest uses its own [vitest.config.ts](../../../vitest.config.ts), so tests don't start the RSC environments.
+  Exemplar: [src/context.test.ts](../../../src/context.test.ts).
 - Test pure functions directly. Run repository tests against real SQLite, never mocks.
 
 ## Verification (Definition of Done)
