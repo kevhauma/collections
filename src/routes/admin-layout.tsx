@@ -1,9 +1,11 @@
 import { Trans } from "@lingui/react/macro";
+import { requestContext } from "../context";
 import type { ReactNode } from "react";
 import { Outlet, redirect } from "react-router";
 import { adminExists } from "../db/admin";
 import { setupRequestI18n } from "../i18n";
 import { ClientI18nProvider } from "../i18n/client-provider";
+import { Button } from "../ui/button";
 import { AdminNav } from "./admin-nav";
 import { RouteError } from "./route-error";
 
@@ -11,6 +13,7 @@ import { RouteError } from "./route-error";
 // (never in the public layout).
 export const Layout = ({ children }: { children: ReactNode }) => {
   const { locale, messages } = setupRequestI18n();
+  const loggedIn = requestContext().session !== undefined;
   return (
     <ClientI18nProvider locale={locale} messages={messages}>
       <div className="mx-auto flex min-h-dvh max-w-6xl flex-col px-4 sm:px-8">
@@ -18,9 +21,18 @@ export const Layout = ({ children }: { children: ReactNode }) => {
           <a href="/admin" className="font-hand text-4xl leading-none text-ink no-underline">
             <Trans id="app.name">Collections</Trans>
           </a>
-          <AdminNav />
-          {/* TICKET-AUTH-02: logout button, TICKET-I18N-02: locale switcher. Both go here, pushed right. */}
-          <div className="flex items-center gap-3 sm:ml-auto" />
+          {loggedIn && <AdminNav />}
+          {/* TICKET-I18N-02: the locale switcher goes in this group too. */}
+          <div className="flex items-center gap-3 sm:ml-auto">
+            {loggedIn && (
+              // A plain form post, so logging out works without JS.
+              <form method="post" action="/admin/logout">
+                <Button variant="ghost" size="sm" type="submit">
+                  <Trans id="admin.logout">Log out</Trans>
+                </Button>
+              </form>
+            )}
+          </div>
         </header>
         <main id="main" tabIndex={-1} className="flex-1 py-4 focus-visible:outline-none">
           {children}

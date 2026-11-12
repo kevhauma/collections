@@ -18,7 +18,7 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/migrations ./migrations
 COPY --from=build /app/src/server.ts ./src/server.ts
-COPY --from=build /app/src/lib/env.ts ./src/lib/env.ts
+COPY --from=build /app/src/lib ./src/lib
 # Created before VOLUME so a new named volume inherits the node user's ownership.
 RUN mkdir /data && chown node:node /data
 VOLUME /data

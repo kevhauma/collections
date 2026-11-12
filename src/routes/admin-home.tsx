@@ -1,4 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
+import type { ActionFunctionArgs } from "react-router";
+import { requestContext } from "../context";
 import { Badge } from "../ui/badge";
 import { Button, LinkButton } from "../ui/button";
 import { Card } from "../ui/card";
@@ -11,10 +13,11 @@ import { Popover } from "../ui/popover";
 import { PostIt } from "../ui/post-it";
 import { TabLinks } from "../ui/tab-links";
 import { Table, Td, Th } from "../ui/table";
+import { LoginForm, loginAction, type LoginResult } from "./admin-login";
 import { LocaleCheck } from "./locale-check";
 
-// Placeholder admin page, replaced by login + dashboard in TICKET-AUTH-02 / COL-01.
-// shortcut: it mounts every src/ui component for UI-01's live browser check (deliberately no showcase page) and
+// /admin: the login form without a session, the dashboard with one. The dashboard is a placeholder until
+// TICKET-COL-01. shortcut: it mounts every src/ui component for UI-01's live browser check (deliberately no showcase page) and
 // LocaleCheck for I18N-01; delete each usage once a real screen uses that component.
 const rows = [
   { rank: 1, title: "Example item A", note: "placeholder", color: "yellow", top: true },
@@ -22,7 +25,13 @@ const rows = [
   { rank: 3, title: "Example item C", note: "placeholder", color: "green", top: false },
 ] as const;
 
-export default function AdminHome() {
+export const action = ({ request }: ActionFunctionArgs) => loginAction(request);
+
+export default function AdminHome({ actionData }: { actionData?: LoginResult }) {
+  return requestContext().session ? <Dashboard /> : <LoginForm error={actionData?.error} />;
+}
+
+function Dashboard() {
   const { t } = useLingui();
   return (
     <div className="grid gap-10">

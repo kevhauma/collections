@@ -21,6 +21,8 @@ import { unstable_matchRSCServerRequest as matchRSCServerRequest } from "react-r
 import { parseCookies, runWithContext } from "./context";
 import { db } from "./db/connection";
 import { getDefaultLocale } from "./db/settings";
+import { deleteExpiredSessions } from "./db/sessions";
+import { getSession, sessionCookie, sessionCookieName } from "./features/auth/session";
 import { localeCookie, resolveLocale } from "./i18n/locale";
 import { routes } from "./routes";
 
@@ -40,24 +42,38 @@ const fetchServer = (request: Request) =>
       }),
   });
 
-export default function handler(request: Request): Promise<Response> {
-  // The locale is resolved once here; everything below, including actions and server components, reads it and
-  // the request via src/context.ts.
+export default async function handler(request: Request): Promise<Response> {
+  // Locale and session are resolved once here; everything below, including actions and server components, reads
+  // them and the request via src/context.ts.
+  const cookies = parseCookies(request.headers.get("cookie"));
   const locale = resolveLocale({
-    cookie: parseCookies(request.headers.get("cookie"))[localeCookie],
+    cookie: cookies[localeCookie],
     acceptLanguage: request.headers.get("accept-language"),
     defaultLocale: getDefaultLocale(),
   });
-  return runWithContext({ request, locale }, async () => {
+  const session = getSession(cookies[sessionCookieName]);
+  // A renewed session re-sends its cookie, so the browser's expiry slides along with the server's.
+  const setCookies = session?.renewed ? [sessionCookie(session.token, request)] : [];
+  const response = await runWithContext({ request, locale, session, setCookies }, async () => {
     // The ssr environment is a separate module graph (no react-server condition), so it's loaded through Vite.
     const ssr = await import.meta.viteRsc.loadModule<typeof import("./entry.ssr")>("ssr", "index");
     return ssr.generateHTML(request, await fetchServer(request));
   });
+  return withCookies(response, setCookies);
 }
+
+// Copies the response so its headers are mutable (redirect responses' aren't).
+const withCookies = (response: Response, cookies: string[]): Response => {
+  if (cookies.length === 0) return response;
+  const copy = new Response(response.body, response);
+  cookies.forEach((cookie) => copy.headers.append("Set-Cookie", cookie));
+  return copy;
+};
 
 // Exported for server.ts: opens and migrates the DB before it listens, so a failing migration aborts startup.
 export const initDb = (): void => {
   db();
+  deleteExpiredSessions(Math.floor(Date.now() / 1000));
 };
 
 // Exported for server.ts so /healthz checks the same DB connection the app uses, inside this bundle.

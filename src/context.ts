@@ -1,10 +1,12 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import type { Session } from "./features/auth/session";
 import type { Locale } from "./i18n/locale";
 
 // One store per request, entered in entry.rsc.tsx around routing, rendering and actions.
 // Server components and 'use server' actions both run inside it, so neither needs the request passed down.
-// Values are resolved once per request (session: AUTH-02).
-export type RequestContext = { request: Request; locale: Locale };
+// Locale and session are resolved once per request. setCookies collects Set-Cookie values (login, logout,
+// session renewal); entry.rsc.tsx adds them to the response.
+export type RequestContext = { request: Request; locale: Locale; session?: Session; setCookies: string[] };
 
 const store = new AsyncLocalStorage<RequestContext>();
 

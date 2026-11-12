@@ -30,7 +30,8 @@ describe("password hashing", async () => {
     ["extra segment", `${stored}$x`],
     ["non-numeric N", stored.replace("$131072$", "$abc$")],
     ["N too large for the memory cap", stored.replace("$131072$", "$1073741824$")],
-    ["flipped hash byte", stored.slice(0, -3) + (stored.at(-3) === "A" ? "B" : "A") + stored.slice(-2)],
+    // The first hash character: one before the base64 padding can carry only padding bits.
+    ["changed hash", stored.replace(/\$([^$])([^$]*)$/, (_, first: string, rest: string) => `$${first === "A" ? "B" : "A"}${rest}`)],
   ])("fails cleanly on a tampered string (%s)", async (_, tampered) => {
     await expect(verifyPassword(password, tampered)).resolves.toBe(false);
   });

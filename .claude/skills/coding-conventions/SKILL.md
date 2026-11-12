@@ -96,7 +96,10 @@ scripts/           # CLI scripts, run with plain `node` (native TS type strippin
 
 Every `'use server'` action follows the same shape:
 
-1. `requireAdmin()` first. Actions are public HTTP endpoints even when nothing links to them.
+1. `requireAdmin()` first ([src/features/auth/guard.ts](../../../src/features/auth/guard.ts)). Actions are public HTTP
+   endpoints even when nothing links to them. Admin route loaders call it too: a parent layout's loader doesn't rerun
+   on every client navigation. Without a session, `GET` redirects to the login at `/admin`, and anything else gets
+   a thrown `Response` 401.
 2. Parse input with zod (`FormData` → typed input). Never trust ids, ranks or statuses from the client: re-check
    that the target belongs to the collection in the URL.
 3. Call a repository function. Multi-table changes run inside **one** transaction in the repository.
@@ -113,8 +116,10 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 ## Data access (ADR 0003)
 
 - All SQL lives in `src/db/*.ts` repository modules. **No SQL in routes, components or actions.**
-- A repository function takes the connection as an optional last parameter (`connection = db()`), so tests can pass
-  a temp DB or two connections to one file ([src/db/admin.ts](../../../src/db/admin.ts)). Prefer a single atomic
+- Repository tests open a temp DB. Either the function takes the connection as an optional last parameter
+  (`connection = db()`, needed for two connections to one file, [src/db/admin.ts](../../../src/db/admin.ts)), or the
+  test file sets `DATA_DIR` to a temp dir before the first `db()` call
+  ([src/features/auth/session.test.ts](../../../src/features/auth/session.test.ts)). Prefer a single atomic
   statement (`INSERT … ON CONFLICT DO NOTHING`, then check `changes`) over check-then-insert.
 - Values always go through bound parameters. The only interpolated SQL is a **validated integer field id** that
   belongs to the collection (dynamic `ORDER BY` / `json_extract` paths), validated by `parseListParams` or the
@@ -140,6 +145,10 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - Redirect targets are same-origin paths only. Cookies are `HttpOnly`, `SameSite=Lax`, and `Secure` outside local
   dev.
 - Never log passwords, session tokens or full request bodies.
+- The session is resolved once per request in `entry.rsc.tsx` (`requestContext().session`). To send a cookie from an
+  action, push it onto `requestContext().setCookies`; `entry.rsc.tsx` adds them to whatever response goes out
+  (`logIn()` / `logOut()` in [src/features/auth/session.ts](../../../src/features/auth/session.ts)). Cross-origin
+  writes are refused with 403 in `src/server.ts` before app code runs.
 
 ## URL state
 

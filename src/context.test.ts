@@ -22,7 +22,7 @@ describe("parseCookies", () => {
 describe("request context", () => {
   it("exposes the request and its cookies inside runWithContext", () => {
     const request = new Request("http://localhost/", { headers: { cookie: "locale=nl" } });
-    runWithContext({ request, locale: "en" }, () => {
+    runWithContext({ request, locale: "en", setCookies: [] }, () => {
       expect(requestContext().request).toBe(request);
       expect(getCookie("locale")).toBe("nl");
       expect(getCookie("missing")).toBeUndefined();

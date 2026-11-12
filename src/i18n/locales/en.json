@@ -1,4 +1,5 @@
 {
+  "login.card": "Admin",
   "setup.card": "Admin password",
   "admin.nav.label": "Admin sections",
   "home.placeholder.submit": "Ask the server",
@@ -8,7 +9,12 @@
   "app.name": "Collections",
   "admin.nav.collections": "Collections",
   "admin.nav.export": "Export",
+  "login.heading": "Log in",
+  "login.submit": "Log in",
+  "login.title": "Log in · Collections",
+  "admin.logout": "Log out",
   "error.notFound.title": "Page not found",
+  "login.password": "Password",
   "setup.password": "Password",
   "home.placeholder.client": "Rendered by a client component.",
   "setup.confirm": "Repeat the password",
@@ -20,7 +26,9 @@
   "error.server.body": "The page couldn't be shown. Try again in a moment.",
   "setup.error.mismatch": "The two passwords don't match.",
   "error.notFound.body": "This page doesn't exist, or it isn't shared.",
+  "login.error.tooMany": "Too many attempts. Try again in a minute.",
   "home.placeholder.action": "Translated by a server action.",
   "setup.error.tooShort": "Use at least 12 characters.",
-  "setup.heading": "Welcome"
+  "setup.heading": "Welcome",
+  "login.error.wrong": "Wrong password."
 }

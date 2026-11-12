@@ -23,7 +23,10 @@ export const routes = () =>
           id: "admin",
           path: "admin",
           lazy: () => import("./routes/admin-layout"),
-          children: [{ id: "admin-home", index: true, lazy: () => import("./routes/admin-home") }],
+          children: [
+            { id: "admin-home", index: true, lazy: () => import("./routes/admin-home") },
+            { id: "admin-logout", path: "logout", lazy: () => import("./routes/admin-logout") },
+          ],
         },
       ],
     },

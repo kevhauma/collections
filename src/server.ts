@@ -3,14 +3,24 @@
 import express from "express";
 import { createRequestListener } from "@remix-run/node-fetch-server";
 import { parseTrustProxy } from "./lib/env.ts";
+import { isCrossOriginWrite } from "./lib/origin.ts";
 
 type RscEntry = typeof import("./entry.rsc.tsx");
 
 const prod = process.argv.includes("--prod");
 const port = Number(process.env.PORT ?? 3000);
 
+const trustProxy = parseTrustProxy(process.env.TRUST_PROXY);
 const app = express();
-app.set("trust proxy", parseTrustProxy(process.env.TRUST_PROXY));
+app.set("trust proxy", trustProxy);
+
+// Writes from another site are refused before any app code runs. req.host follows X-Forwarded-Host when the
+// proxy is trusted.
+app.use((req, res, next) =>
+  isCrossOriginWrite({ method: req.method, origin: req.headers.origin, host: req.host })
+    ? res.sendStatus(403)
+    : next(),
+);
 
 const loadEntry = async (): Promise<() => Promise<RscEntry>> => {
   if (prod) {
@@ -38,6 +48,10 @@ const entry = await loadEntry();
 app.get("/healthz", async (_req, res) => {
   res.sendStatus((await entry()).healthz() ? 200 : 503);
 });
-app.use(createRequestListener(async (request) => (await entry()).default(request)));
+// trustProxy makes request.url carry the scheme and host the browser used (X-Forwarded-Proto / -Host).
+const handler = createRequestListener(async (request) => (await entry()).default(request), {
+  trustProxy: trustProxy !== false && trustProxy !== 0,
+});
+app.use(handler);
 
 app.listen(port, () => console.log(`Listening on http://localhost:${port} (${prod ? "production" : "development"})`));

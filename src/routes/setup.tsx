@@ -4,6 +4,7 @@ import { data, redirect, type ActionFunctionArgs } from "react-router";
 import { z } from "zod";
 import { adminExists, createAdmin } from "../db/admin";
 import { hashPassword } from "../features/auth/password";
+import { logIn } from "../features/auth/session";
 import { actionI18n } from "../i18n";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
@@ -43,7 +44,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
   // createAdmin is atomic: if another setup won the race in the meantime, this one gets the 404.
   if (!createAdmin(await hashPassword(parsed.data.password))) throw notFound();
-  // shortcut: no session yet, so the owner lands on /admin unauthenticated; TICKET-AUTH-02 logs them in here.
+  logIn();
   return redirect("/admin");
 };
 
