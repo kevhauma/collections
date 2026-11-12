@@ -1,3 +1,4 @@
+import { Trans } from "@lingui/react/macro";
 import { Badge } from "../ui/badge";
 import { Button, LinkButton } from "../ui/button";
 import { Card } from "../ui/card";
@@ -10,6 +11,7 @@ import { Popover } from "../ui/popover";
 import { PostIt } from "../ui/post-it";
 import { TabLinks } from "../ui/tab-links";
 import { Table, Td, Th } from "../ui/table";
+import { LocaleCheck } from "./locale-check";
 
 // Placeholder home route (TICKET-PLAT-02), replaced by the public index in TICKET-PUB-01.
 // shortcut: it also mounts every src/ui component for UI-01's live browser check (deliberately no showcase page);
@@ -24,7 +26,9 @@ export default function Home() {
   return (
     <main className="mx-auto grid max-w-6xl gap-10 px-4 py-6 sm:px-8">
       <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
-        <h1>Collections</h1>
+        <h1>
+          <Trans id="app.name">Collections</Trans>
+        </h1>
         <TabLinks
           label="Placeholder tabs"
           tabs={[
@@ -44,6 +48,8 @@ export default function Home() {
           </LinkButton>
         </div>
       </div>
+
+      <LocaleCheck />
 
       <div className="grid items-start gap-x-8 gap-y-10 lg:grid-cols-[1.6fr_1fr]">
         <Card heading="Table (placeholder)">

@@ -1,0 +1,6 @@
+{
+  "home.placeholder.submit": "Ask the server",
+  "app.name": "Collections",
+  "home.placeholder.client": "Rendered by a client component.",
+  "home.placeholder.action": "Translated by a server action."
+}

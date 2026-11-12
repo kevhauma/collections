@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **4 / 22 done**
+Progress: **5 / 22 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -16,7 +16,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 2 | [PLAT-02](../../platform/tickets/TICKET-PLAT-02-project-scaffold.md) | Project scaffold | M1 Foundation | PLAT-01 | ✅ |
 | 3 | [PLAT-03](../../platform/tickets/TICKET-PLAT-03-database-and-migrations.md) | Database, migrations, initial schema | M1 Foundation | PLAT-02 | ✅ |
 | 4 ‖ | [UI-01](../../ui/tickets/TICKET-UI-01-ui-library-foundation.md) | UI library foundation | M1 Foundation | PLAT-02 | ✅ |
-| 5 | [I18N-01](../../i18n/tickets/TICKET-I18N-01-lingui-setup.md) | Lingui setup and locale resolution | M1 Foundation | PLAT-02, PLAT-03 | ⬜ |
+| 5 | [I18N-01](../../i18n/tickets/TICKET-I18N-01-lingui-setup.md) | Lingui setup and locale resolution | M1 Foundation | PLAT-02, PLAT-03 | ✅ |
 | 6 | [UI-02](../../ui/tickets/TICKET-UI-02-app-shells.md) | App shells and error pages | M1 Foundation | UI-01, I18N-01 | ⬜ |
 | 7 ‖ | [PLAT-04](../../platform/tickets/TICKET-PLAT-04-docker-deployment.md) | Docker image and deploy notes | M1 Foundation | PLAT-02, PLAT-03 | ⬜ |
 | 8 | [AUTH-01](../../auth/tickets/TICKET-AUTH-01-first-run-setup.md) | First-run setup | M2 Admin access | PLAT-03, UI-02, I18N-01 | ⬜ |

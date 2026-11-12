@@ -14,7 +14,8 @@ linking an exemplar file over describing it.
 > The scaffold (TICKET-PLAT-02) exists: commands and paths below are real unless a later ticket is named. The spike's
 > proven Lingui and Dockerfile snippets and the pinned versions are in
 > [docs/research/spike-results.md](../../../docs/research/spike-results.md). Node is `>=26` (`engines`; Lingui needs
-> ≥ 22.19, and an older Node makes npm silently skip its native binary).
+> ≥ 22.19, and an older Node makes npm silently skip its native binary). Install with `npm ci --ignore-scripts`: npm 11
+> otherwise runs node-gyp for better-sqlite3, whose prebuilds already ship in the tarball.
 
 ## Commands
 
@@ -138,6 +139,13 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - Every UI string uses an **explicit id** (`area.thing.action`) with text in **both** `en.json` and `nl.json`. Never
   use a source string as the id.
 - Import Lingui runtime APIs through `src/i18n/`. Macros are imported from `@lingui/*/macro` directly.
+- The seam is [src/i18n/index.ts](../../../src/i18n/index.ts): the root calls `setupRequestI18n()`, after which
+  server components use `<Trans id>` / `useLingui()` from `@lingui/react/macro`. Client components get the same
+  macros through `ClientI18nProvider` ([src/i18n/client-provider.tsx](../../../src/i18n/client-provider.tsx)),
+  and actions use `actionI18n()._(msg({ id, message }))`. The locale is resolved once in `entry.rsc.tsx` by the
+  pure `resolveLocale` ([src/i18n/locale.ts](../../../src/i18n/locale.ts)) and read from `requestContext().locale`.
+- After adding a message: `npm run i18n:extract`, then fill in `nl.json`. `src/i18n/catalogs.test.ts` fails on a
+  missing or empty translation and on non-`area.thing` ids.
 - Catalogs are imported compiled through the Vite plugin (`./locales/nl.json?lingui`). There's no `lingui compile`
   step.
 - Format numbers and dates with `formatNumber` / `formatDate` from `src/i18n/`, never `toFixed` or string

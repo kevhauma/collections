@@ -18,8 +18,10 @@ import {
   renderToReadableStream,
 } from "@vitejs/plugin-rsc/rsc";
 import { unstable_matchRSCServerRequest as matchRSCServerRequest } from "react-router";
-import { runWithContext } from "./context";
+import { parseCookies, runWithContext } from "./context";
 import { db } from "./db/connection";
+import { getDefaultLocale } from "./db/settings";
+import { localeCookie, resolveLocale } from "./i18n/locale";
 import { routes } from "./routes";
 
 const fetchServer = (request: Request) =>
@@ -39,8 +41,14 @@ const fetchServer = (request: Request) =>
   });
 
 export default function handler(request: Request): Promise<Response> {
-  // Everything below, including actions and server components, can read the request via src/context.ts.
-  return runWithContext({ request }, async () => {
+  // The locale is resolved once here; everything below, including actions and server components, reads it and
+  // the request via src/context.ts.
+  const locale = resolveLocale({
+    cookie: parseCookies(request.headers.get("cookie"))[localeCookie],
+    acceptLanguage: request.headers.get("accept-language"),
+    defaultLocale: getDefaultLocale(),
+  });
+  return runWithContext({ request, locale }, async () => {
     // The ssr environment is a separate module graph (no react-server condition), so it's loaded through Vite.
     const ssr = await import.meta.viteRsc.loadModule<typeof import("./entry.ssr")>("ssr", "index");
     return ssr.generateHTML(request, await fetchServer(request));

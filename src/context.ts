@@ -1,9 +1,10 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import type { Locale } from "./i18n/locale";
 
 // One store per request, entered in entry.rsc.tsx around routing, rendering and actions.
 // Server components and 'use server' actions both run inside it, so neither needs the request passed down.
-// Later tickets add resolved values here (locale: I18N-01, session: AUTH-02).
-export type RequestContext = { request: Request };
+// Values are resolved once per request (session: AUTH-02).
+export type RequestContext = { request: Request; locale: Locale };
 
 const store = new AsyncLocalStorage<RequestContext>();
 
