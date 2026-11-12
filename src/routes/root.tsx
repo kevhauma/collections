@@ -1,4 +1,5 @@
 import { Outlet } from "react-router";
+import { InkDefs } from "../ui/ink-defs";
 import "../ui/styles.css";
 
 // Document shell. TICKET-UI-02 replaces it with the real admin/public shells.
@@ -11,6 +12,7 @@ export default function Root() {
         <title>Collections</title>
       </head>
       <body>
+        <InkDefs />
         <Outlet />
       </body>
     </html>

@@ -1,7 +1,7 @@
 # TICKET-UI-01: UI library foundation
 
 - **Area:** UI
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Traceability:** [technical-design.md § Stack](../../technical-design.md#stack) (Styling, UI library rows)
 
 ## User story
@@ -30,6 +30,8 @@ default, with native HTML for interactivity.
   - `Table`, `Th` (renders a sort link with `aria-sort`), `Td`
   - `TabLinks`, tabs as plain links with `aria-current="page"`
   - `Dialog` (native `<dialog>`, opened per the spike's finding) and `Popover` (Popover API)
+  - added during the build: `PostIt` (the item image frame the direction calls for, also used by `EmptyState`) and
+    `InkDefs` (the SVG wobble filter behind every drawn outline)
 - Each file is a server component unless it needs state. Client components carry `'use client'` and are listed in
   `src/ui/README.md`, together with each component's props.
 
@@ -42,20 +44,32 @@ default, with native HTML for interactivity.
 
 ## Acceptance criteria
 
-- [ ] All components above exist and are typed. Variants are declared with `cva`, with no inline conditionals for
-      styling.
-- [ ] No component in the list uses hooks or `'use client'` except `Dialog` / `Popover`, and only if the spike
-      showed they need it.
-- [ ] `FormField` produces correct label association and error announcement. Checked with a screen reader or the
-      accessibility tree in the browser.
-- [ ] Live browser check of each component on the placeholder route. There is deliberately **no** showcase page;
-      remove the usages once real screens use them.
-- [ ] `src/ui/README.md` documents each component's props and which ones are client components.
-- [ ] Tokens and components implement the design direction in
+- [x] All components above exist and are typed. Variants are declared with `cva`, with no inline conditionals for
+      styling. (`src/ui/*.tsx`, `npm run typecheck` clean; variants in `cva` for Button, Card, Badge, PostIt; state
+      styling via `aria-*` / `has-*` variants and lookup objects, e.g. `fastenings` in `post-it.tsx`)
+- [x] No component in the list uses hooks or `'use client'` except `Dialog` / `Popover`, and only if the spike
+      showed they need it. (none does, Dialog and Popover included: they open with invoker commands / the Popover
+      API, verified opening by real click with JS disabled in Chrome over CDP)
+- [x] `FormField` produces correct label association and error announcement. Checked with a screen reader or the
+      accessibility tree in the browser. (Chrome accessibility tree: textbox "Title" with description "A hint under
+      the control."; textbox "Year" with description "An error, announced with the field." and invalid=true)
+- [x] Live browser check of each component on the placeholder route. There is deliberately **no** showcase page;
+      remove the usages once real screens use them. (`src/routes/home.tsx`, prod build, Chrome headless at 1440 and
+      360 px with JS off: no horizontal scroll at 360 px, dialog opens and closes, popover opens anchored under its
+      button, dashed focus ring on keyboard focus for tabs, buttons and inputs, `aria-sort` and `aria-current`
+      present. Every control is at least 40 px tall, and checkboxes/radios sit inside 40 px labels. Contrast
+      measured: ink 9.89, ink-soft 6.03, pencil 6.63, red pen 4.76:1 on paper)
+- [x] `src/ui/README.md` documents each component's props and which ones are client components. (none are)
+- [x] Tokens and components implement the design direction in
       [.impeccable/surfaces/src-ui.md](../../../.impeccable/surfaces/src-ui.md): squared paper ground, ballpoint
       ink, red-pen and highlighter accents, hand-drawn outlines, post-it image frame. `DESIGN.md` is written from
-      the result.
-- [ ] Verified with the fallow skill.
+      the result. (`src/ui/styles.css` tokens + `ink-outline`; `PostIt` frame; compared against
+      `bp-drawn.html` in desktop and 360 px screenshots; [DESIGN.md](../../../DESIGN.md) and
+      `.impeccable/design.json` written from the shipped code. Red pen also marks danger buttons and form errors,
+      recorded in DESIGN.md. Kalam stayed legible at 360 px, closing the brief's open question)
+- [x] Verified with the fallow skill. (`npx fallow@3.42.0 audit --base HEAD` → pass: dead-code 0, complexity 0,
+      dupes 0, after `FormField` was refactored from a branchy body to a mapped message list to clear a CRAP finding;
+      the impeccable detector also reported no findings)
 
 ## Notes
 

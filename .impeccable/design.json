@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-12T21:29:13.888Z",
+  "title": "Design System: Collections",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Notebook White",
+        "canonical": "oklch(99.3% 0.003 106.4)",
+        "tonalRamp": [
+          "oklch(15% 0.003 106.4)",
+          "oklch(26% 0.003 106.4)",
+          "oklch(37% 0.003 106.4)",
+          "oklch(48% 0.003 106.4)",
+          "oklch(60% 0.003 106.4)",
+          "oklch(72% 0.003 106.4)",
+          "oklch(84% 0.003 106.4)",
+          "oklch(95% 0.003 106.4)"
+        ]
+      },
+      "grid": {
+        "role": "neutral",
+        "displayName": "Grid Line Blue",
+        "canonical": "oklch(93.2% 0.015 260.7)",
+        "tonalRamp": [
+          "oklch(15% 0.015 260.7)",
+          "oklch(26% 0.015 260.7)",
+          "oklch(37% 0.015 260.7)",
+          "oklch(48% 0.015 260.7)",
+          "oklch(60% 0.015 260.7)",
+          "oklch(72% 0.015 260.7)",
+          "oklch(84% 0.015 260.7)",
+          "oklch(95% 0.015 260.7)"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Margin Rule Blue",
+        "canonical": "oklch(80.7% 0.039 265.8)",
+        "tonalRamp": [
+          "oklch(15% 0.039 265.8)",
+          "oklch(26% 0.039 265.8)",
+          "oklch(37% 0.039 265.8)",
+          "oklch(48% 0.039 265.8)",
+          "oklch(60% 0.039 265.8)",
+          "oklch(72% 0.039 265.8)",
+          "oklch(84% 0.039 265.8)",
+          "oklch(95% 0.039 265.8)"
+        ]
+      },
+      "ink": {
+        "role": "primary",
+        "displayName": "Ballpoint Blue",
+        "canonical": "oklch(38.7% 0.150 266.4)",
+        "tonalRamp": [
+          "oklch(15% 0.090 266.4)",
+          "oklch(26% 0.118 266.4)",
+          "oklch(37% 0.145 266.4)",
+          "oklch(48% 0.150 266.4)",
+          "oklch(60% 0.150 266.4)",
+          "oklch(72% 0.148 266.4)",
+          "oklch(84% 0.118 266.4)",
+          "oklch(95% 0.090 266.4)"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Faded Ink",
+        "canonical": "oklch(49.9% 0.104 268.5)",
+        "tonalRamp": [
+          "oklch(15% 0.075 268.5)",
+          "oklch(26% 0.094 268.5)",
+          "oklch(37% 0.104 268.5)",
+          "oklch(48% 0.104 268.5)",
+          "oklch(60% 0.104 268.5)",
+          "oklch(72% 0.104 268.5)",
+          "oklch(84% 0.094 268.5)",
+          "oklch(95% 0.075 268.5)"
+        ]
+      },
+      "pencil": {
+        "role": "neutral",
+        "displayName": "Pencil Grey",
+        "canonical": "oklch(47.3% 0.032 271.4)",
+        "tonalRamp": [
+          "oklch(15% 0.032 271.4)",
+          "oklch(26% 0.032 271.4)",
+          "oklch(37% 0.032 271.4)",
+          "oklch(48% 0.032 271.4)",
+          "oklch(60% 0.032 271.4)",
+          "oklch(72% 0.032 271.4)",
+          "oklch(84% 0.032 271.4)",
+          "oklch(95% 0.032 271.4)"
+        ]
+      },
+      "red-pen": {
+        "role": "secondary",
+        "displayName": "Red Pen",
+        "canonical": "oklch(57.4% 0.202 27.8)",
+        "tonalRamp": [
+          "oklch(15% 0.107 27.8)",
+          "oklch(26% 0.144 27.8)",
+          "oklch(37% 0.181 27.8)",
+          "oklch(48% 0.202 27.8)",
+          "oklch(60% 0.202 27.8)",
+          "oklch(72% 0.185 27.8)",
+          "oklch(84% 0.144 27.8)",
+          "oklch(95% 0.107 27.8)"
+        ]
+      },
+      "highlighter": {
+        "role": "tertiary",
+        "displayName": "Highlighter Yellow",
+        "canonical": "oklch(94.8% 0.142 103.1)",
+        "tonalRamp": [
+          "oklch(15% 0.087 103.1)",
+          "oklch(26% 0.113 103.1)",
+          "oklch(37% 0.139 103.1)",
+          "oklch(48% 0.142 103.1)",
+          "oklch(60% 0.142 103.1)",
+          "oklch(72% 0.142 103.1)",
+          "oklch(84% 0.113 103.1)",
+          "oklch(95% 0.087 103.1)"
+        ]
+      },
+      "postit-yellow": {
+        "role": "tertiary",
+        "displayName": "Post-it Yellow",
+        "canonical": "oklch(92.2% 0.143 97.8)",
+        "tonalRamp": [
+          "oklch(15% 0.088 97.8)",
+          "oklch(26% 0.114 97.8)",
+          "oklch(37% 0.140 97.8)",
+          "oklch(48% 0.143 97.8)",
+          "oklch(60% 0.143 97.8)",
+          "oklch(72% 0.142 97.8)",
+          "oklch(84% 0.114 97.8)",
+          "oklch(95% 0.088 97.8)"
+        ]
+      },
+      "postit-pink": {
+        "role": "tertiary",
+        "displayName": "Post-it Pink",
+        "canonical": "oklch(84.4% 0.092 2.0)",
+        "tonalRamp": [
+          "oklch(15% 0.071 2.0)",
+          "oklch(26% 0.087 2.0)",
+          "oklch(37% 0.092 2.0)",
+          "oklch(48% 0.092 2.0)",
+          "oklch(60% 0.092 2.0)",
+          "oklch(72% 0.092 2.0)",
+          "oklch(84% 0.087 2.0)",
+          "oklch(95% 0.071 2.0)"
+        ]
+      },
+      "postit-blue": {
+        "role": "tertiary",
+        "displayName": "Post-it Blue",
+        "canonical": "oklch(86.7% 0.063 229.5)",
+        "tonalRamp": [
+          "oklch(15% 0.061 229.5)",
+          "oklch(26% 0.063 229.5)",
+          "oklch(37% 0.063 229.5)",
+          "oklch(48% 0.063 229.5)",
+          "oklch(60% 0.063 229.5)",
+          "oklch(72% 0.063 229.5)",
+          "oklch(84% 0.063 229.5)",
+          "oklch(95% 0.061 229.5)"
+        ]
+      },
+      "postit-green": {
+        "role": "tertiary",
+        "displayName": "Post-it Green",
+        "canonical": "oklch(88.6% 0.098 134.0)",
+        "tonalRamp": [
+          "oklch(15% 0.073 134.0)",
+          "oklch(26% 0.090 134.0)",
+          "oklch(37% 0.098 134.0)",
+          "oklch(48% 0.098 134.0)",
+          "oklch(60% 0.098 134.0)",
+          "oklch(72% 0.098 134.0)",
+          "oklch(84% 0.090 134.0)",
+          "oklch(95% 0.073 134.0)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Scrawled page titles (h1)."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Dialog and empty-state titles, red rank numerals, notes on post-its."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All set text, including table data at 360 px."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Buttons, tab links, form labels, table headers."
+      },
+      "label-sm": {
+        "displayName": "Label small",
+        "purpose": "Small buttons and badges."
+      },
+      "tab": {
+        "displayName": "Module tab",
+        "purpose": "Uppercase heading on a module's paper-scrap tab."
+      }
+    },
+    "shadows": [
+      {
+        "name": "postit",
+        "value": "1px 3px 4px rgb(31 58 147 / 0.18)",
+        "purpose": "Post-its and popovers: things stuck onto the page."
+      },
+      {
+        "name": "pin",
+        "value": "inset -2px -2px 0 rgb(0 0 0 / 0.25), 1px 2px 2px rgb(0 0 0 / 0.25)",
+        "purpose": "The red pin head on a pinned post-it."
+      }
+    ],
+    "motion": [
+      {
+        "name": "hover-colors",
+        "value": "color and background-color, 150ms cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Hover fills on buttons. Nothing else animates; the post-it settle motion is not shipped."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "40rem"
+      },
+      {
+        "name": "lg",
+        "value": "64rem"
+      }
+    ],
+    "inkOutline": {
+      "filter": "<filter id=\"ink-wobble\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.045\" numOctaves=\"2\" seed=\"11\"/><feDisplacementMap in=\"SourceGraphic\" scale=\"3.2\"/></filter>",
+      "firstPass": "2px solid var(--ink-line, ink), inset 0",
+      "secondPass": "1.3px at 45% opacity, inset -3px 1px 1px -2px, rotated 0.35deg; hidden with --ink-echo: none on filled shapes",
+      "focusRing": "2px dashed ink, offset 3px",
+      "selection": "highlighter background, ink text"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Filled ballpoint blue, one per surface for the main action.",
+      "html": "<svg aria-hidden=\"true\" style=\"position:absolute;width:0;height:0\"><filter id=\"ink-wobble\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.045\" numOctaves=\"2\" seed=\"11\"/><feDisplacementMap in=\"SourceGraphic\" scale=\"3.2\"/></filter></svg><button class=\"ds-btn-primary\">+ Add item</button>",
+      "css": ".ds-btn-primary { position: relative; border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; } .ds-btn-primary::before, .ds-btn-primary::after { content: \"\"; position: absolute; inset: 0; border: 2px solid var(--ink-line, var(--color-ink, #1f3a93)); border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; filter: url(#ink-wobble); pointer-events: none; } .ds-btn-primary::after { inset: -3px 1px 1px -2px; border-width: 1.3px; opacity: 0.45; rotate: 0.35deg; display: none; } .ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 16px; font: 700 1rem/1.4 Kalam, cursive; white-space: nowrap; text-decoration: none; cursor: pointer; border: 0; transition: background-color 150ms; background: var(--color-ink, #1f3a93); color: var(--color-paper, #fdfdfb); } .ds-btn-primary:hover { background: var(--color-ink-soft, #4a5f9e); } .ds-btn-primary:focus-visible { outline: 2px dashed var(--color-ink, #1f3a93); outline-offset: 3px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Default button: a hand-drawn box in ink.",
+      "html": "<svg aria-hidden=\"true\" style=\"position:absolute;width:0;height:0\"><filter id=\"ink-wobble\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.045\" numOctaves=\"2\" seed=\"11\"/><feDisplacementMap in=\"SourceGraphic\" scale=\"3.2\"/></filter></svg><button class=\"ds-btn-secondary\">Edit</button>",
+      "css": ".ds-btn-secondary { position: relative; border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; } .ds-btn-secondary::before, .ds-btn-secondary::after { content: \"\"; position: absolute; inset: 0; border: 2px solid var(--ink-line, var(--color-ink, #1f3a93)); border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; filter: url(#ink-wobble); pointer-events: none; } .ds-btn-secondary::after { inset: -3px 1px 1px -2px; border-width: 1.3px; opacity: 0.45; rotate: 0.35deg; display: block; } .ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 16px; font: 700 1rem/1.4 Kalam, cursive; white-space: nowrap; text-decoration: none; cursor: pointer; border: 0; transition: background-color 150ms; background: transparent; color: var(--color-ink, #1f3a93); } .ds-btn-secondary:hover { background: var(--color-grid, #e3e9f3); } .ds-btn-secondary:focus-visible { outline: 2px dashed var(--color-ink, #1f3a93); outline-offset: 3px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "No box, an underlined ink word.",
+      "html": "<button class=\"ds-btn-ghost\">Cancel</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 16px; font: 700 1rem/1.4 Kalam, cursive; white-space: nowrap; text-decoration: none; cursor: pointer; border: 0; transition: background-color 150ms; background: transparent; color: var(--color-ink, #1f3a93); text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 4px; border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; } .ds-btn-ghost:hover { background: var(--color-grid, #e3e9f3); } .ds-btn-ghost:focus-visible { outline: 2px dashed var(--color-ink, #1f3a93); outline-offset: 3px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Red pen outline and text: a correction mark for destructive actions.",
+      "html": "<svg aria-hidden=\"true\" style=\"position:absolute;width:0;height:0\"><filter id=\"ink-wobble\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.045\" numOctaves=\"2\" seed=\"11\"/><feDisplacementMap in=\"SourceGraphic\" scale=\"3.2\"/></filter></svg><button class=\"ds-btn-danger\">Delete</button>",
+      "css": ".ds-btn-danger { position: relative; border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; } .ds-btn-danger::before, .ds-btn-danger::after { content: \"\"; position: absolute; inset: 0; border: 2px solid var(--ink-line, var(--color-ink, #1f3a93)); border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; filter: url(#ink-wobble); pointer-events: none; } .ds-btn-danger::after { inset: -3px 1px 1px -2px; border-width: 1.3px; opacity: 0.45; rotate: 0.35deg; display: block; } .ds-btn-danger { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 16px; font: 700 1rem/1.4 Kalam, cursive; white-space: nowrap; text-decoration: none; cursor: pointer; border: 0; transition: background-color 150ms; --ink-line: var(--color-red-pen, #d6312b); background: transparent; color: var(--color-red-pen, #d6312b); } .ds-btn-danger:hover { background: rgb(214 49 43 / 0.1); } .ds-btn-danger:focus-visible { outline: 2px dashed var(--color-ink, #1f3a93); outline-offset: 3px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Drawn box on a wrapper; turns red pen when invalid.",
+      "html": "<svg aria-hidden=\"true\" style=\"position:absolute;width:0;height:0\"><filter id=\"ink-wobble\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.045\" numOctaves=\"2\" seed=\"11\"/><feDisplacementMap in=\"SourceGraphic\" scale=\"3.2\"/></filter></svg><span class=\"ds-input\"><input placeholder=\"Example item\"></span>",
+      "css": ".ds-input { position: relative; border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; } .ds-input::before, .ds-input::after { content: \"\"; position: absolute; inset: 0; border: 2px solid var(--ink-line, var(--color-ink, #1f3a93)); border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; filter: url(#ink-wobble); pointer-events: none; } .ds-input::after { inset: -3px 1px 1px -2px; border-width: 1.3px; opacity: 0.45; rotate: 0.35deg; display: block; } .ds-input { display: flex; align-items: center; min-height: 44px; background: var(--color-paper, #fdfdfb); } .ds-input input { width: 100%; min-height: 44px; padding: 0 12px; border: 0; background: transparent; color: var(--color-ink, #1f3a93); font: 400 1rem/1.4 Kalam, cursive; } .ds-input input::placeholder { color: var(--color-pencil, #555b6e); } .ds-input input:focus-visible { outline: none; } .ds-input:has(:focus-visible) { outline: 2px dashed var(--color-ink, #1f3a93); outline-offset: 3px; } .ds-input:has([aria-invalid=\"true\"]) { --ink-line: var(--color-red-pen, #d6312b); }"
+    },
+    {
+      "name": "Tab Links",
+      "kind": "nav",
+      "refersTo": "tab-link",
+      "description": "Drawn link tabs; the current one is filled with ink.",
+      "html": "<svg aria-hidden=\"true\" style=\"position:absolute;width:0;height:0\"><filter id=\"ink-wobble\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.045\" numOctaves=\"2\" seed=\"11\"/><feDisplacementMap in=\"SourceGraphic\" scale=\"3.2\"/></filter></svg><nav class=\"ds-tabs\"><a href=\"#\" class=\"ds-tab\">Have</a><a href=\"#\" class=\"ds-tab\" aria-current=\"page\">Want</a></nav>",
+      "css": ".ds-tab { position: relative; border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; } .ds-tab::before, .ds-tab::after { content: \"\"; position: absolute; inset: 0; border: 2px solid var(--ink-line, var(--color-ink, #1f3a93)); border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; filter: url(#ink-wobble); pointer-events: none; } .ds-tab::after { inset: -3px 1px 1px -2px; border-width: 1.3px; opacity: 0.45; rotate: 0.35deg; display: block; } .ds-tabs { display: flex; gap: 4px; } .ds-tab { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; font: 700 1rem/1.4 Kalam, cursive; color: var(--color-ink, #1f3a93); text-decoration: none; } .ds-tab:hover { background: var(--color-grid, #e3e9f3); } .ds-tab[aria-current=\"page\"] { background: var(--color-ink, #1f3a93); color: var(--color-paper, #fdfdfb); } .ds-tab[aria-current=\"page\"]::after { display: none; } .ds-tab:focus-visible { outline: 2px dashed var(--color-ink, #1f3a93); outline-offset: 3px; }"
+    },
+    {
+      "name": "Highlight Badge",
+      "kind": "chip",
+      "refersTo": "badge-highlight",
+      "description": "Small drawn chip with a highlighter stroke, for the top item.",
+      "html": "<svg aria-hidden=\"true\" style=\"position:absolute;width:0;height:0\"><filter id=\"ink-wobble\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.045\" numOctaves=\"2\" seed=\"11\"/><feDisplacementMap in=\"SourceGraphic\" scale=\"3.2\"/></filter></svg><span class=\"ds-badge\">Top wish</span>",
+      "css": ".ds-badge { position: relative; border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; } .ds-badge::before, .ds-badge::after { content: \"\"; position: absolute; inset: 0; border: 2px solid var(--ink-line, var(--color-ink, #1f3a93)); border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; filter: url(#ink-wobble); pointer-events: none; } .ds-badge::after { inset: -3px 1px 1px -2px; border-width: 1.3px; opacity: 0.45; rotate: 0.35deg; display: none; } .ds-badge { display: inline-flex; align-items: center; padding: 0 10px; font: 700 0.875rem/1.43 Kalam, cursive; color: var(--color-ink, #1f3a93); background: linear-gradient(176deg, transparent 16%, var(--color-highlighter, #fff27a) 18% 84%, transparent 86%); }"
+    },
+    {
+      "name": "Module Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "A drawn module with a red paper-scrap heading tab over its top edge.",
+      "html": "<svg aria-hidden=\"true\" style=\"position:absolute;width:0;height:0\"><filter id=\"ink-wobble\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.045\" numOctaves=\"2\" seed=\"11\"/><feDisplacementMap in=\"SourceGraphic\" scale=\"3.2\"/></filter></svg><section class=\"ds-card\"><h2 class=\"ds-card-tab\">Want list</h2><p>Module content in Kalam.</p></section>",
+      "css": ".ds-card { position: relative; border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; } .ds-card::before, .ds-card::after { content: \"\"; position: absolute; inset: 0; border: 2px solid var(--ink-line, var(--color-ink, #1f3a93)); border-radius: 6px 12px 5px 10px / 10px 6px 12px 5px; filter: url(#ink-wobble); pointer-events: none; } .ds-card::after { inset: -3px 1px 1px -2px; border-width: 1.3px; opacity: 0.45; rotate: 0.35deg; display: block; } .ds-card { max-width: 320px; padding: 28px 16px 16px; background: rgb(253 253 251 / 0.6); color: var(--color-ink, #1f3a93); font: 400 1rem/1.4 Kalam, cursive; } .ds-card-tab { position: absolute; top: -12px; left: 12px; z-index: 1; margin: 0; padding: 0 12px; rotate: -1.5deg; border-radius: 3px 9px 4px 8px; background: var(--color-red-pen, #d6312b); color: var(--color-paper, #fdfdfb); font: 700 0.875rem/1.43 Kalam, cursive; letter-spacing: 0.025em; text-transform: uppercase; }"
+    },
+    {
+      "name": "Post-it",
+      "kind": "custom",
+      "refersTo": "postit-md",
+      "description": "Image frame: a tilted, pinned post-it with a lifting corner.",
+      "html": "<span class=\"ds-postit\"><span class=\"ds-pin\"></span></span>",
+      "css": ".ds-postit { position: relative; display: grid; place-items: center; width: 80px; height: 80px; padding: 6px; rotate: -3deg; background: var(--color-postit-yellow, #ffe66d); box-shadow: 1px 3px 4px rgb(31 58 147 / 0.18); } .ds-postit::before { content: \"\"; position: absolute; right: 0; bottom: 0; width: 12px; height: 12px; background: linear-gradient(135deg, var(--color-postit-yellow, #ffe66d) 50%, rgb(0 0 0 / 0.12) 50%); } .ds-pin { position: absolute; top: -6px; left: 50%; width: 12px; height: 12px; translate: -50% 0; border-radius: 50%; background: var(--color-red-pen, #d6312b); box-shadow: inset -2px -2px 0 rgb(0 0 0 / 0.25), 1px 2px 2px rgb(0 0 0 / 0.25); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Crammed Notebook Page",
+    "overview": "The whole collection lives on one page of a squared-paper notebook, written and boxed in blue ballpoint. Every container, button, tab, input and chip is a box someone drew by hand: a wobbly outline traced twice, the second pass fainter and slightly off. Item images are post-its tacked onto the page with a red pin or a strip of tape, each turned a few degrees. The page is dense on purpose; the owner should see everything about a collection at once, and a relative on a phone should see the same paper and ink in one calm column.\n\nThe handwriting carries the voice. Titles are scrawled large and loose; everything you read for information is written in a neater, steadier hand that stays legible down to 360 px table data. Colour is a pen case, not a palette: blue ink for nearly everything, a red pen for marks that demand attention, a highlighter for the one thing that matters most.\n\nThe world refuses the grey database app: a neutral sidebar, hairline tables, a single blue accent on white. Dark mode is out of scope; the page is paper.",
+    "keyCharacteristics": [
+      "Squared paper background (18px grid) under everything.",
+      "Double-pass wobbly pen outline on every drawn box; content inside stays crisp.",
+      "Blue ballpoint for text and outlines, red pen for ranks, module tabs and corrections, highlighter for the top item.",
+      "Post-its, pinned or taped and tilted, as the frame for item images.",
+      "Two handwriting faces: scrawled display, neat set text."
+    ],
+    "rules": [
+      {
+        "name": "The Pen Case Rule",
+        "body": "Only the twelve colours above exist; the theme resets Tailwind's palette. A new colour needs a new pen, not a new shade.",
+        "section": "colors"
+      },
+      {
+        "name": "The Red Mark Rule",
+        "body": "Red means \"look here\": a rank, a module heading, or a correction (danger, error). It never decorates.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Highlight Rule",
+        "body": "The highlighter marks the single active or top item on a surface. Two highlighted things means neither is.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Speeds Rule",
+        "body": "Reenie Beanie is for things you glance at, Kalam for things you read. Never set paragraphs, form values or table data in Reenie Beanie.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Ink Rule",
+        "body": "Tables use tabular numerals so columns of numbers line up.",
+        "section": "typography"
+      },
+      {
+        "name": "The Stuck-On Rule",
+        "body": "Only objects stuck onto the page cast shadows. Drawn boxes are ink on paper and stay flat.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** draw every box, button, tab, input and chip with the double-pass wobble outline; recolour it for danger and errors rather than inventing a new border.",
+      "**Do** keep text and outlines in ballpoint blue on paper; use faded ink for secondary text and pencil grey only for placeholders and provisional states.",
+      "**Do** frame item images in a post-it, tilted, pinned or taped, with paper showing around the photo.",
+      "**Do** use red pen only for ranks, module heading tabs and corrections (danger, errors), at bold or large sizes.",
+      "**Do** use the dashed ink focus ring (2px, 3px offset) on every focusable element.",
+      "**Do** keep controls at least 40px tall, and layouts working from 360px."
+    ],
+    "donts": [
+      "**Don't** add colours outside the twelve tokens, or use post-it colours for anything but post-its.",
+      "**Don't** highlight more than one item per surface.",
+      "**Don't** set body text, form values or table data in Reenie Beanie.",
+      "**Don't** give drawn boxes shadows; only post-its, pins and popovers cast them.",
+      "**Don't** draw clean straight-cornered rectangles, hairline borders or a neutral grey sidebar: that is the grey database app this world refuses."
+    ]
+  }
+}

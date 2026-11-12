@@ -1,1 +1,144 @@
+/* Self-hosted handwriting faces (latin subset covers EN and NL). */
+@import "@fontsource/kalam/latin-400.css";
+@import "@fontsource/kalam/latin-700.css";
+@import "@fontsource/reenie-beanie/latin-400.css";
 @import "tailwindcss";
+
+/* The notebook page: ballpoint on squared paper (.impeccable/surfaces/src-ui.md). Only these colours exist. */
+@theme {
+  --color-*: initial;
+  --color-paper: #fdfdfb;
+  --color-grid: #e3e9f3;
+  --color-rule: #b4c0da;
+  --color-ink: #1f3a93;
+  --color-ink-soft: #4a5f9e;
+  --color-pencil: #555b6e;
+  --color-red-pen: #d6312b;
+  --color-highlighter: #fff27a;
+  --color-postit-yellow: #ffe66d;
+  --color-postit-pink: #ffb3c7;
+  --color-postit-blue: #a9dcf5;
+  --color-postit-green: #bfe8a6;
+
+  --font-hand: "Reenie Beanie", cursive;
+  --font-set: "Kalam", cursive;
+
+  /* Uneven corners, so no two sides of a drawn box match. */
+  --radius-drawn: 6px 12px 5px 10px / 10px 6px 12px 5px;
+  --radius-scrap: 3px 9px 4px 8px;
+
+  --shadow-postit: 1px 3px 4px rgb(31 58 147 / 0.18);
+  --shadow-pin: inset -2px -2px 0 rgb(0 0 0 / 0.25), 1px 2px 2px rgb(0 0 0 / 0.25);
+
+  /* One square of the paper; the default 4px spacing scale stays for layout. */
+  --grid-square: 18px;
+}
+
+@layer base {
+  html {
+    color: var(--color-ink);
+    font: 400 1rem/1.4 var(--font-set);
+    caret-color: var(--color-ink);
+    accent-color: var(--color-ink);
+    scrollbar-color: var(--color-rule) var(--color-paper);
+    background:
+      linear-gradient(90deg, var(--color-grid) 1px, transparent 1px) 0 0 / var(--grid-square) var(--grid-square),
+      linear-gradient(var(--color-grid) 1px, transparent 1px) 0 0 / var(--grid-square) var(--grid-square),
+      var(--color-paper);
+  }
+  body {
+    min-height: 100dvh;
+  }
+  /* Page titles are scrawled. */
+  h1 {
+    font: 400 clamp(3.5rem, 12vw, 5.75rem) / 0.8 var(--font-hand);
+    text-wrap: balance;
+  }
+  ::selection {
+    background: var(--color-highlighter);
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    outline: 2px dashed var(--color-ink);
+    outline-offset: 3px;
+  }
+  a {
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1.5px;
+  }
+}
+
+/* A box drawn twice in ballpoint: the outline lives on pseudo-elements run through the wobble filter
+   (rendered once by <InkDefs />), so the content stays crisp. --ink-line recolours it (red for danger/errors). */
+@utility ink-outline {
+  position: relative;
+  border-radius: var(--radius-drawn);
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--ink-line, var(--color-ink));
+    border-radius: var(--radius-drawn);
+    filter: url(#ink-wobble);
+    pointer-events: none;
+  }
+  &::after {
+    inset: -3px 1px 1px -2px;
+    border-width: 1.3px;
+    opacity: 0.45;
+    rotate: 0.35deg;
+    display: var(--ink-echo, block);
+  }
+}
+
+/* Highlighter stroke behind text: the active nav link, the top want. */
+@utility highlighted {
+  background: linear-gradient(176deg, transparent 16%, var(--color-highlighter) 18% 84%, transparent 86%);
+}
+
+/* A post-it with its bottom-right corner lifting. */
+@utility postit-corner {
+  &::before {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 12px;
+    height: 12px;
+    background: linear-gradient(135deg, var(--postit, var(--color-postit-yellow)) 50%, rgb(0 0 0 / 0.12) 50%);
+  }
+}
+
+/* Drawn checkbox and radio: the control itself wobbles, like a box ticked by hand. */
+@utility ink-check {
+  appearance: none;
+  flex: none;
+  width: 1.375rem;
+  height: 1.375rem;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-drawn);
+  background: var(--color-paper) center / 90% no-repeat;
+  filter: url(#ink-wobble);
+  cursor: pointer;
+  &:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M3 11l5 5L18 3' fill='none' stroke='%231f3a93' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  &[type="radio"] {
+    border-radius: 50%;
+  }
+  &[type="radio"]:checked {
+    background-image: radial-gradient(circle, var(--color-ink) 0 38%, transparent 42%);
+    background-size: 100%;
+  }
+}
+
+/* Popovers sit under their invoker where anchor positioning exists, centred otherwise. */
+@utility popover-anchored {
+  @supports (position-area: bottom) {
+    inset: auto;
+    margin: 6px 0;
+    position-area: bottom span-right;
+    position-try-fallbacks: flip-block, flip-inline;
+  }
+}

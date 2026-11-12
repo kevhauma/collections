@@ -150,6 +150,14 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   (ballpoint on squared paper, hand-drawn outlines, post-it item images), and `DESIGN.md` once it exists, which then
   wins. New UI uses its palette, type, outlines and states; a screen that looks like a generic grey app is a bug.
   Work on UI through the `impeccable` skill.
+- The library and each component's props are listed in [src/ui/README.md](../../../src/ui/README.md). Import from
+  the component's own file (no barrel). The root shell renders `<InkDefs />` once, because every drawn outline
+  references its `#ink-wobble` filter.
+- A drawn box is the `ink-outline` utility (pen outline on `::before`/`::after`); recolour it with `--ink-line`.
+  Controls that can't carry pseudo-elements (`<input>`, `<select>`) get it on a wrapper, as in
+  [src/ui/input.tsx](../../../src/ui/input.tsx).
+- `FormField` wires ids through a render prop (`{(control) => <Input {...control} />}`), so form components stay
+  hook-free server components. Dialogs and popovers open with `commandfor`/`command` and `popoverTarget`, no JS.
 - Use `src/ui/` components before writing markup. If a pattern appears twice, it belongs in `src/ui/`.
 - Variants are declared with `cva`. Callers pick `variant` / `size` props, never colour or variant classes. Merge a
   caller's `className` with `cn()` (tailwind-merge).
