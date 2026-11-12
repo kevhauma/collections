@@ -91,8 +91,21 @@ location / {
 
 ## Lost admin password
 
-Reset it from inside the container. The command arrives with TICKET-AUTH-03:
+Reset it from a shell on the server. It asks for the new password twice without echoing it, sets it (at least
+12 characters), and logs out every session:
 
 ```bash
 docker compose exec collections npm run reset-password
+# or, with plain docker:
+docker exec -it <container> node scripts/reset-password.ts
 ```
+
+For scripted use, pipe the password in instead (it's never accepted as an argument, so it can't land in shell
+history or the process list):
+
+```bash
+printf '%s\n' "$NEW_PASSWORD" | docker compose exec -T collections node scripts/reset-password.ts --stdin
+```
+
+If setup never ran, this creates the admin, and `/setup` then returns 404. Outside Docker, run
+`npm run reset-password` from the app folder with the same `DATA_DIR`.

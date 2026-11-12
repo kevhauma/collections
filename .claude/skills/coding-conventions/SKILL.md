@@ -26,7 +26,7 @@ npm start              # serve the production build
 npm test               # vitest
 npm run typecheck      # tsc --noEmit
 npm run i18n:extract   # update src/i18n/locales/{en,nl}.json
-npm run reset-password # admin password recovery (TICKET-AUTH-03)
+npm run reset-password # admin password recovery; --stdin for scripted use (scripts/reset-password.ts)
 ```
 
 ## Layout
@@ -52,9 +52,12 @@ scripts/           # CLI scripts, run with plain `node` (native TS type strippin
   of [src/entry.rsc.tsx](../../../src/entry.rsc.tsx), so app code stays inside the Vite bundle. Its own relative
   imports need the `.ts` extension.
 - Env: `PORT` (3000), `DATA_DIR` (`./data`, holds `db.sqlite`), `TRUST_PROXY` (parsed by `src/lib/env.ts`).
-- The [Dockerfile](../../../Dockerfile) runtime stage copies only what the server loads: `dist/`, `src/server.ts`, its
-  relative imports, `migrations/` and the pruned `node_modules`. A new file that `server.ts` imports, or a new
-  script that must run in the container, needs its own `COPY` line. Deploy guide: `docs/platform/deploy.md`.
+- The [Dockerfile](../../../Dockerfile) runtime stage copies `dist/`, all of `src/` and `scripts/`, `migrations/` and
+  the pruned `node_modules`. Deploy guide: `docs/platform/deploy.md`.
+- Code that plain `node` loads (`src/server.ts`, `scripts/*.ts` and everything they import) uses explicit `.ts`
+  relative imports, which Node's type stripping needs. Vite doesn't care, so modules only Vite loads may omit them.
+  Exemplar: [scripts/reset-password.ts](../../../scripts/reset-password.ts) → `src/features/auth/reset-password.ts`
+  → `src/db/admin.ts`.
 - Files loaded only by string path (the RSC entries, `lingui.config.ts`) are listed as `entry` in `.fallowrc.json`.
   Add new ones there instead of suppressing fallow findings.
 - Server-component HMR depends on the `rsc:update` → router `revalidate()` hook in

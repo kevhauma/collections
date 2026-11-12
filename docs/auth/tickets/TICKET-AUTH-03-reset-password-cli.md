@@ -1,7 +1,7 @@
 # TICKET-AUTH-03: Password reset CLI
 
 - **Area:** Auth
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Traceability:** [technical-design.md § Auth and security](../../technical-design.md#auth-and-security)
 
 ## User story
@@ -36,13 +36,24 @@ A CLI script that sets a new admin password and logs out every session.
 
 ## Acceptance criteria
 
-- [ ] After a reset, the old password fails, the new one works, and existing sessions are logged out.
-- [ ] Running it on an instance without an admin creates the admin, so `/setup` then returns 404.
-- [ ] Too short or mismatched input exits non-zero and changes nothing.
-- [ ] The password never appears in shell history or the process list (no `--password=` argument).
-- [ ] Works inside the Docker image.
-- [ ] Unit test covers the core `resetPassword(db, password)` function: updates the hash, clears sessions, rejects
-      a short password.
+- [x] After a reset, the old password fails, the new one works, and existing sessions are logged out. (against a
+      running prod server: `npm run reset-password` → exit 0; the old cookie then gets the login page, the old password
+      "Wrong password." (200), the new one 302; test "replaces the hash and logs out every session")
+- [x] Running it on an instance without an admin creates the admin, so `/setup` then returns 404. (fresh Docker
+      container: `/setup` 200 → reset → `/setup` 404 and login 302; test "creates the admin when setup never ran")
+- [x] Too short or mismatched input exits non-zero and changes nothing. (mismatch, short and empty input each exit 1
+      with the reason on stderr; the old password and old session keep working afterwards. Test "rejects a short
+      password and changes nothing")
+- [x] The password never appears in shell history or the process list (no `--password=` argument). (the script
+      reads only the `--stdin` flag from argv. The password comes from hidden prompts (readline writing to a silent
+      output; on a TTY readline switches to raw mode, so the terminal doesn't echo either) or from stdin. Not
+      exercised on a real TTY here: the agent shell has none)
+- [x] Works inside the Docker image. (`printf … | docker exec -i <c> npm run -s reset-password` and
+      `… node scripts/reset-password.ts --stdin` both reset the password in a freshly built image, which stayed
+      healthy. The runtime stage now copies all of `src/` and `scripts/`)
+- [x] Unit test covers the core `resetPassword(db, password)` function: updates the hash, clears sessions, rejects
+      a short password. (`src/features/auth/reset-password.test.ts`, 3 cases; `npm test` 110 passed. fallow audit →
+      pass)
 
 ## Notes
 

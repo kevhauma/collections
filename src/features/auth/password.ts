@@ -1,4 +1,8 @@
 import { randomBytes, scrypt, timingSafeEqual, type ScryptOptions } from "node:crypto";
+import { z } from "zod";
+
+// The rule for any new admin password: first-run setup and the reset script.
+export const passwordSchema = z.string().min(12);
 
 // OWASP's scrypt baseline (N=2^17, r=8, p=1): about 128 MB and a few hundred ms per hash. The parameters are
 // stored with each hash, so raising them later keeps old hashes verifiable.

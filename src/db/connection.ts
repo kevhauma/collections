@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { migrate } from "./migrate";
+import { migrate } from "./migrate.ts";
 
 // Opens DATA_DIR/db.sqlite (creating the folder if missing) and brings its schema up to date.
 export const openDatabase = (dataDir: string, migrationsDir?: string): Database.Database => {

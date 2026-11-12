@@ -3,7 +3,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { data, redirect, type ActionFunctionArgs } from "react-router";
 import { z } from "zod";
 import { adminExists, createAdmin } from "../db/admin";
-import { hashPassword } from "../features/auth/password";
+import { hashPassword, passwordSchema } from "../features/auth/password";
 import { logIn } from "../features/auth/session";
 import { actionI18n } from "../i18n";
 import { Button } from "../ui/button";
@@ -23,7 +23,7 @@ export const loader = () => {
 };
 
 const schema = z
-  .object({ password: z.string().min(12), confirm: z.string() })
+  .object({ password: passwordSchema, confirm: z.string() })
   .refine(({ password, confirm }) => password === confirm, { path: ["confirm"] });
 
 // Each field has one way to be wrong, so one message per field.
