@@ -1,7 +1,7 @@
 # TICKET-AUTH-01: First-run setup
 
 - **Area:** Auth
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Traceability:** [technical-design.md § Auth and security](../../technical-design.md#auth-and-security), [technical-design.md § Routes](../../technical-design.md#routes) (`/setup`)
 
 ## User story
@@ -26,7 +26,9 @@ An unlinked `/setup` route that works only while no admin exists, storing a scry
 - `GET /setup`: 404 if an admin row exists, otherwise a form with password and confirmation.
 - Setup action:
   - validates (zod): at least 12 characters, confirmation matches
-  - inside one transaction, re-checks that no admin exists, then inserts it
+  - ~~inside one transaction, re-checks that no admin exists, then inserts it~~ inserts the `id = 1` row with one
+    atomic `INSERT … ON CONFLICT (id) DO NOTHING` (`src/db/admin.ts`): the losing request sees 0 changes and gets
+    the 404. Same guarantee, one statement
   - creates a session (TICKET-AUTH-02's helper; until that lands, redirect to `/admin`)
   - redirects to `/admin`
 
@@ -38,14 +40,25 @@ An unlinked `/setup` route that works only while no admin exists, storing a scry
 
 ## Acceptance criteria
 
-- [ ] On a fresh instance `/setup` shows the form. After a successful submit it returns 404 forever.
-- [ ] Two concurrent setup submissions create exactly one admin row.
-- [ ] The password is never logged or stored in plain text. The DB holds only the `scrypt$…` string.
-- [ ] The form works with JavaScript disabled.
-- [ ] Unit tests cover: hash/verify round trip, wrong password fails, tampered hash string fails cleanly (no throw),
-      two hashes of the same password differ (salt).
-- [ ] Live browser check of the setup flow.
-- [ ] Verified with the fallow skill.
+- [x] On a fresh instance `/setup` shows the form. After a successful submit it returns 404 forever. (prod build:
+      fresh `/admin` → 302 `/setup` → 200 form; after setup, GET and POST `/setup` → 404, `/admin` → 200)
+- [x] Two concurrent setup submissions create exactly one admin row. (two parallel curl POSTs against the prod
+      server → one 302 `/admin`, one 404, `select … from admin` → 1 row; unit test "two concurrent setups through
+      separate connections leave exactly one row" in `src/db/admin.test.ts`)
+- [x] The password is never logged or stored in plain text. The DB holds only the `scrypt$…` string. (admin row
+      `scrypt$131072$8$1$…`; grep for the password over `db.sqlite*` and the server log → 0 hits. Nothing in the
+      action logs its input, and the form never echoes a password back)
+- [x] The form works with JavaScript disabled. (Chrome over CDP with script execution disabled: typed a short
+      password → inline "Gebruik minstens 12 tekens." on `setup-password` with `aria-invalid`; valid password →
+      lands on `/admin`; revisiting `/setup` → "Pagina niet gevonden". `/setup` is a route action under the JS-free
+      public layout)
+- [x] Unit tests cover: hash/verify round trip, wrong password fails, tampered hash string fails cleanly (no throw),
+      two hashes of the same password differ (salt). (`src/features/auth/password.test.ts`: those four, with seven
+      tampering cases including an `N` beyond the 256 MB memory cap; `npm test` 81 passed)
+- [x] Live browser check of the setup flow. (Chrome at 1440 and 360 px, NL: centred drawn card with an ink tab,
+      two `new-password` fields, the red error box and message at 360 px. Screenshots match the notebook direction)
+- [x] Verified with the fallow skill. (`npx fallow@3.42.0 audit --base HEAD` → pass; the impeccable detector found
+      nothing)
 
 ## Notes
 

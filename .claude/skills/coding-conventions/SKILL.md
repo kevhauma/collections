@@ -105,12 +105,17 @@ Every `'use server'` action follows the same shape:
    `i18n._(descriptor, values)` is a type error in Lingui 6.12.
 5. On success, redirect (form flows) or return the minimal result (client-invoked actions such as reordering).
 
-Forms bind actions with `<form action={…}>` so they work before hydration. Call actions from client code only
+Forms bind actions with `<form action={…}>` so they work before hydration. A form on a page under the JS-free public
+layout (first-run setup) uses a React Router route `action` instead: `<form method="post">`, and the route's server
+component receives the result as `actionData`. Exemplar: [src/routes/setup.tsx](../../../src/routes/setup.tsx). Call actions from client code only
 where a form doesn't fit, and pair that with `useOptimistic` and a revert on failure.
 
 ## Data access (ADR 0003)
 
 - All SQL lives in `src/db/*.ts` repository modules. **No SQL in routes, components or actions.**
+- A repository function takes the connection as an optional last parameter (`connection = db()`), so tests can pass
+  a temp DB or two connections to one file ([src/db/admin.ts](../../../src/db/admin.ts)). Prefer a single atomic
+  statement (`INSERT … ON CONFLICT DO NOTHING`, then check `changes`) over check-then-insert.
 - Values always go through bound parameters. The only interpolated SQL is a **validated integer field id** that
   belongs to the collection (dynamic `ORDER BY` / `json_extract` paths), validated by `parseListParams` or the
   equivalent.

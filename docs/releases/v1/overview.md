@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **7 / 22 done**
+Progress: **8 / 22 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -19,7 +19,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 5 | [I18N-01](../../i18n/tickets/TICKET-I18N-01-lingui-setup.md) | Lingui setup and locale resolution | M1 Foundation | PLAT-02, PLAT-03 | ✅ |
 | 6 | [UI-02](../../ui/tickets/TICKET-UI-02-app-shells.md) | App shells and error pages | M1 Foundation | UI-01, I18N-01 | ✅ |
 | 7 ‖ | [PLAT-04](../../platform/tickets/TICKET-PLAT-04-docker-deployment.md) | Docker image and deploy notes | M1 Foundation | PLAT-02, PLAT-03 | ✅ |
-| 8 | [AUTH-01](../../auth/tickets/TICKET-AUTH-01-first-run-setup.md) | First-run setup | M2 Admin access | PLAT-03, UI-02, I18N-01 | ⬜ |
+| 8 | [AUTH-01](../../auth/tickets/TICKET-AUTH-01-first-run-setup.md) | First-run setup | M2 Admin access | PLAT-03, UI-02, I18N-01 | ✅ |
 | 9 | [AUTH-02](../../auth/tickets/TICKET-AUTH-02-login-and-sessions.md) | Admin login, sessions, request guards | M2 Admin access | AUTH-01 | ⬜ |
 | 10 | [AUTH-03](../../auth/tickets/TICKET-AUTH-03-reset-password-cli.md) | Password reset CLI | M2 Admin access | AUTH-02 | ⬜ |
 | 11 ‖ | [I18N-02](../../i18n/tickets/TICKET-I18N-02-locale-switcher-and-default.md) | Locale switcher and default locale | M2 Admin access | I18N-01, UI-02, AUTH-02 | ⬜ |

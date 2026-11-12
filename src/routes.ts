@@ -15,6 +15,7 @@ export const routes = () =>
           lazy: () => import("./routes/public-layout"),
           children: [
             { id: "home", index: true, lazy: () => import("./routes/home") },
+            { id: "setup", path: "setup", lazy: () => import("./routes/setup") },
             { id: "not-found", path: "*", lazy: () => import("./routes/not-found") },
           ],
         },

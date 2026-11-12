@@ -1,16 +1,26 @@
 {
+  "setup.card": "Beheerderswachtwoord",
   "admin.nav.label": "Beheeronderdelen",
   "home.placeholder.submit": "Vraag het de server",
+  "setup.password.hint": "Minstens 12 tekens.",
   "error.backHome": "Terug naar het begin",
-  "admin.nav.collections": "Verzamelingen",
+  "setup.intro": "Kies het wachtwoord waarmee je je verzamelingen beheert. Bezoekers hebben er nooit een nodig, en deze pagina verdwijnt zodra het is ingesteld.",
   "app.name": "Verzamelingen",
+  "admin.nav.collections": "Verzamelingen",
   "admin.nav.export": "Exporteren",
   "error.notFound.title": "Pagina niet gevonden",
+  "setup.password": "Wachtwoord",
   "home.placeholder.client": "Weergegeven door een clientcomponent.",
+  "setup.confirm": "Herhaal het wachtwoord",
+  "setup.submit": "Wachtwoord instellen",
+  "setup.title": "Instellen · Verzamelingen",
   "admin.nav.settings": "Instellingen",
   "shell.skipToContent": "Naar de inhoud",
   "error.server.title": "Er ging iets mis",
   "error.server.body": "De pagina kon niet worden getoond. Probeer het zo meteen opnieuw.",
+  "setup.error.mismatch": "De twee wachtwoorden zijn niet gelijk.",
   "error.notFound.body": "Deze pagina bestaat niet, of wordt niet gedeeld.",
-  "home.placeholder.action": "Vertaald door een serveractie."
+  "home.placeholder.action": "Vertaald door een serveractie.",
+  "setup.error.tooShort": "Gebruik minstens 12 tekens.",
+  "setup.heading": "Welkom"
 }

@@ -1,6 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import type { ReactNode } from "react";
-import { Outlet } from "react-router";
+import { Outlet, redirect } from "react-router";
+import { adminExists } from "../db/admin";
 import { setupRequestI18n } from "../i18n";
 import { ClientI18nProvider } from "../i18n/client-provider";
 import { AdminNav } from "./admin-nav";
@@ -27,6 +28,12 @@ export const Layout = ({ children }: { children: ReactNode }) => {
       </div>
     </ClientI18nProvider>
   );
+};
+
+// Until first-run setup has run there is nothing to log in to, so send the owner to the unlinked /setup page.
+export const loader = () => {
+  if (!adminExists()) throw redirect("/setup");
+  return null;
 };
 
 export default function AdminLayout() {
