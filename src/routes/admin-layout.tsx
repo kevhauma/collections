@@ -7,6 +7,7 @@ import { setupRequestI18n } from "../i18n";
 import { ClientI18nProvider } from "../i18n/client-provider";
 import { Button } from "../ui/button";
 import { AdminNav } from "./admin-nav";
+import { LocaleSwitcher } from "./locale-switcher";
 import { RouteError } from "./route-error";
 
 // Frame for the owner's pages. Admin may use client components, so it provides the client i18n context here
@@ -22,8 +23,8 @@ export const Layout = ({ children }: { children: ReactNode }) => {
             <Trans id="app.name">Collections</Trans>
           </a>
           {loggedIn && <AdminNav />}
-          {/* TICKET-I18N-02: the locale switcher goes in this group too. */}
-          <div className="flex items-center gap-3 sm:ml-auto">
+          <div className="flex flex-wrap items-center gap-3 sm:ml-auto">
+            <LocaleSwitcher />
             {loggedIn && (
               // A plain form post, so logging out works without JS.
               <form method="post" action="/admin/logout">

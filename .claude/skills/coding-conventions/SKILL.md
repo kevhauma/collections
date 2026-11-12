@@ -111,9 +111,12 @@ Every `'use server'` action follows the same shape:
    `i18n._(descriptor, values)` is a type error in Lingui 6.12.
 5. On success, redirect (form flows) or return the minimal result (client-invoked actions such as reordering).
 
-Forms bind actions with `<form action={…}>` so they work before hydration. A form on a page under the JS-free public
-layout (first-run setup) uses a React Router route `action` instead: `<form method="post">`, and the route's server
-component receives the result as `actionData`. Exemplar: [src/routes/setup.tsx](../../../src/routes/setup.tsx). Call actions from client code only
+Plain forms (setup, login, settings) use a React Router route `action`: `<form method="post">`, and the route's server
+component receives the result as `actionData`, so they need no client code and work without JS. Exemplars:
+[src/routes/setup.tsx](../../../src/routes/setup.tsx) (public),
+[src/routes/admin-settings.tsx](../../../src/routes/admin-settings.tsx) (admin: `requireAdmin()` in both `loader` and
+`action`). Use a `'use server'` function bound with `<form action={…}>` when a client component needs the result
+(e.g. `useActionState`, `useOptimistic`). Call actions from client code only
 where a form doesn't fit, and pair that with `useOptimistic` and a revert on failure.
 
 ## Data access (ADR 0003)
@@ -145,7 +148,8 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - Public routes read through `publicOnly: true` repository calls, which **strip private field keys at the query
   layer** and refuse private fields for search, sort and filter.
 - Private and unknown collections both return the same 404.
-- Redirect targets are same-origin paths only. Cookies are `HttpOnly`, `SameSite=Lax`, and `Secure` outside local
+- Redirect targets are same-origin paths only: build them with `safeRedirectTarget`
+  ([src/lib/redirect.ts](../../../src/lib/redirect.ts)). Cookies are `HttpOnly`, `SameSite=Lax`, and `Secure` outside local
   dev.
 - Never log passwords, session tokens or full request bodies.
 - The session is resolved once per request in `entry.rsc.tsx` (`requestContext().session`). To send a cookie from an

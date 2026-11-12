@@ -19,12 +19,14 @@ export const routes = () =>
             { id: "not-found", path: "*", lazy: () => import("./routes/not-found") },
           ],
         },
+        { id: "locale", path: "locale", lazy: () => import("./routes/locale") },
         {
           id: "admin",
           path: "admin",
           lazy: () => import("./routes/admin-layout"),
           children: [
             { id: "admin-home", index: true, lazy: () => import("./routes/admin-home") },
+            { id: "admin-settings", path: "settings", lazy: () => import("./routes/admin-settings") },
             { id: "admin-logout", path: "logout", lazy: () => import("./routes/admin-logout") },
           ],
         },

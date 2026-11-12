@@ -25,7 +25,7 @@ Every component takes `className`, merged with `cn()`. Use it for layout only.
 
 | Component | File | Props |
 |---|---|---|
-| `Button` | `button.tsx` | All `<button>` attributes, plus `variant`: `primary` (filled ink) · `secondary` (drawn, default) · `ghost` (underlined, no outline) · `danger` (red pen). `size`: `sm` (min 40 px) · `md` (min 44 px, default). Also opens dialogs (`commandfor="id" command="show-modal"`) and popovers (`popoverTarget="id"`). |
+| `Button` | `button.tsx` | All `<button>` attributes, plus `variant`: `primary` (filled ink) · `secondary` (drawn, default) · `ghost` (underlined, no outline) · `danger` (red pen). `size`: `sm` (min 40 px) · `md` (min 44 px, default). Also opens dialogs (`commandfor="id" command="show-modal"`) and popovers (`popoverTarget="id"`). As a toggle, `aria-pressed` gives it the highlighter. |
 | `LinkButton` | `button.tsx` | All `<a>` attributes, plus the same `variant` / `size` as `Button`. |
 | `Input` | `input.tsx` | All `<input>` attributes. `className` goes to the drawn box and the rest to the input. Set `aria-invalid` and the box turns red. |
 | `Textarea` | `input.tsx` | All `<textarea>` attributes, same split as `Input`. |

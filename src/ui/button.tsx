@@ -3,7 +3,7 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes } from "react";
 import { cn } from "./cn";
 
 const button = cva(
-  "ink-outline inline-flex cursor-pointer items-center justify-center gap-1.5 font-bold whitespace-nowrap no-underline transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+  "ink-outline inline-flex cursor-pointer items-center justify-center gap-1.5 font-bold whitespace-nowrap no-underline transition-colors disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:highlighted",
   {
     variants: {
       variant: {
