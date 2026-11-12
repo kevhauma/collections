@@ -12,7 +12,9 @@ changes a pattern, update this file in the same change (one or two sentences, in
 linking an exemplar file over describing it.
 
 > Until TICKET-PLAT-02 lands, paths and commands here are the planned ones. Once the spike (TICKET-PLAT-01) and
-> scaffold exist, replace anything that turned out differently and link the real files.
+> scaffold exist, replace anything that turned out differently and link the real files. The spike's proven entry,
+> server, Lingui and Dockerfile snippets and pinned versions are in
+> [docs/research/spike-results.md](../../../docs/research/spike-results.md).
 
 ## Commands
 
@@ -64,6 +66,8 @@ scripts/           # CLI scripts, run with plain `node` (native TS type strippin
 - `'use client'` only where interaction needs it (drag-and-drop, live previews, optimistic updates, the field
   editor). **Admin routes may use client components. Public routes (`/`, `/:slug`, `/:slug/want`) must not**, and
   must work fully without JavaScript.
+- Public routes sit under their own server-only layout (no client providers such as the Lingui `I18nProvider`
+  wrapper), and `entry.ssr` omits `bootstrapScriptContent` for them, so they ship zero external JS (spike § 9).
 - Props passed to a client component are serialized into the RSC payload. Never pass a row that may contain private
   fields or secrets. Pass the minimum view data.
 - A client component never imports from `src/db/`, `src/features/*/` server-only modules, or `node:*`.
@@ -77,7 +81,8 @@ Every `'use server'` action follows the same shape:
    that the target belongs to the collection in the URL.
 3. Call a repository function. Multi-table changes run inside **one** transaction in the repository.
 4. On validation failure, return field errors as **i18n ids**, translated via `actionI18n()` (Lingui's `setI18n`
-   doesn't reach actions, Lingui #2615).
+   doesn't reach actions, Lingui #2615). Values go in the `msg` template (`i18n._(msg({ id, message: `…${n}` }))`).
+   `i18n._(descriptor, values)` is a type error in Lingui 6.12.
 5. On success, redirect (form flows) or return the minimal result (client-invoked actions such as reordering).
 
 Forms bind actions with `<form action={…}>` so they work before hydration. Call actions from client code only
@@ -119,6 +124,8 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - Every UI string uses an **explicit id** (`area.thing.action`) with text in **both** `en.json` and `nl.json`. Never
   use a source string as the id.
 - Import Lingui runtime APIs through `src/i18n/`. Macros are imported from `@lingui/*/macro` directly.
+- Catalogs are imported compiled through the Vite plugin (`./locales/nl.json?lingui`). There's no `lingui compile`
+  step.
 - Format numbers and dates with `formatNumber` / `formatDate` from `src/i18n/`, never `toFixed` or string
   concatenation.
 - User-typed content (collection names, field labels, options, values) is never translated.

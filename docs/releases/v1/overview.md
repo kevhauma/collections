@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **0 / 22 done**
+Progress: **1 / 22 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -12,7 +12,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 
 | # | Ticket | Title | Milestone | Needs | Status |
 |---|---|---|---|---|---|
-| 1 | [PLAT-01](../../platform/tickets/TICKET-PLAT-01-stack-spike.md) | Stack spike (throwaway) | M0 Prove the stack | none | ⬜ |
+| 1 | [PLAT-01](../../platform/tickets/TICKET-PLAT-01-stack-spike.md) | Stack spike (throwaway) | M0 Prove the stack | none | ✅ |
 | 2 | [PLAT-02](../../platform/tickets/TICKET-PLAT-02-project-scaffold.md) | Project scaffold | M1 Foundation | PLAT-01 | ⬜ |
 | 3 | [PLAT-03](../../platform/tickets/TICKET-PLAT-03-database-and-migrations.md) | Database, migrations, initial schema | M1 Foundation | PLAT-02 | ⬜ |
 | 4 ‖ | [UI-01](../../ui/tickets/TICKET-UI-01-ui-library-foundation.md) | UI library foundation | M1 Foundation | PLAT-02 | ⬜ |
