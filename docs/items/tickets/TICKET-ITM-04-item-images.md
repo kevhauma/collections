@@ -63,6 +63,8 @@ in the data volume, and cleaned up when replaced or deleted.
       on a stream over 15 MB), the content-type check.
 - [ ] Live browser check of upload, URL, replace and remove.
 - [ ] Verified with the fallow skill.
+- [ ] `sharp` loads in the Docker runtime image (`docker build`, then one upload in the container). Moved here from
+      TICKET-PLAT-04, which shipped before `sharp` was a dependency.
 
 ## Notes
 

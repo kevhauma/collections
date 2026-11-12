@@ -52,6 +52,9 @@ scripts/           # CLI scripts, run with plain `node` (native TS type strippin
   of [src/entry.rsc.tsx](../../../src/entry.rsc.tsx), so app code stays inside the Vite bundle. Its own relative
   imports need the `.ts` extension.
 - Env: `PORT` (3000), `DATA_DIR` (`./data`, holds `db.sqlite`), `TRUST_PROXY` (parsed by `src/lib/env.ts`).
+- The [Dockerfile](../../../Dockerfile) runtime stage copies only what the server loads: `dist/`, `src/server.ts`, its
+  relative imports, `migrations/` and the pruned `node_modules`. A new file that `server.ts` imports, or a new
+  script that must run in the container, needs its own `COPY` line. Deploy guide: `docs/platform/deploy.md`.
 - Files loaded only by string path (the RSC entries, `lingui.config.ts`) are listed as `entry` in `.fallowrc.json`.
   Add new ones there instead of suppressing fallow findings.
 - Server-component HMR depends on the `rsc:update` → router `revalidate()` hook in

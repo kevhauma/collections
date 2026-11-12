@@ -1,7 +1,7 @@
 # TICKET-PLAT-04: Docker image and deployment notes
 
 - **Area:** Platform
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Traceability:** [technical-design.md § Stack](../../technical-design.md#stack) (Deploy row), [technical-design.md § Auth and security](../../technical-design.md#auth-and-security) (TLS)
 
 ## User story
@@ -39,12 +39,20 @@ volume and password recovery.
 
 ## Acceptance criteria
 
-- [ ] `docker build` produces an image that starts and passes its healthcheck.
-- [ ] Data in `/data` survives `docker compose down && up`.
-- [ ] `sharp` and `better-sqlite3` load in the runtime image (exercised by the healthcheck plus one image upload
-      once TICKET-ITM-04 lands).
-- [ ] The process runs as a non-root user and `/data` is writable by it.
-- [ ] `docs/platform/deploy.md` exists and covers the points above.
+- [x] `docker build` produces an image that starts and passes its healthcheck. (Docker 27.3: `docker build -t
+      collections:plat04 .` → 386 MB image; the container reports `healthy` with exit code 0; `/healthz` 200, `/` serves
+      the Dutch shell, `/nope` 404)
+- [x] Data in `/data` survives `docker compose down && up`. (`docker-compose.example.yml`, project `plat04test`:
+      inserted a `survivor` collection, `down`, `up` → the row is still there and the container is healthy again)
+- [x] ~~`sharp` and `better-sqlite3` load~~ `better-sqlite3` loads in the runtime image (exercised by the healthcheck plus one image upload
+      once TICKET-ITM-04 lands). (better-sqlite3: the healthcheck queries the DB, and `docker exec … node` opened
+      `/data/db.sqlite` (SQLite 3.54.1, `user_version` 1). `sharp` isn't a dependency yet, so its check moved to a
+      criterion on TICKET-ITM-04, approved 2026-11-12)
+- [x] The process runs as a non-root user and `/data` is writable by it. (`id` → `uid=1000(node)`, PID 1 `Uid: 1000`;
+      `/data` owned by `node:node`, `touch /data/probe` succeeded, and the DB and WAL files are created by `node`)
+- [x] `docs/platform/deploy.md` exists and covers the points above. (run and upgrade, `/data` contents and backup,
+      reverse proxy TLS / forwarded headers / `TRUST_PROXY` with Caddy and nginx examples, password recovery command.
+      A note on TICKET-AUTH-03 says the runtime image must copy its script)
 
 ## Notes
 

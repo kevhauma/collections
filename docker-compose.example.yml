@@ -1,0 +1,19 @@
+# Copy to docker-compose.yml and adjust. Guide: docs/platform/deploy.md
+services:
+  collections:
+    build: .
+    image: collections
+    restart: unless-stopped
+    # Only the reverse proxy on this host should reach the app; it terminates TLS.
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      PORT: "3000"
+      # One proxy hop in front (the proxy reaches the container through Docker's bridge, not loopback).
+      TRUST_PROXY: "1"
+    volumes:
+      - collections-data:/data
+
+volumes:
+  # Holds db.sqlite and uploads/. This is the only thing to back up.
+  collections-data:

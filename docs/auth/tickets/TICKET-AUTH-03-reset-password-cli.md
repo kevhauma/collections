@@ -47,3 +47,6 @@ A CLI script that sets a new admin password and logs out every session.
 ## Notes
 
 - Needs TICKET-AUTH-02. Documenting the command needs TICKET-PLAT-04.
+- The runtime image copies only what the server loads (see the `Dockerfile`). Add a `COPY` for `scripts/` (and anything
+  the script imports) so `docker compose exec collections npm run reset-password`, as `docs/platform/deploy.md`
+  documents it, works inside the container.
