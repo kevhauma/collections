@@ -1,12 +1,29 @@
 import type { unstable_RSCRouteConfig as RSCRouteConfig } from "react-router";
 
-// Route modules are loaded lazily; each one's default export is a server component.
+// Route modules are loaded lazily; each one's default export is a server component. A layout module also exports
+// `Layout` (its frame, which wraps its ErrorBoundary too) and `ErrorBoundary`.
 export const routes = () =>
   [
     {
       id: "root",
       path: "",
       lazy: () => import("./routes/root"),
-      children: [{ id: "home", index: true, lazy: () => import("./routes/home") }],
+      children: [
+        {
+          // Visitor pages: server components only, no JS shipped (see entry.ssr.tsx).
+          id: "public",
+          lazy: () => import("./routes/public-layout"),
+          children: [
+            { id: "home", index: true, lazy: () => import("./routes/home") },
+            { id: "not-found", path: "*", lazy: () => import("./routes/not-found") },
+          ],
+        },
+        {
+          id: "admin",
+          path: "admin",
+          lazy: () => import("./routes/admin-layout"),
+          children: [{ id: "admin-home", index: true, lazy: () => import("./routes/admin-home") }],
+        },
+      ],
     },
   ] satisfies RSCRouteConfig;

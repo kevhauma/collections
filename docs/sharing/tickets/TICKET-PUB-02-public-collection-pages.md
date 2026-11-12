@@ -58,3 +58,6 @@ fields stripped on the server and essentially no client JavaScript.
 - Needs TICKET-ITM-05, TICKET-ITM-03 and TICKET-PUB-01.
 - Images are served from `/uploads` and are unlisted, not access-controlled (see design).
 - Renaming a slug breaks shared links. No redirect, by decision (ADR 0005).
+- Public pages don't hydrate (`entry.ssr.tsx` skips the bootstrap under the `public` route), but plugin-rsc still
+  emits `modulepreload` hints for React Router's client runtime, about 350 KB that phones download and never run
+  (found in TICKET-UI-02). Decide whether to strip them, for example by filtering the hints in `entry.ssr`.

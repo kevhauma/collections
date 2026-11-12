@@ -159,6 +159,10 @@ Measured on the production build:
 - **Design rule for TICKET-PUB-02**: public routes must not sit under a layout that renders client components (such as
   the Lingui `I18nProvider` wrapper). Give public routes their own server-only layout, and translate them with
   `setI18n` + `<Trans>` in server components only.
+- **Correction (TICKET-UI-02, 2026-11-12):** under nested React Router layouts, a public page without the bootstrap
+  still carries 3 `<link rel="modulepreload">` hints (React Router's client runtime, `index-*.js` ≈ 338 KB). plugin-rsc
+  emits them for every client reference in the payload, including React Router's own `Outlet`. Nothing executes and the
+  page doesn't hydrate, but the browser downloads them. Follow-up noted on TICKET-PUB-02.
 - The inline RSC payload scripts remain even without the bootstrap. They are inert without the runtime. Removing them
   was not explored (React Router injects them in `routeRSCServerRequest`).
 

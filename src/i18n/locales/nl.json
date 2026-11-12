@@ -1,6 +1,16 @@
 {
+  "admin.nav.label": "Beheeronderdelen",
   "home.placeholder.submit": "Vraag het de server",
+  "error.backHome": "Terug naar het begin",
+  "admin.nav.collections": "Verzamelingen",
   "app.name": "Verzamelingen",
+  "admin.nav.export": "Exporteren",
+  "error.notFound.title": "Pagina niet gevonden",
   "home.placeholder.client": "Weergegeven door een clientcomponent.",
+  "admin.nav.settings": "Instellingen",
+  "shell.skipToContent": "Naar de inhoud",
+  "error.server.title": "Er ging iets mis",
+  "error.server.body": "De pagina kon niet worden getoond. Probeer het zo meteen opnieuw.",
+  "error.notFound.body": "Deze pagina bestaat niet, of wordt niet gedeeld.",
   "home.placeholder.action": "Vertaald door een serveractie."
 }

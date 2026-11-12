@@ -77,8 +77,14 @@ scripts/           # CLI scripts, run with plain `node` (native TS type strippin
 - `'use client'` only where interaction needs it (drag-and-drop, live previews, optimistic updates, the field
   editor). **Admin routes may use client components. Public routes (`/`, `/:slug`, `/:slug/want`) must not**, and
   must work fully without JavaScript.
-- Public routes sit under their own server-only layout (no client providers such as the Lingui `I18nProvider`
-  wrapper), and `entry.ssr` omits `bootstrapScriptContent` for them, so they ship zero external JS (spike § 9).
+- Public routes sit under the server-only `public` layout route ([src/routes.ts](../../../src/routes.ts)). It has no
+  client providers; `ClientI18nProvider` lives in the admin layout. `entry.ssr` omits `bootstrapScriptContent` when a
+  match has id `public`, so these pages never hydrate. React Router's runtime is still preloaded (see TICKET-PUB-02).
+- A layout route module exports `Layout` (its frame, which also wraps its `ErrorBoundary`), a default component
+  rendering `<Outlet />`, and `ErrorBoundary = RouteError` ([src/routes/public-layout.tsx](../../../src/routes/public-layout.tsx)).
+  Pages render their own `<title>`. A private or unknown resource answers 404 by throwing
+  `data(null, { status: 404 })` from a route `loader`; `RouteError` shows the not-found page. `.fallowrc.json`
+  `ignoreExports` covers these contract names in `src/routes/`.
 - Props passed to a client component are serialized into the RSC payload. Never pass a row that may contain private
   fields or secrets. Pass the minimum view data.
 - A client component never imports from `src/db/`, `src/features/*/` server-only modules, or `node:*`.

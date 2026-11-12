@@ -1,6 +1,16 @@
 {
+  "admin.nav.label": "Admin sections",
   "home.placeholder.submit": "Ask the server",
+  "error.backHome": "Back to the start",
+  "admin.nav.collections": "Collections",
   "app.name": "Collections",
+  "admin.nav.export": "Export",
+  "error.notFound.title": "Page not found",
   "home.placeholder.client": "Rendered by a client component.",
+  "admin.nav.settings": "Settings",
+  "shell.skipToContent": "Skip to content",
+  "error.server.title": "Something went wrong",
+  "error.server.body": "The page couldn't be shown. Try again in a moment.",
+  "error.notFound.body": "This page doesn't exist, or it isn't shared.",
   "home.placeholder.action": "Translated by a server action."
 }

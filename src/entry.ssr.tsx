@@ -18,7 +18,12 @@ export const generateHTML = (request: Request, serverResponse: Response): Promis
       const payload = await getPayload();
       // After a no-JS form post, formState carries the action's result so useActionState renders it in the HTML.
       const formState = payload.type === "render" ? await payload.formState : undefined;
-      const bootstrapScriptContent = await import.meta.viteRsc.loadBootstrapScriptContent("index");
+      // Pages under the public layout get no bootstrap script, so they ship no JS at all (spike-results § 9).
+      // They render server components only, so there is nothing to hydrate.
+      const isPublic = payload.type === "render" && payload.matches.some((match) => match.id === "public");
+      const bootstrapScriptContent = isPublic
+        ? undefined
+        : await import.meta.viteRsc.loadBootstrapScriptContent("index");
       return renderHTMLToReadableStream(<RSCStaticRouter getPayload={getPayload} />, {
         ...options,
         bootstrapScriptContent,

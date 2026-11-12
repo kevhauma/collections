@@ -1,28 +1,39 @@
-import { useLingui } from "@lingui/react/macro";
+import { Trans } from "@lingui/react/macro";
+import type { ReactNode } from "react";
 import { Outlet } from "react-router";
 import { setupRequestI18n } from "../i18n";
-import { ClientI18nProvider } from "../i18n/client-provider";
 import { InkDefs } from "../ui/ink-defs";
+import { LinkButton } from "../ui/button";
+import { RouteError } from "./route-error";
 import "../ui/styles.css";
 
-// Document shell. TICKET-UI-02 replaces it with the real admin/public shells; the public one must not render
-// ClientI18nProvider (a client component), so public pages ship no JS (spike-results § 9).
-export default function Root() {
-  const { locale, messages } = setupRequestI18n();
-  const { t } = useLingui();
+// The document. It renders no client components: public pages stay JS-free, and the admin layout adds the
+// client i18n provider itself. Pages render their own <title>; React hoists it into <head>.
+export const Layout = ({ children }: { children: ReactNode }) => {
+  const { locale } = setupRequestI18n();
   return (
     <html lang={locale}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>{t({ id: "app.name", message: "Collections" })}</title>
       </head>
       <body>
+        {/* First focusable element: off-screen until it gets keyboard focus. */}
+        <div className="fixed top-2 left-2 z-50 -translate-y-[200%] focus-within:translate-y-0">
+          <LinkButton href="#main" variant="primary">
+            <Trans id="shell.skipToContent">Skip to content</Trans>
+          </LinkButton>
+        </div>
         <InkDefs />
-        <ClientI18nProvider locale={locale} messages={messages}>
-          <Outlet />
-        </ClientI18nProvider>
+        {children}
       </body>
     </html>
   );
+};
+
+export default function Root() {
+  return <Outlet />;
 }
+
+// Last resort, for errors in the layouts themselves; page errors are caught inside their layout's frame.
+export const ErrorBoundary = RouteError;
