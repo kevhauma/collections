@@ -38,7 +38,7 @@ sudo systemctl daemon-reload && sudo systemctl enable --now collections
 curl -fsS http://127.0.0.1:8080/healthz && echo ok
 ```
 
-Deploying a new version is then `git pull && npm run build && sudo systemctl restart collections`. Change the port
+Deploying a new version is then `git pull && npm ci && npm run build && sudo systemctl restart collections`. Change the port
 by editing `/etc/collections.env` and restarting. `journalctl -u collections -f` shows the log.
 
 The app listens on all interfaces. Unless it sits behind a proxy on the same host (below), open the port in the
