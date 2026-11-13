@@ -92,6 +92,7 @@ describe("buildExport", () => {
       ["Paid", false, false, "€", "excl."],
       ["Signed", true, false, null, null],
     ]);
+    expect(vinyl.fields[1]).toMatchObject({ ratingMax: null, ratingSymbol: null });
     expect(vinyl.items).toEqual([
       {
         status: "have",

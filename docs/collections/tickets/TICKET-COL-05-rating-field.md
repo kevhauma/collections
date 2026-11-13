@@ -1,7 +1,7 @@
 # TICKET-COL-05: Rating field
 
 - **Area:** Collections
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Traceability:** [technical-design.md § Field](../../technical-design.md#field) (new type), [technical-design.md § Schema evolution](../../technical-design.md#schema-evolution)
 
 ## User story
@@ -63,24 +63,41 @@ and the symbol are set per field in the field editor.
 
 ## Acceptance criteria
 
-- [ ] A rating field with max 10 and `🍺` saves, and an item rated 7 shows seven ink and three faded 🍺 in the table,
-      grid and public page.
-- [ ] Max outside 2..10, a non-integer max, an empty symbol and a two-character symbol are rejected with field errors
-      in EN and NL; `❤️` and `🍺` are accepted as one symbol.
-- [ ] Item values 0, max + 1, 2.5 and "abc" are rejected; a blank value saves as no rating.
-- [ ] Sorting by the rating orders 2 before 10, ascending and descending.
-- [ ] Lowering max from 10 to 5 with an item at 7 is refused, naming one item; with all items ≤ 5 it saves.
-- [ ] Changing number → rating converts 1..5 and blanks 0, 6 and 3.5, shown in the preview; rating → number keeps the
-      values; rating → text gives "4".
-- [ ] Private rating fields never reach a public route, config included.
-- [ ] Persistence goes through `src/db/fields.ts` / `src/db/items.ts`. Every action calls `requireAdmin()` and
-      validates with zod.
-- [ ] Unit tests cover: the field parser (defaults, max bounds, grapheme count of the symbol), the item schema
+- [x] A rating field with max 10 and `🍺` saves, and an item rated 7 shows seven ink and three faded 🍺 in the table,
+      grid and public page. (Orca, prod build: "Score" added through the field editor stored `rating_max` 10 and 🍺;
+      Lamp rated 7 renders `role="img"` "7 of 10" with 7 ink + 3 faded symbols in the admin table, the public table
+      and the public grid; `Rating` in `src/ui/rating.tsx`)
+- [x] Max outside 2..10, a non-integer max, an empty symbol and a two-character symbol are rejected with field errors
+      in EN and NL; `❤️` and `🍺` are accepted as one symbol. (`field-schema.test.ts` › "rating config"; ids
+      `fields.error.ratingMax` / `fields.error.ratingSymbol` in both catalogs; browser: max 11 + "ab" showed both
+      errors under their inputs)
+- [x] Item values 0, max + 1, 2.5 and "abc" are rejected; a blank value saves as no rating. (`schema.test.ts` ›
+      "rating values"; no-JS multipart posts of 0, 11, 2.5 and abc each answered "Pick one of the ratings.")
+- [x] Sorting by the rating orders 2 before 10, ascending and descending. (`items.test.ts` › "sorts a rating
+      numerically"; browser `?sort=6`: Table 2, Lamp 7, Chair 10 and the reverse)
+- [x] Lowering max from 10 to 5 with an item at 7 is refused, naming one item; with all items ≤ 5 it saves.
+      (`fields.test.ts` › "a rating's maximum"; `updateField` refuses in its own `where`, so it holds under a
+      concurrent edit. Browser: "2 items are rated above 5. Re-rate them first.", then with one left "1 item heeft een
+      score boven 5…" (NL), then saved after re-rating)
+- [x] Changing number → rating converts 1..5 and blanks 0, 6 and 3.5, shown in the preview; rating → number keeps the
+      values; rating → text gives "4". (`convert.test.ts`; `fields.test.ts` › "gives a field changed to a rating 5 and
+      ★"; preview of Height → Rating: "1 value converts. 2 values will be cleared." listing 40 and 90)
+- [x] Private rating fields never reach a public route, config included. (Score made private: `/shop`, grid, want
+      and `/` HTML contain no "Score", no 🍺 and no `ratingMax`)
+- [x] Persistence goes through `src/db/fields.ts` / `src/db/items.ts`. Every action calls `requireAdmin()` and
+      validates with zod. (`createField`, `updateField`, `countRatedAbove`, `changeFieldType`; existing
+      `collectionAction` routes; `parseNewField` / `parseFieldEdit` / `buildValuesSchema`)
+- [x] Unit tests cover: the field parser (defaults, max bounds, grapheme count of the symbol), the item schema
       (bounds, non-integer, blank), `convertValue` to and from `rating`, the lower-max refusal on a temp DB, and the
-      migration on a version-1 DB.
-- [ ] UI follows the design direction in `.impeccable/surfaces/src-ui.md`; live browser check of the field editor,
-      the item form (keyboard and JS off) and the table at 360 px and desktop.
-- [ ] Verified with the fallow skill.
+      migration on a version-1 DB. (`field-schema.test.ts`, `schema.test.ts`, `convert.test.ts`, `fields.test.ts`,
+      `migrate.test.ts` › "003-field-rating")
+- [x] UI follows the design direction in `.impeccable/surfaces/src-ui.md`; live browser check of the field editor,
+      the item form (keyboard and JS off) and the table at 360 px and desktop. (Orca, 2026-11-13, 360 px and the pane's
+      553 px max: radios named "1 of 10" … "10 of 10", ArrowDown ×7 from "No rating" selects 7 with the dashed focus
+      ring; JS off = plain multipart posts. Ten symbols overflowed a grid card at 360 px, fixed with `wrap-anywhere`;
+      page `scrollWidth` 360. Ink/faded via opacity, no new colours)
+- [x] Verified with the fallow skill. (`npx fallow@3.42.0 audit --base HEAD` → no issues, after unexporting
+      `graphemeCount` and splitting `GroupError` / `textOf` out for complexity)
 
 ## Notes
 

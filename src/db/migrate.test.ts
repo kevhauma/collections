@@ -135,3 +135,13 @@ describe("002-field-affixes", () => {
     expect(db.prepare("select prefix, suffix from fields").get()).toEqual({ prefix: null, suffix: null });
   });
 });
+
+describe("003-field-rating", () => {
+  it("adds rating_max and rating_symbol, null for fields that already exist", () => {
+    db = atVersion(1);
+    db.prepare("insert into collections (id, slug, name) values (1, 'records', 'Records')").run();
+    db.prepare("insert into fields (collection_id, label, type, position) values (1, 'Price', 'number', 1)").run();
+    expect(migrate(db)).toEqual(["002-field-affixes.sql", "003-field-rating.sql"]);
+    expect(db.prepare("select rating_max, rating_symbol from fields").get()).toEqual({ rating_max: null, rating_symbol: null });
+  });
+});

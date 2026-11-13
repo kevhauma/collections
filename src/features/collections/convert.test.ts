@@ -5,6 +5,17 @@ const ok = (value: unknown) => ({ ok: value });
 const blank = { blank: true };
 
 describe("convertValue", () => {
+  it("→ rating: whole numbers 1..5 (the default maximum) convert; 0, 6 and 3.5 blank", () => {
+    expect([1, "5", " 3 "].map((value) => convertValue(value, "rating"))).toEqual([ok(1), ok(5), ok(3)]);
+    expect([0, 6, 3.5, "abc", true].map((value) => convertValue(value, "rating"))).toEqual([blank, blank, blank, blank, blank]);
+  });
+
+  it("rating →: number keeps it, text and choice get its string form", () => {
+    expect(convertValue(4, "number")).toEqual(ok(4));
+    expect(convertValue(4, "text")).toEqual(ok("4"));
+    expect(convertValue(4, "select")).toEqual(ok("4"));
+  });
+
   it("→ text: anything becomes its string form", () => {
     expect(convertValue(12.5, "text")).toEqual(ok("12.5"));
     expect(convertValue(true, "text")).toEqual(ok("true"));

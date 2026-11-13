@@ -13,6 +13,7 @@ const messages: Record<ValidationId, ReturnType<typeof msg>> = {
   "validation.url": msg({ id: "validation.url", message: "Enter a web address starting with http:// or https://." }),
   "validation.quantity": msg({ id: "validation.quantity", message: "Enter a whole number from 1 to 9999." }),
   "validation.status": msg({ id: "validation.status", message: "Choose have or want." }),
+  "validation.rating": msg({ id: "validation.rating", message: "Pick one of the ratings." }),
 };
 
 // For server actions (actionI18n, Lingui #2615).

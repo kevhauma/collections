@@ -1,6 +1,6 @@
 import { msg } from "@lingui/core/macro";
 import { Plural, Trans, useLingui } from "@lingui/react/macro";
-import { affixTypes, fieldTypes, type Field, type FieldType } from "../db/fields";
+import { affixTypes, defaultRating, fieldTypes, type Field, type FieldType } from "../db/fields";
 import type { FieldRejected } from "../features/collections/form";
 import { Badge } from "../ui/badge";
 import { Button, LinkButton } from "../ui/button";
@@ -22,6 +22,7 @@ export const typeLabels: Record<FieldType, ReturnType<typeof msg>> = {
   select: msg({ id: "fields.type.select", message: "Choice" }),
   checkbox: msg({ id: "fields.type.checkbox", message: "Yes/no" }),
   url: msg({ id: "fields.type.url", message: "Link" }),
+  rating: msg({ id: "fields.type.rating", message: "Rating" }),
 };
 
 const Hidden = ({ values }: { values: Record<string, string | number> }) =>
@@ -112,6 +113,33 @@ const AffixFields = ({ id, values, failed, className }: { id: string; values: Va
   );
 };
 
+// A rating's maximum and symbol (TICKET-COL-05), user-typed and never translated.
+const RatingFields = ({ id, values, failed, className }: { id: string; values: Values; failed: Failed; className?: string }) => {
+  const { t } = useLingui();
+  return (
+    <div className={className ?? "grid gap-4 sm:grid-cols-2"}>
+      <FormField
+        id={`${id}-rating-max`}
+        label={t({ id: "fields.ratingMax", message: "Maximum" })}
+        hint={t({ id: "fields.ratingMax.hint", message: "From 2 to 10." })}
+        error={failed?.errors.ratingMax}
+      >
+        {(control) => (
+          <Input {...control} type="number" name="ratingMax" min={2} max={10} step={1} defaultValue={values.ratingMax} />
+        )}
+      </FormField>
+      <FormField
+        id={`${id}-rating-symbol`}
+        label={t({ id: "fields.ratingSymbol", message: "Symbol" })}
+        hint={t({ id: "fields.ratingSymbol.hint", message: "One character or emoji, like ★ or 🍺." })}
+        error={failed?.errors.ratingSymbol}
+      >
+        {(control) => <Input {...control} name="ratingSymbol" defaultValue={values.ratingSymbol} maxLength={16} />}
+      </FormField>
+    </div>
+  );
+};
+
 const newValues: Values = {
   label: "",
   type: "text",
@@ -120,6 +148,8 @@ const newValues: Values = {
   isPublic: "on",
   prefix: "",
   suffix: "",
+  ratingMax: String(defaultRating.max),
+  ratingSymbol: defaultRating.symbol,
 };
 
 // The options box only shows while "Choice" is selected: CSS :has(), no JS.
@@ -155,6 +185,12 @@ export const AddFieldForm = ({ failed }: { failed: Failed }) => {
         failed={failed}
         className="hidden gap-4 sm:grid-cols-2 group-has-[option[value=text]:checked]:grid group-has-[option[value=number]:checked]:grid group-has-[option[value=select]:checked]:grid"
       />
+      <RatingFields
+        id="new-field"
+        values={values}
+        failed={failed}
+        className="hidden gap-4 sm:grid-cols-2 group-has-[option[value=rating]:checked]:grid"
+      />
       <Toggles values={values} />
       <div>
         <Button variant="primary" type="submit">
@@ -165,14 +201,18 @@ export const AddFieldForm = ({ failed }: { failed: Failed }) => {
   );
 };
 
+const textOf = (value: string | number | null) => (value === null ? "" : String(value));
+
 const valuesOf = (field: Field): Values => ({
   label: field.label,
   type: field.type,
   options: "",
   required: flag(field.required),
   isPublic: flag(field.isPublic),
-  prefix: field.prefix ?? "",
-  suffix: field.suffix ?? "",
+  prefix: textOf(field.prefix),
+  suffix: textOf(field.suffix),
+  ratingMax: textOf(field.ratingMax),
+  ratingSymbol: textOf(field.ratingSymbol),
 });
 
 // A choice field's options (TICKET-COL-03): each renames in place through its own form, or opens the removal
@@ -218,9 +258,13 @@ const OptionList = ({ field, slug, failed }: { field: Field; slug: string; faile
   );
 };
 
-// An existing field shows the prefix and suffix inputs only when its type has them.
-const EditAffixes = ({ field, values, failed }: { field: Field; values: Values; failed: Failed }) =>
-  affixTypes.includes(field.type) && <AffixFields id={`field-${field.id}`} values={values} failed={failed} />;
+// An existing field shows the inputs only its type has: prefix and suffix, or a rating's maximum and symbol.
+const EditTypeFields = ({ field, values, failed }: { field: Field; values: Values; failed: Failed }) => (
+  <>
+    {affixTypes.includes(field.type) && <AffixFields id={`field-${field.id}`} values={values} failed={failed} />}
+    {field.type === "rating" && <RatingFields id={`field-${field.id}`} values={values} failed={failed} />}
+  </>
+);
 
 // Opens by itself when its last save failed, so the error is visible after a no-JS reload.
 const EditField = ({ field, slug, failed }: { field: Field; slug: string; failed: Failed }) => {
@@ -244,7 +288,7 @@ const EditField = ({ field, slug, failed }: { field: Field; slug: string; failed
             failed={failed}
           />
         )}
-        <EditAffixes field={field} values={values} failed={failed} />
+        <EditTypeFields field={field} values={values} failed={failed} />
         <Toggles values={values} locked={field.isTitle === 1} />
         <div>
           <Button variant="primary" size="sm" type="submit">

@@ -14,6 +14,8 @@ const field = (overrides: Partial<Field>): Field => ({
   valueCount: 0,
   prefix: null,
   suffix: null,
+  ratingMax: null,
+  ratingSymbol: null,
   ...overrides,
 });
 
@@ -33,6 +35,8 @@ describe("parseNewField", () => {
       isPublic: 1,
       prefix: null,
       suffix: null,
+      ratingMax: null,
+      ratingSymbol: null,
     });
   });
 
@@ -81,6 +85,8 @@ describe("parseFieldEdit", () => {
       isPublic: 0,
       prefix: null,
       suffix: null,
+      ratingMax: null,
+      ratingSymbol: null,
     });
   });
 
@@ -128,5 +134,41 @@ describe("prefix and suffix", () => {
       suffix: "excl.",
     });
     expect(parseFieldEdit({ label: "Bought", prefix: "€" }, bought, taken).data).toMatchObject({ prefix: null });
+  });
+});
+
+describe("rating config (TICKET-COL-05)", () => {
+  const rating = (extra: Record<string, string>) => parseNewField({ label: "Score", type: "rating", ...extra }, taken);
+
+  it("defaults to 5 and ★", () => {
+    expect(rating({}).data).toMatchObject({ ratingMax: 5, ratingSymbol: "★", prefix: null, options: null });
+  });
+
+  it("accepts 2 and 10 with any one symbol, emoji included", () => {
+    expect(rating({ ratingMax: "10", ratingSymbol: "🍺" }).data).toMatchObject({ ratingMax: 10, ratingSymbol: "🍺" });
+    expect(rating({ ratingMax: "2", ratingSymbol: " ❤️ " }).data).toMatchObject({ ratingMax: 2, ratingSymbol: "❤️" });
+  });
+
+  it.each(["1", "11", "2.5", "", "abc"])("refuses a maximum of %j", (ratingMax) => {
+    expect(errorKeys(rating({ ratingMax }))).toEqual(["ratingMax:ratingMax"]);
+  });
+
+  it.each(["", "  ", "ab", "★★", "🍺🍺"])("refuses the symbol %j", (ratingSymbol) => {
+    expect(errorKeys(rating({ ratingSymbol }))).toEqual(["ratingSymbol:ratingSymbol"]);
+  });
+
+  it("gives other types no rating config, whatever was posted", () => {
+    expect(parseNewField({ label: "Year", type: "number", ratingMax: "99", ratingSymbol: "xx" }, taken).data).toMatchObject({
+      ratingMax: null,
+      ratingSymbol: null,
+    });
+  });
+
+  it("edits a rating field's config", () => {
+    const score = field({ id: 6, label: "Score", type: "rating", ratingMax: 5, ratingSymbol: "★" });
+    expect(parseFieldEdit({ label: "Score", ratingMax: "10", ratingSymbol: "🍺" }, score, taken).data).toMatchObject({
+      ratingMax: 10,
+      ratingSymbol: "🍺",
+    });
   });
 });

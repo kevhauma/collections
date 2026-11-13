@@ -128,3 +128,23 @@ describe("i18n and imports", () => {
     expect(valueImports).toEqual(["zod"]);
   });
 });
+
+describe("rating values (TICKET-COL-05)", () => {
+  const rating: ValueField = { id: 7, type: "rating", options: null, required: 0, ratingMax: 10 };
+
+  it("accepts a whole number from 1 to the field's maximum", () => {
+    expect([1, "7", 10].map((input) => value(rating, input))).toEqual([1, 7, 10]);
+  });
+
+  it.each([0, 11, 2.5, "2,5", "abc", true])("refuses %j", (input) => {
+    expect(error(rating, input)).toEqual([validationIds.rating]);
+  });
+
+  it("saves a blank value as no rating", () => {
+    expect(parse(rating, "").data).toEqual({});
+  });
+
+  it("uses the field's own maximum", () => {
+    expect(error({ ...rating, ratingMax: 5 }, 7)).toEqual([validationIds.rating]);
+  });
+});

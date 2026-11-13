@@ -6,6 +6,7 @@ import { affixes, isBlank } from "../features/collections/affixes";
 import { thumbUrl } from "../features/images/shared";
 import { formatDate, formatNumber } from "../i18n";
 import { PostIt } from "../ui/post-it";
+import { Rating } from "../ui/rating";
 import { Input } from "../ui/input";
 import { Rank } from "../ui/rank";
 import { SortableList } from "../ui/sortable-list";
@@ -34,8 +35,16 @@ type Ranking = { draggable: boolean; count: number; onMove: (id: number, to: num
 
 const Yes = () => <Trans id="items.value.yes">Yes</Trans>;
 
+const RatingValue = ({ value: score, field }: { value: number; field: Field }) => {
+  const { t } = useLingui();
+  const max = field.ratingMax ?? score;
+  return (
+    <Rating value={score} max={max} symbol={field.ratingSymbol ?? "★"} label={t({ id: "rating.label", message: `${score} of ${max}` })} />
+  );
+};
+
 // A stored date is a plain YYYY-MM-DD day; formatting it in UTC keeps it from shifting a day.
-const valueRenderers: Record<FieldType, (value: unknown) => ReactNode> = {
+const valueRenderers: Record<FieldType, (value: unknown, field: Field) => ReactNode> = {
   text: String,
   select: String,
   // No grouping: collection numbers are mostly years and catalogue numbers, and "1,959" reads wrong.
@@ -47,6 +56,7 @@ const valueRenderers: Record<FieldType, (value: unknown) => ReactNode> = {
       {URL.parse(String(value))?.hostname ?? String(value)}
     </a>
   ),
+  rating: (value, field) => <RatingValue value={Number(value)} field={field} />,
 };
 
 // `children` replaces the type's rendering (the title, which links to the item) but keeps the prefix and suffix.
@@ -56,7 +66,7 @@ const FieldValue = ({ field, value, children }: { field: Field; value: unknown; 
     !isBlank(value) && (
       <>
         {before}
-        {children ?? valueRenderers[field.type](value)}
+        {children ?? valueRenderers[field.type](value, field)}
         {after}
       </>
     )

@@ -135,6 +135,9 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   vitest can test it (vitest has no Lingui plugin, so a module using `msg` can't be imported in a test). A sibling
   `form.ts` maps the keys to `msg` ids and returns `{ errors, values }`, echoing what was typed so a no-JS reload keeps
   it. Exemplar: [src/features/collections/](../../../src/features/collections/) (`parseCreate`, `rejected`).
+- Config only some field types have (prefix/suffix, a rating's max/symbol) is listed in `typeInputs` in
+  [field-schema.ts](../../../src/features/collections/field-schema.ts): other types ignore those inputs, so the no-JS
+  form can render them for every type and hide them with `:has()`.
 
 ## Data access (ADR 0003)
 

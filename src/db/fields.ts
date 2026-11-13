@@ -4,7 +4,7 @@ import { db } from "./connection";
 // All SQL for a collection's fields (TICKET-COL-02). Every statement is scoped to the collection, and the title field
 // is protected here, in SQL, so no caller can delete it or make it optional or private.
 
-export const fieldTypes = ["text", "number", "date", "select", "checkbox", "url"] as const;
+export const fieldTypes = ["text", "number", "date", "select", "checkbox", "url", "rating"] as const;
 export type FieldType = (typeof fieldTypes)[number];
 
 // The title field stays text-like, so every item keeps a usable title (TICKET-COL-03).
@@ -22,13 +22,17 @@ export type Field = {
   isPublic: 0 | 1;
   prefix: string | null;
   suffix: string | null;
+  // A rating field's maximum and symbol (TICKET-COL-05); null for every other type.
+  ratingMax: number | null;
+  ratingSymbol: string | null;
   position: number;
   isTitle: 0 | 1;
   // Items holding a non-empty value for this field, for the delete confirmation.
   valueCount: number;
 };
 
-export type FieldInput = Pick<Field, "label" | "options" | "required" | "isPublic" | "prefix" | "suffix">;
+export type FieldInput = Pick<Field, "label" | "options" | "required" | "isPublic" | "prefix" | "suffix"> &
+  Partial<Pick<Field, "ratingMax" | "ratingSymbol">>;
 export type NewField = FieldInput & Pick<Field, "type">;
 
 const isTitleField = "id = (select title_field_id from collections where id = @collectionId)";
@@ -38,7 +42,7 @@ export const listFields = (collectionId: number): Field[] =>
     db()
       .prepare(
         `select f.id, f.label, f.type, f.options_json as options, f.required, f.is_public as isPublic, f.prefix, f.suffix,
-           f.position,
+           f.rating_max as ratingMax, f.rating_symbol as ratingSymbol, f.position,
            f.id is c.title_field_id as isTitle,
            (select count(*) from items i where i.collection_id = f.collection_id
               and nullif(json_extract(i.values_json, '$."' || f.id || '"'), '') is not null) as valueCount
@@ -50,27 +54,42 @@ export const listFields = (collectionId: number): Field[] =>
 
 const optionsJson = (options: string[] | null) => (options === null ? null : JSON.stringify(options));
 
+const ratingOf = (field: FieldInput) => ({ ratingMax: field.ratingMax ?? null, ratingSymbol: field.ratingSymbol ?? null });
+
 // New fields go last.
 export const createField = (collectionId: number, field: NewField): void => {
   db()
     .prepare(
-      `insert into fields (collection_id, label, type, options_json, required, is_public, prefix, suffix, position)
-       select @collectionId, @label, @type, @options, @required, @isPublic, @prefix, @suffix, coalesce(max(position), 0) + 1
+      `insert into fields (collection_id, label, type, options_json, required, is_public, prefix, suffix, rating_max,
+         rating_symbol, position)
+       select @collectionId, @label, @type, @options, @required, @isPublic, @prefix, @suffix, @ratingMax, @ratingSymbol,
+         coalesce(max(position), 0) + 1
        from fields where collection_id = @collectionId`,
     )
-    .run({ ...field, options: optionsJson(field.options), collectionId });
+    .run({ ...ratingOf(field), ...field, options: optionsJson(field.options), collectionId });
 };
 
-// The title field stays required and public whatever the input says.
-export const updateField = (collectionId: number, fieldId: number, field: FieldInput): void => {
+// Items rating the field above `max`: lowering a rating's maximum waits until they're re-rated (TICKET-COL-05).
+const ratedAbove = `select count(*) from items where collection_id = @collectionId
+  and json_extract(values_json, '$."' || @fieldId || '"') > @ratingMax`;
+
+export const countRatedAbove = (collectionId: number, fieldId: number, ratingMax: number): number =>
+  db().prepare(ratedAbove).pluck().get({ collectionId, fieldId: String(fieldId), ratingMax }) as number;
+
+// The title field stays required and public whatever the input says. A rating keeps its type's config: a field that
+// isn't a rating ignores ratingMax and ratingSymbol. False when nothing was updated, including a lowered maximum
+// that an item's rating is still above.
+export const updateField = (collectionId: number, fieldId: number, field: FieldInput): boolean =>
   db()
     .prepare(
       `update fields set label = @label, options_json = @options, prefix = @prefix, suffix = @suffix,
-         required = iif(${isTitleField}, 1, @required), is_public = iif(${isTitleField}, 1, @isPublic)
-       where id = @fieldId and collection_id = @collectionId`,
+         required = iif(${isTitleField}, 1, @required), is_public = iif(${isTitleField}, 1, @isPublic),
+         rating_max = iif(type = 'rating', @ratingMax, null), rating_symbol = iif(type = 'rating', @ratingSymbol, null)
+       where id = @id and collection_id = @collectionId
+         and (type != 'rating' or ((@ratingMax is not null) and (${ratedAbove}) = 0))`,
     )
-    .run({ ...field, options: optionsJson(field.options), fieldId, collectionId });
-};
+    .run({ ...ratingOf(field), ...field, options: optionsJson(field.options), id: fieldId, fieldId: String(fieldId), collectionId })
+    .changes > 0;
 
 // `to` is the 1-based target position (clamped). Positions are renumbered 1..n in the same transaction.
 export const moveField = (collectionId: number, fieldId: number, to: number): void =>
@@ -102,6 +121,9 @@ export const deleteField = (collectionId: number, fieldId: number): boolean =>
       .run(collectionId, deleted.position);
     return true;
   })();
+
+// What a new rating field, or a field changed to one, starts with.
+export const defaultRating = { max: 5, symbol: "★" } as const;
 
 // A constant type list as SQL literals; the values are our own, never user input.
 const quoted = (types: readonly FieldType[]) => types.map((type) => `'${type}'`).join(", ");
@@ -146,7 +168,9 @@ export const changeFieldType = (
       .prepare(
         `update fields set type = @toType, options_json = @options,
            prefix = iif(@toType in (${quoted(affixTypes)}), prefix, null),
-           suffix = iif(@toType in (${quoted(affixTypes)}), suffix, null)
+           suffix = iif(@toType in (${quoted(affixTypes)}), suffix, null),
+           rating_max = iif(@toType = 'rating', ${defaultRating.max}, null),
+           rating_symbol = iif(@toType = 'rating', '${defaultRating.symbol}', null)
          where id = @fieldId and collection_id = @collectionId
            and (not ${isTitleField} or @toType in (${quoted(titleFieldTypes)}))`,
       )

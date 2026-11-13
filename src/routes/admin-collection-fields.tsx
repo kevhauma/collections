@@ -2,10 +2,10 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { redirect, type LoaderFunctionArgs, type Params } from "react-router";
 import { z } from "zod";
 import type { Collection } from "../db/collections";
-import { createField, deleteField, listFields, moveField, renameOption, updateField } from "../db/fields";
+import { countRatedAbove, createField, deleteField, listFields, moveField, renameOption, updateField } from "../db/fields";
 import { requireAdmin } from "../features/auth/guard";
 import { labelsOf, parseFieldEdit, parseNewField, parseOptionRename } from "../features/collections/field-schema";
-import { fieldRejected, type FieldRejected } from "../features/collections/form";
+import { fieldRejected, ratedAboveRejected, type FieldRejected } from "../features/collections/form";
 import { collectionAction, requireCollection } from "../features/collections/require-collection";
 import type { FormInput } from "../features/collections/validation";
 import { Card } from "../ui/card";
@@ -58,8 +58,10 @@ const intents: Record<string, Intent> = {
     const field = fieldOf(collection, form);
     const parsed = parseFieldEdit(form, field, labelsOf(listFields(collection.id), field.id));
     if (!parsed.success) return fieldRejected(parsed.error, form, field.id);
-    updateField(collection.id, field.id, parsed.data);
-    return back(collection, field.id);
+    if (updateField(collection.id, field.id, parsed.data)) return back(collection, field.id);
+    // The one refusal for an existing field: a rating's maximum below what some items hold.
+    const max = parsed.data.ratingMax ?? 0;
+    return ratedAboveRejected(countRatedAbove(collection.id, field.id, max), max, form, field.id);
   },
   // renameOption refuses an unknown option; an unchanged name just goes back.
   renameOption: (collection, form) => {

@@ -1,4 +1,4 @@
-import { msg } from "@lingui/core/macro";
+import { msg, plural } from "@lingui/core/macro";
 import type { z } from "zod";
 import { actionI18n } from "../../i18n";
 import type { FieldErrorKey } from "./field-schema";
@@ -25,6 +25,8 @@ const messages: Record<ErrorKey | FieldErrorKey, ReturnType<typeof msg>> = {
     message: "Only choice fields have options. Clear them or pick Choice.",
   }),
   affix: msg({ id: "fields.error.affix", message: "Keep it to 20 characters or fewer." }),
+  ratingMax: msg({ id: "fields.error.ratingMax", message: "Enter a whole number from 2 to 10." }),
+  ratingSymbol: msg({ id: "fields.error.ratingSymbol", message: "Enter exactly one symbol, like ★ or 🍺." }),
 };
 
 type Message = keyof typeof messages;
@@ -49,8 +51,10 @@ export const rejected = (error: z.ZodError, form: FormInput): Rejected => ({
   values: typed(form, ["name", "slug"]),
 });
 
-const fieldKeys = ["label", "type", "options", "required", "isPublic", "prefix", "suffix"] as const;
-export type FieldFormErrors = Partial<Record<"label" | "type" | "options" | "to" | "prefix" | "suffix", string>>;
+const fieldKeys = ["label", "type", "options", "required", "isPublic", "prefix", "suffix", "ratingMax", "ratingSymbol"] as const;
+export type FieldFormErrors = Partial<
+  Record<"label" | "type" | "options" | "to" | "prefix" | "suffix" | "ratingMax" | "ratingSymbol", string>
+>;
 // `target`: the field being edited, or "new" for the add form. `option`: the option whose rename failed.
 export type FieldRejected = {
   target: number | "new";
@@ -58,6 +62,23 @@ export type FieldRejected = {
   values: Record<(typeof fieldKeys)[number], string>;
   option?: string;
 };
+
+// A rating's maximum lowered below what some items are rated (TICKET-COL-05): they need re-rating first.
+export const ratedAboveRejected = (count: number, max: number, form: FormInput, target: number): FieldRejected => ({
+  target,
+  errors: {
+    ratingMax: actionI18n()._(
+      msg({
+        id: "fields.error.ratedAbove",
+        message: plural(count, {
+          one: `# item is rated above ${max}. Re-rate it first.`,
+          other: `# items are rated above ${max}. Re-rate them first.`,
+        }),
+      }),
+    ),
+  },
+  values: typed(form, fieldKeys),
+});
 
 export const fieldRejected = (error: z.ZodError, form: FormInput, target: number | "new"): FieldRejected => ({
   target,

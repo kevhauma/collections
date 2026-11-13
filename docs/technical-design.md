@@ -29,7 +29,10 @@ Decided in a design session on 2026-11-11. Build plan and tickets: [releases/v1/
 
 ### Field
 
-- Types: `text`, `number`, `date`, `select`, `checkbox`, `url`. Nothing nested.
+- Types: `text`, `number`, `date`, `select`, `checkbox`, `url`, `rating`. Nothing nested.
+- A `rating` stores a whole number from 1 to its `rating_max` (2..10, default 5) and shows that many of its
+  `rating_symbol` (one grapheme, default ★) in ink, the rest faded. Lowering the maximum is refused while an item is
+  rated above it. It sorts numerically, isn't searched, and can't be the title field (TICKET-COL-05).
 - Each field has: `label`, `type`, `options` (select only: list of strings), `required`, `is_public` (default on),
   `position`, and an optional `prefix` / `suffix` (text, number and select only, ≤ 20 characters, display-only: shown
   around a non-blank value, never stored in it, so sort, search and conversions see the plain value; TICKET-COL-04).
@@ -67,6 +70,8 @@ Decided in a design session on 2026-11-11. Build plan and tickets: [releases/v1/
 | Rename select option | Rewrite matching item values (one `json_set` UPDATE). |
 | Remove select option | Preview affected items, blank those values on confirm. The last option stays. |
 | Make a field required | Allowed; existing blank values stay until the item is next edited. |
+| Change a rating's maximum | Raising: free. Lowering: refused while an item is rated above it, with the count. |
+| Change to or from rating | To: whole numbers 1..5 convert (max 5, ★). From: the number, or its string form ("4"). |
 
 ### Slugs
 
@@ -157,7 +162,8 @@ collections(id INTEGER PRIMARY KEY, slug TEXT UNIQUE NOT NULL, name TEXT NOT NUL
 fields(id INTEGER PRIMARY KEY, collection_id INTEGER NOT NULL REFERENCES collections ON DELETE CASCADE,
        label TEXT NOT NULL, type TEXT NOT NULL, options_json TEXT, required INTEGER NOT NULL DEFAULT 0,
        is_public INTEGER NOT NULL DEFAULT 1, position INTEGER NOT NULL,
-       prefix TEXT, suffix TEXT)  -- 002
+       prefix TEXT, suffix TEXT,  -- 002
+       rating_max INTEGER, rating_symbol TEXT)  -- 003
 items(id INTEGER PRIMARY KEY, collection_id INTEGER NOT NULL REFERENCES collections ON DELETE CASCADE,
       status TEXT NOT NULL CHECK (status IN ('have','want')),
       quantity INTEGER, rank INTEGER,

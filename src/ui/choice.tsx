@@ -1,5 +1,6 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { cn } from "./cn";
+import { RequiredMark } from "./form-field";
 
 type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & { label: ReactNode };
 
@@ -17,12 +18,32 @@ type RadioGroupProps = {
   options: Array<{ value: string; label: ReactNode }>;
   defaultValue?: string;
   required?: boolean;
+  // Like FormField: `requiredWord` marks the legend ("*" plus the word for screen readers), `error` shows under it.
+  // `id` goes on the fieldset, so an error summary can link to it.
+  requiredWord?: string;
+  error?: ReactNode;
+  id?: string;
   className?: string;
 };
 
-export const RadioGroup = ({ legend, name, options, defaultValue, required, className }: RadioGroupProps) => (
-  <fieldset className={cn("grid gap-1", className)}>
-    <legend className="mb-1 font-bold">{legend}</legend>
+const GroupError = ({ id, error }: { id: string; error?: ReactNode }) =>
+  error && (
+    <p id={id} className="font-bold text-red-pen">
+      {error}
+    </p>
+  );
+
+export const RadioGroup = ({ legend, name, options, defaultValue, required, requiredWord, error, id, className }: RadioGroupProps) => (
+  <fieldset
+    id={id}
+    aria-describedby={error ? `${name}-error` : undefined}
+    className={cn("grid gap-1", className)}
+  >
+    <legend className="mb-1 font-bold">
+      {legend}
+      <RequiredMark word={requiredWord} />
+    </legend>
+    <GroupError id={`${name}-error`} error={error} />
     {options.map((option) => (
       <label key={option.value} className="inline-flex min-h-10 cursor-pointer items-center gap-2">
         <input

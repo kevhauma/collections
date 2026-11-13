@@ -1,4 +1,4 @@
-import { titleFieldTypes, type Field, type FieldType } from "../../db/fields";
+import { defaultRating, titleFieldTypes, type Field, type FieldType } from "../../db/fields";
 import { isDate, isHttpUrl, parseNumber } from "../items/schema";
 
 // Converting stored values when a field changes type (TICKET-COL-03). Pure. The stored JSON type stands in for the
@@ -26,11 +26,21 @@ const validText = (value: unknown, valid: (text: string) => boolean) => {
   return text !== undefined && valid(text) ? text : undefined;
 };
 
+const numberOf = (value: unknown) => (typeof value === "number" ? value : parseNumber(trimmed(value) ?? ""));
+
+// A field changed to a rating gets the default maximum, so only whole numbers 1..5 fit.
+const isDefaultRating = (value: number | undefined) =>
+  value !== undefined && Number.isInteger(value) && value >= 1 && value <= defaultRating.max;
+
 const converters: Record<FieldType, (value: unknown) => Conversion> = {
   text: (value) => ({ ok: String(value) }),
   // An option is at most 100 characters, like a typed one.
   select: (value) => okUnless(validText(String(value), (text) => text.length > 0 && text.length <= 100)),
-  number: (value) => okUnless(typeof value === "number" ? value : parseNumber(trimmed(value) ?? "")),
+  number: (value) => okUnless(numberOf(value)),
+  rating: (value) => {
+    const rating = numberOf(value);
+    return isDefaultRating(rating) ? { ok: rating } : blank;
+  },
   date: (value) => okUnless(validText(value, isDate)),
   checkbox: (value) => okUnless(checkboxWords.get(textOf(value).toLowerCase())),
   url: (value) => okUnless(validText(value, isHttpUrl)),

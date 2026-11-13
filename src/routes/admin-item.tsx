@@ -22,6 +22,7 @@ import { ErrorSummary } from "../ui/error-summary";
 import { FormField, type ControlProps } from "../ui/form-field";
 import { Input, Select } from "../ui/input";
 import { PostIt } from "../ui/post-it";
+import { Rating } from "../ui/rating";
 import { ImageField } from "./image-field";
 import { listHref } from "./item-paths";
 
@@ -151,6 +152,34 @@ const boxed = (control: (props: Props, field: Field) => ReactNode) => (row: Row)
   </FormField>
 );
 
+// A rating (TICKET-COL-05): one radio per score drawn as symbols and read as "3 of 5", plus "No rating" to clear it.
+// Native radios, so arrow keys move between them and it works without JS.
+const RatingControl = ({ row }: { row: Row }) => {
+  const { t } = useLingui();
+  const max = row.field.ratingMax ?? 5;
+  const symbol = row.field.ratingSymbol ?? "★";
+  const scores = Array.from({ length: max }, (_, index) => index + 1);
+  return (
+    <RadioGroup
+      id={row.id}
+      legend={row.field.label}
+      requiredWord={row.required}
+      error={row.error}
+      name={row.name}
+      defaultValue={row.value}
+      options={[
+        { value: "", label: t({ id: "rating.none", message: "No rating" }) },
+        ...scores.map((score) => ({
+          value: String(score),
+          label: (
+            <Rating value={score} max={max} symbol={symbol} label={t({ id: "rating.label", message: `${score} of ${max}` })} />
+          ),
+        })),
+      ]}
+    />
+  );
+};
+
 // Field type → control. A checkbox is its own label and always has a value, so it's never required or invalid.
 const controls: Record<FieldType, (row: Row) => ReactNode> = {
   text: boxed((props) => <Input {...props} />),
@@ -170,6 +199,7 @@ const controls: Record<FieldType, (row: Row) => ReactNode> = {
     <Checkbox id={row.id} name={row.name} defaultChecked={row.value === "on"} label={row.field.label} />
   ),
   url: boxed((props) => <Input {...props} type="url" />),
+  rating: (row) => <RatingControl row={row} />,
 };
 
 const rowsOf = (fields: Field[], values: FormValues, errors: Errors, requiredWord: string): Row[] =>

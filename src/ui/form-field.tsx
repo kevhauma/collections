@@ -18,7 +18,7 @@ type FormFieldProps = {
 const messageStyles = { error: "font-bold text-red-pen", hint: "text-sm text-ink-soft" };
 
 // An asterisk for sighted users, the word for screen readers. Nothing for an optional field.
-const RequiredMark = ({ word }: { word?: string }) =>
+export const RequiredMark = ({ word }: { word?: string }) =>
   word && (
     <>
       <span aria-hidden="true"> *</span>

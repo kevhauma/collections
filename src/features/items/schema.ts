@@ -14,10 +14,11 @@ export const validationIds = {
   url: "validation.url",
   quantity: "validation.quantity",
   status: "validation.status",
+  rating: "validation.rating",
 } as const;
 export type ValidationId = (typeof validationIds)[keyof typeof validationIds];
 
-export type ValueField = Pick<Field, "id" | "type" | "options" | "required">;
+export type ValueField = Pick<Field, "id" | "type" | "options" | "required"> & Partial<Pick<Field, "ratingMax">>;
 
 // Low-level parsers: undefined when the text isn't a value of that kind. TICKET-COL-03's convertValue reuses them.
 export const parseNumber = (text: string): number | undefined =>
@@ -31,12 +32,20 @@ export const isHttpUrl = (text: string): boolean => /^https?:$/.test(URL.parse(t
 const text = z.string({ error: validationIds.text }).trim();
 
 // Schema per type for a present (non-blank) value.
+// A number typed or stored, refused with `error` unless it passes `valid`.
+const numeric = (error: ValidationId, valid: (value: number | undefined) => boolean) =>
+  z.union([z.number(), z.string().trim().transform(parseNumber)], { error }).refine(valid, error);
+
+const isFiniteNumber = (value: number | undefined) => value !== undefined && Number.isFinite(value);
+
+// A whole number from 1 to the field's maximum (TICKET-COL-05). 5 is the default every rating field is created with.
+const ratingWithin = (max: number) => (value: number | undefined) =>
+  value !== undefined && Number.isInteger(value) && value >= 1 && value <= max;
+
 const typeSchemas: Record<Exclude<FieldType, "checkbox">, (field: ValueField) => z.ZodType> = {
   text: () => text.max(2000, validationIds.text),
-  number: () =>
-    z
-      .union([z.number(), z.string().trim().transform(parseNumber)], { error: validationIds.number })
-      .refine((value) => value !== undefined && Number.isFinite(value), validationIds.number),
+  number: () => numeric(validationIds.number, isFiniteNumber),
+  rating: (field) => numeric(validationIds.rating, ratingWithin(field.ratingMax ?? 5)),
   date: () => text.refine(isDate, validationIds.date),
   select: (field) => text.refine((value) => field.options?.includes(value) ?? false, validationIds.select),
   url: () => text.refine(isHttpUrl, validationIds.url),

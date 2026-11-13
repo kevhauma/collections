@@ -160,6 +160,30 @@ describe("listItems", () => {
     expect(titles({ q: "1957" })).toEqual([]);
   });
 
+  it("sorts a rating numerically: 2 before 10 both ways (TICKET-COL-05)", () => {
+    createCollection("Beers", "beers", "Title");
+    const beers = getCollectionBySlug("beers")!;
+    createField(beers.id, {
+      label: "Score",
+      type: "rating",
+      options: null,
+      required: 0,
+      isPublic: 1,
+      prefix: null,
+      suffix: null,
+      ratingMax: 10,
+      ratingSymbol: "🍺",
+    });
+    const score = listFields(beers.id).find((field) => field.type === "rating")!;
+    [10, 2, 7].forEach((value) =>
+      createItem(beers.id, { status: "have", quantity: 1, values: { [beers.titleFieldId]: `B${value}`, [score.id]: value } }),
+    );
+    const order = (dir: "asc" | "desc") =>
+      listItems({ collectionId: beers.id, status: "have", sort: score.id, dir }).map((item) => item.values[score.id]);
+    expect(order("asc")).toEqual([2, 7, 10]);
+    expect(order("desc")).toEqual([10, 7, 2]);
+  });
+
   it("never matches a search on a prefix or suffix", () => {
     expect(titles({ q: "€" })).toEqual([]);
     expect(titles({ q: "excl" })).toEqual([]);

@@ -6,6 +6,7 @@ import { createCollection, getCollectionBySlug } from "./collections";
 import { db } from "./connection";
 import {
   changeFieldType,
+  countRatedAbove,
   createField,
   deleteField,
   fieldValues,
@@ -107,6 +108,45 @@ describe("schema changes that rewrite item data", () => {
     const valueOf = (itemId: number) => getItem(id, itemId)?.values[grade.id];
     return { id, titleFieldId, grade, items, valueOf };
   };
+
+  it("gives a field changed to a rating 5 and ★, and clears them when it changes away", () => {
+    const { id, grade, items, valueOf } = setupWithItems("type-rating", "number", null, [4, 6, 3.5]);
+    expect(changeFieldType(id, grade.id, "rating", plan("rating"))).toBe(true);
+    expect(items.map(valueOf)).toEqual([4, undefined, undefined]);
+    expect(byLabel(id, "Grade")).toMatchObject({ type: "rating", ratingMax: 5, ratingSymbol: "★" });
+    expect(changeFieldType(id, grade.id, "text", plan("text"))).toBe(true);
+    expect(items.map(valueOf)).toEqual(["4", undefined, undefined]);
+    expect(byLabel(id, "Grade")).toMatchObject({ type: "text", ratingMax: null, ratingSymbol: null });
+  });
+
+  describe("a rating's maximum (TICKET-COL-05)", () => {
+    const rate = (slug: string, values: number[]) => {
+      const { id, titleFieldId } = setup(slug);
+      const config = { required: 0, isPublic: 1, prefix: null, suffix: null } as const;
+      createField(id, { label: "Score", type: "rating", options: null, ...config, ratingMax: 10, ratingSymbol: "🍺" });
+      const score = byLabel(id, "Score");
+      values.forEach((value, index) =>
+        createItem(id, { status: "have", quantity: 1, values: { [titleFieldId]: `T${index}`, [score.id]: value } }),
+      );
+      const lowerTo = (ratingMax: number) =>
+        updateField(id, score.id, { label: "Score", options: null, ...config, ratingMax, ratingSymbol: "★" });
+      return { id, score, lowerTo };
+    };
+
+    it("refuses lowering it below an item's rating, and counts those items", () => {
+      const { id, score, lowerTo } = rate("rating-low", [7, 3]);
+      expect(countRatedAbove(id, score.id, 5)).toBe(1);
+      expect(lowerTo(5)).toBe(false);
+      expect(byLabel(id, "Score")).toMatchObject({ ratingMax: 10, ratingSymbol: "🍺" });
+    });
+
+    it("lowers it when every rating fits, and raises it any time", () => {
+      const { id, lowerTo } = rate("rating-fits", [5, 3]);
+      expect(lowerTo(5)).toBe(true);
+      expect(byLabel(id, "Score")).toMatchObject({ ratingMax: 5, ratingSymbol: "★" });
+      expect(lowerTo(9)).toBe(true);
+    });
+  });
 
   it("keeps a prefix and suffix through number → text, and clears them going to date", () => {
     const { id, grade } = setupWithItems("type-affix", "number", null, [12]);
