@@ -27,3 +27,11 @@ export const requireField = (collection: Collection, fieldId: string | undefined
   if (!field) throw data(null, { status: 404 });
   return field;
 };
+
+// A visitor's collection (TICKET-PUB-02): private and unknown slugs answer the same 404, so a private collection's
+// existence never shows.
+export const requirePublicCollection = (slug: string | undefined): Collection => {
+  const collection = slug === undefined ? undefined : getCollectionBySlug(slug);
+  if (!collection?.isPublic) throw data(null, { status: 404 });
+  return collection;
+};

@@ -8,5 +8,8 @@ export const checkChosenFile = (file?: { size: number }): "none" | "tooLarge" | 
   return file.size > maxImageBytes ? "tooLarge" : "ok";
 };
 
+// The display size (up to 1000 px), e.g. for link previews.
+export const imageUrl = (id: string): string => `/uploads/${id}.webp`;
+
 // The 300 px thumbnail of an image id, served by Express from DATA_DIR/uploads.
 export const thumbUrl = (id: string): string => `/uploads/${id}.thumb.webp`;

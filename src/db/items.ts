@@ -205,3 +205,10 @@ export const deleteItem = (collectionId: number, itemId: number): boolean =>
     if (deleted?.rank != null) closeRankGap(collectionId, deleted.rank);
     return deleted !== undefined;
   })();
+
+// The image of the first item on a tab (by rank, then oldest) that has one, for link previews (TICKET-PUB-02).
+export const firstImage = (collectionId: number, status: ItemStatus): string | undefined =>
+  db()
+    .prepare("select image from items where collection_id = ? and status = ? and image is not null order by rank, id")
+    .pluck()
+    .get(collectionId, status) as string | undefined;

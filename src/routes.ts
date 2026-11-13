@@ -16,6 +16,8 @@ export const routes = () =>
           children: [
             { id: "home", index: true, lazy: () => import("./routes/home") },
             { id: "setup", path: "setup", lazy: () => import("./routes/setup") },
+            // A public collection: /:slug (have) and /:slug/want. Static paths (setup, admin, locale) rank first.
+            { id: "public-collection", path: ":slug/:tab?", lazy: () => import("./routes/public-collection") },
             { id: "not-found", path: "*", lazy: () => import("./routes/not-found") },
           ],
         },

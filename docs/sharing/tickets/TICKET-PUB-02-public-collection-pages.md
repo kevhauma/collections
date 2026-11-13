@@ -1,7 +1,7 @@
 # TICKET-PUB-02: Public have and want pages
 
 - **Area:** Sharing
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Traceability:** [technical-design.md § Routes](../../technical-design.md#routes) (`/:slug`, `/:slug/want`), [technical-design.md § Field](../../technical-design.md#field) (private fields never leave the server), [ADR 0005](../../adr/0005-plain-public-slugs.md)
 
 ## User story
@@ -42,16 +42,35 @@ fields stripped on the server and essentially no client JavaScript.
 
 ## Acceptance criteria
 
-- [ ] `/:slug` of a private collection returns 404, the same as an unknown slug.
-- [ ] A private field's value (e.g. purchase price) appears nowhere in the response body, HTML or RSC payload.
-      Verified by searching the raw responses for a known private value.
-- [ ] Searching or filtering cannot match on private fields.
-- [ ] The want tab shows items in rank order with their position.
-- [ ] The pages work with JavaScript disabled, and the public tree has no client components.
-- [ ] Unit/integration test: render data for a collection with a private field through the public path, and assert
-      the private key is absent from the rows given to the view.
-- [ ] Live browser check of both tabs and both views, sharing a filtered URL in a private window.
-- [ ] Verified with the fallow skill.
+- [x] `/:slug` of a private collection returns 404, the same as an unknown slug. (`requirePublicCollection`; live
+      on the production build: `/secret`, `/secret/want`, `/nope`, `/nope/want`, `/vinyl/other` and `/api` → 404)
+- [x] A private field's value (e.g. purchase price) appears nowhere in the response body, HTML or RSC payload.
+      Verified by searching the raw responses for a known private value. (production build, no cookie: a private
+      Paid = 731.42 and Condition = Scratchy on three items; `/vinyl`, `/vinyl/want`, both grid views, `?sort=<Paid>`,
+      `/vinyl.rsc`, `/vinyl/want.rsc` and an `Accept: text/x-component` request contain neither value nor the private
+      labels. On `?q=Scratchy` and `?f.<Condition>=Scratchy` the word appears only as the visitor's own query echoed
+      in the search box, links and `location`)
+- [x] Searching or filtering cannot match on private fields. (live: `?q=Scratchy` → "No items match your search";
+      `?f.<Condition>=Scratchy` returns the same rows as no filter; the toolbar offers only public filters (Format,
+      Signed). Tests in `src/features/items/view.test.ts` and `list-params.test.ts`)
+- [x] The want tab shows items in rank order with their position. (live: 1 B, 2 E, 3 D, 4 G in the table, and red
+      rank numerals on the grid's post-its; test "orders the want tab by rank")
+- [x] The pages work with JavaScript disabled, and the public tree has no client components. (the public route uses
+      only server components (`CollectionItems` gets no `ranking` in public mode, so no `SortableList`); the HTML has
+      no `<script src>` or module script, no edit links, rank inputs or drag handles; the toolbar is a GET form and
+      tabs, view toggle and sort headers are links)
+- [x] Unit/integration test: render data for a collection with a private field through the public path, and assert
+      the private key is absent from the rows given to the view. (`src/features/items/view.test.ts` "hands the view
+      only public fields, and items without private keys": `itemView(…, { publicOnly: true })` is exactly what the
+      page passes to `CollectionItems`; `npm test` 650 passed)
+- [x] Live browser check of both tabs and both views, sharing a filtered URL in a private window. (Orca with the
+      session cookie deleted, production build: `/vinyl/want?view=grid&f.4=Long+Play` opened as shared, with the
+      filter kept and ranks shown; the have table at 360 px scrolls inside its box with no page overflow
+      (360 = 360). Titles are plain text. `<title>` "Vinyl · Want list" / "Vinyl · Have list", `og:title`, and
+      `og:image` with the first image's absolute URL)
+- [x] Verified with the fallow skill. (`npx fallow audit --base HEAD` → pass: 0 dead code, 0 duplicates, 0
+      complexity findings. The admin list and the public pages share `CollectionItems`, so there's one list
+      implementation)
 
 ## Notes
 

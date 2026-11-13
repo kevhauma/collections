@@ -1,38 +1,21 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { data, redirect, type LoaderFunctionArgs, type Params } from "react-router";
+import { redirect, type LoaderFunctionArgs, type Params } from "react-router";
 import { z } from "zod";
 import { requestContext } from "../context";
 import type { Collection } from "../db/collections";
-import { listFields } from "../db/fields";
-import { countItems, listItems, moveWant, type ItemStatus } from "../db/items";
+import { countItems, moveWant, type ItemStatus } from "../db/items";
 import { requireAdmin } from "../features/auth/guard";
 import { collectionAction, requireCollection } from "../features/collections/require-collection";
-import {
-  listQuery,
-  parseListParams,
-  reorderable,
-  sortToggle,
-  switchTab,
-  type ListContext,
-  type ListParams,
-} from "../features/items/list-params";
-import { formatNumber } from "../i18n";
+import { listQuery } from "../features/items/list-params";
+import { itemView } from "../features/items/view";
 import { LinkButton } from "../ui/button";
-import { EmptyState } from "../ui/empty-state";
-import { TabLinks } from "../ui/tab-links";
-import { listHref } from "./item-paths";
+import { CollectionItems, statusOf } from "./collection-items";
 import { moveWantAction } from "./item-actions";
-import { ItemToolbar } from "./item-toolbar";
-import { ItemGrid, ItemTable, type ItemViewProps } from "./item-views";
+import { listHref } from "./item-paths";
 import { VisibilityBadge } from "./visibility-badge";
 
 // /admin/c/:slug (have) and /admin/c/:slug/want (TICKET-ITM-05): the items as a table or grid, with search, sort and
-// filters in the query string.
-
-const statusOf = (tab: string | undefined): ItemStatus => {
-  if (tab === undefined || tab === "want") return tab ?? "have";
-  throw data(null, { status: 404 });
-};
+// filters in the query string, and want reordering (TICKET-ITM-03).
 
 export const loader = ({ params }: LoaderFunctionArgs) => {
   requireAdmin();
@@ -41,18 +24,8 @@ export const loader = ({ params }: LoaderFunctionArgs) => {
   return null;
 };
 
-const contextOf = (collection: Collection, status: ItemStatus): ListContext => ({
-  status,
-  defaultView: collection.defaultView,
-  titleFieldId: collection.titleFieldId,
-});
-
-// The tab's list params, read from the request URL.
-const currentList = (collection: Collection, status: ItemStatus) => {
-  const context = contextOf(collection, status);
-  const search = new URL(requestContext().request.url).searchParams;
-  return { context, list: parseListParams(search, listFields(collection.id), context) };
-};
+const viewOf = (collection: Collection, status: ItemStatus) =>
+  itemView(collection, status, new URL(requestContext().request.url).searchParams);
 
 const moveInput = z.object({ intent: z.literal("move"), itemId: z.coerce.number().int(), rank: z.coerce.number().int() });
 
@@ -63,64 +36,22 @@ export const action = collectionAction((collection, form, params) => {
   if (!parsed.success || !moveWant(collection.id, parsed.data.itemId, parsed.data.rank)) {
     throw new Response(null, { status: 400 });
   }
-  const { context, list } = currentList(collection, status);
+  const { context, list } = viewOf(collection, status);
   return redirect(`${listHref(collection.slug, status)}${listQuery(list, context)}#item-${parsed.data.itemId}`);
 });
-
-const views = { table: ItemTable, grid: ItemGrid };
-
-type ResultsProps = ItemViewProps & { view: ListParams["view"]; total: number; addHref: string; resetHref: string };
-
-// The items, or why there are none: an empty tab, or a search that matched nothing.
-const Results = ({ view, total, addHref, resetHref, ...props }: ResultsProps) => {
-  const { t } = useLingui();
-  const View = views[view];
-  if (total === 0) {
-    return (
-      <EmptyState
-        title={t({ id: "collections.page.empty", message: "No items yet" })}
-        action={
-          <LinkButton variant="primary" href={addHref}>
-            <Trans id="items.add">+ Add item</Trans>
-          </LinkButton>
-        }
-      />
-    );
-  }
-  return props.items.length > 0 ? (
-    <View {...props} />
-  ) : (
-    <EmptyState
-      title={t({ id: "items.empty.noMatch", message: "No items match your search" })}
-      action={<a href={resetHref}>{t({ id: "items.filter.reset", message: "Reset" })}</a>}
-    />
-  );
-};
 
 export default function AdminCollection({ params }: { params: Params }) {
   const { t } = useLingui();
   const collection = requireCollection(params.slug);
   const status = statusOf(params.tab);
-  const fields = listFields(collection.id);
-  const { context, list } = currentList(collection, status);
-  const items = listItems({ collectionId: collection.id, status, ...list });
   const counts = countItems(collection.id);
   const slug = collection.slug;
   const name = collection.name;
-  // A link to this tab with `next` params, or to the other tab carrying search, filters and view.
-  const hrefFor = (next: ListParams) => listHref(slug, status) + listQuery(next, context);
-  const tabHref = (target: ItemStatus) => {
-    const targetContext = contextOf(collection, target);
-    return listHref(slug, target) + listQuery(switchTab(list, context, targetContext), targetContext);
-  };
-  const haveCount = formatNumber(counts.have);
-  const wantCount = formatNumber(counts.want);
-  const tabs = [
-    { status: "have", label: t({ id: "items.tab.haveCount", message: `Have · ${haveCount}` }) },
-    { status: "want", label: t({ id: "items.tab.wantCount", message: `Want · ${wantCount}` }) },
-  ] as const;
-  const addHref = `/admin/c/${slug}/items/new?status=${status}`;
-  const reorder = reorderable(list, status);
+  const add = (
+    <LinkButton variant="primary" href={`/admin/c/${slug}/items/new?status=${status}`}>
+      <Trans id="items.add">+ Add item</Trans>
+    </LinkButton>
+  );
   return (
     <div className="grid gap-6">
       <title>{t({ id: "collections.page.title", message: `${name} · Collections` })}</title>
@@ -136,40 +67,16 @@ export default function AdminCollection({ params }: { params: Params }) {
           </LinkButton>
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <TabLinks
-          label={t({ id: "items.tabs.label", message: "Have and want" })}
-          tabs={tabs.map((tab) => ({ href: tabHref(tab.status), label: tab.label, current: tab.status === status }))}
-        />
-        <LinkButton variant="primary" className="ml-auto" href={addHref}>
-          <Trans id="items.add">+ Add item</Trans>
-        </LinkButton>
-      </div>
-      {counts[status] > 0 && (
-        <ItemToolbar
-          params={list}
-          fields={fields}
-          status={status}
-          resetHref={listHref(slug, status)}
-          viewHref={(view) => hrefFor({ ...list, view })}
-        />
-      )}
-      <Results
+      <CollectionItems
         mode="admin"
-        slug={slug}
+        collection={collection}
         status={status}
-        items={items}
-        fields={fields}
-        titleFieldId={collection.titleFieldId}
-        sortLink={(sort) => {
-          const { next, direction } = sortToggle(list, sort);
-          return { href: hrefFor(next), direction };
-        }}
-        ranking={reorder && { ...reorder, count: counts.want, onMove: moveWantAction.bind(null, slug) }}
-        view={list.view}
-        total={counts[status]}
-        addHref={addHref}
-        resetHref={listHref(slug, status)}
+        view={viewOf(collection, status)}
+        counts={counts}
+        base={`/admin/c/${slug}`}
+        addAction={add}
+        ranking={{ count: counts.want, onMove: moveWantAction.bind(null, slug) }}
+        emptyTitle={t({ id: "collections.page.empty", message: "No items yet" })}
       />
     </div>
   );

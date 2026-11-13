@@ -10,6 +10,7 @@ import {
   countItems,
   createItem,
   deleteItem,
+  firstImage,
   getItem,
   listItems,
   moveWant,
@@ -286,5 +287,18 @@ describe("item images", () => {
     createItem(id, { status: "want", values: values("C"), image: "c" });
     expect(deleteCollection(id).sort()).toEqual(["a", "c"]);
     expect(getCollectionBySlug("doomed")).toBeUndefined();
+  });
+});
+
+describe("firstImage", () => {
+  it("picks the first item with an image, wants by rank", () => {
+    const { id, values } = setup("previews");
+    createItem(id, { status: "want", values: values("A") });
+    const b = createItem(id, { status: "want", values: values("B"), image: "b" });
+    createItem(id, { status: "want", values: values("C"), image: "c" });
+    expect(firstImage(id, "want")).toBe("b");
+    moveWant(id, b, 3);
+    expect(firstImage(id, "want")).toBe("c");
+    expect(firstImage(id, "have")).toBeUndefined();
   });
 });
