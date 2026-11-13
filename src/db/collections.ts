@@ -23,15 +23,21 @@ export type CollectionSettings = Pick<Collection, "name" | "slug" | "isPublic" |
 
 const columns = `id, slug, name, is_public as isPublic, default_view as defaultView, title_field_id as titleFieldId`;
 
-export const listCollections = (): CollectionSummary[] =>
+const summaries = (publicOnly: boolean): CollectionSummary[] =>
   db()
     .prepare(
       `select c.id, c.slug, c.name, c.is_public as isPublic,
          (select count(*) from items i where i.collection_id = c.id and i.status = 'have') as haveCount,
          (select count(*) from items i where i.collection_id = c.id and i.status = 'want') as wantCount
-       from collections c order by c.name collate nocase`,
+       from collections c where c.is_public = 1 or not ? order by c.name collate nocase`,
     )
-    .all() as CollectionSummary[];
+    .all(publicOnly ? 1 : 0) as CollectionSummary[];
+
+// Every collection, for the admin dashboard.
+export const listCollections = (): CollectionSummary[] => summaries(false);
+
+// Public collections only, for the visitors' index (TICKET-PUB-01). Private ones don't show up in any form.
+export const listPublic = (): CollectionSummary[] => summaries(true);
 
 export const getCollectionBySlug = (slug: string): Collection | undefined =>
   db().prepare(`select ${columns} from collections where slug = ?`).get(slug) as Collection | undefined;

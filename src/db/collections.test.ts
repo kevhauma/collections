@@ -7,9 +7,11 @@ import {
   deleteCollection,
   getCollectionBySlug,
   listCollections,
+  listPublic,
   listSlugs,
   updateCollection,
 } from "./collections";
+import { createItem } from "./items";
 import { db } from "./connection";
 
 beforeAll(() => {
@@ -66,5 +68,28 @@ describe("collections repository", () => {
     expect(getCollectionBySlug("records")).toBeUndefined();
     expect(count("fields", id)).toBe(0);
     expect(count("items", id)).toBe(0);
+  });
+});
+
+describe("listPublic", () => {
+  it("lists only public collections, by name, with their have and want counts", () => {
+    createCollection("Zines", "zines", "Title");
+    createCollection("Art prints", "art-prints", "Title");
+    createCollection("Diaries", "diaries", "Title");
+    const zines = getCollectionBySlug("zines")!;
+    const prints = getCollectionBySlug("art-prints")!;
+    const diaries = getCollectionBySlug("diaries")!;
+    [zines, prints].forEach((collection) => updateCollection(collection.id, { ...collection, isPublic: 1 }));
+    createItem(zines.id, { status: "have", quantity: 2, values: {} });
+    createItem(zines.id, { status: "want", values: {} });
+    createItem(zines.id, { status: "want", values: {} });
+    createItem(diaries.id, { status: "have", quantity: 1, values: {} });
+    const listed = listPublic().filter((collection) => ["zines", "art-prints", "diaries"].includes(collection.slug));
+    expect(listed.map(({ slug, haveCount, wantCount }) => [slug, haveCount, wantCount])).toEqual([
+      ["art-prints", 0, 0],
+      ["zines", 1, 2],
+    ]);
+    updateCollection(zines.id, { ...zines, isPublic: 0 });
+    expect(listPublic().some((collection) => collection.slug === "zines")).toBe(false);
   });
 });

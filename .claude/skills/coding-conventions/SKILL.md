@@ -174,6 +174,9 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - Public routes read through `publicOnly: true` repository calls, which **strip private field keys at the query
   layer** and refuse private fields for search, sort and filter.
 - Private and unknown collections both return the same 404.
+- Check that private data stays out of a page against the **production build** (`npm run build && npm start`): in
+  dev, React's debug rows in the inline RSC payload can carry other requests' data, such as an admin route's
+  params. The production payload has none of that.
 - Redirect targets are same-origin paths only: build them with `safeRedirectTarget`
   ([src/lib/redirect.ts](../../../src/lib/redirect.ts)). Cookies are `HttpOnly`, `SameSite=Lax`, and `Secure` outside local
   dev.

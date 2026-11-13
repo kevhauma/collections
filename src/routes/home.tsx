@@ -1,13 +1,50 @@
-import { useLingui } from "@lingui/react/macro";
+import { Trans, useLingui } from "@lingui/react/macro";
+import { listPublic } from "../db/collections";
+import { formatNumber } from "../i18n";
+import { LinkButton } from "../ui/button";
+import { Card } from "../ui/card";
+import { EmptyState } from "../ui/empty-state";
 
-// Placeholder public home, replaced by the public index of collections in TICKET-PUB-01.
+// / (TICKET-PUB-01): the collections the owner has made public. A server component with no client code; private
+// collections aren't read at all, so nothing here hints that they exist.
 export default function Home() {
   const { t } = useLingui();
-  const appName = t({ id: "app.name", message: "Collections" });
+  const collections = listPublic();
   return (
-    <>
-      <title>{appName}</title>
-      <h1>{appName}</h1>
-    </>
+    <div className="grid gap-8">
+      <title>{t({ id: "app.name", message: "Collections" })}</title>
+      <meta
+        name="description"
+        content={t({ id: "home.description", message: "Shared collections: what the owner has, and what they want." })}
+      />
+      <h1>
+        <Trans id="home.heading">Shared collections</Trans>
+      </h1>
+      {collections.length === 0 ? (
+        <EmptyState title={t({ id: "home.empty", message: "Nothing shared yet" })} />
+      ) : (
+        <ul className="grid items-start gap-x-8 gap-y-10 sm:grid-cols-2">
+          {collections.map((collection) => {
+            const haveCount = formatNumber(collection.haveCount);
+            const wantCount = formatNumber(collection.wantCount);
+            return (
+              <li key={collection.id}>
+                <Card heading={collection.name}>
+                  {/* Named after the collection so the repeated link texts stay distinguishable. */}
+                  <nav aria-label={collection.name} className="flex flex-wrap gap-2">
+                    <LinkButton href={`/${collection.slug}`} size="sm">
+                      {t({ id: "items.tab.haveCount", message: `Have · ${haveCount}` })}
+                    </LinkButton>
+                    <LinkButton href={`/${collection.slug}/want`} size="sm">
+                      {t({ id: "items.tab.wantCount", message: `Want · ${wantCount}` })}
+                    </LinkButton>
+                  </nav>
+                </Card>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }
