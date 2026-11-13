@@ -29,6 +29,11 @@ export const routes = () =>
             { id: "admin-collection-new", path: "collections/new", lazy: () => import("./routes/admin-collection-new") },
             { id: "admin-collection", path: "c/:slug", lazy: () => import("./routes/admin-collection") },
             {
+              id: "admin-collection-fields",
+              path: "c/:slug/fields",
+              lazy: () => import("./routes/admin-collection-fields"),
+            },
+            {
               id: "admin-collection-settings",
               path: "c/:slug/settings",
               lazy: () => import("./routes/admin-collection-settings"),

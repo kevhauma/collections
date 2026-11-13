@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **12 / 22 done**
+Progress: **13 / 22 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -24,7 +24,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 10 | [AUTH-03](../../auth/tickets/TICKET-AUTH-03-reset-password-cli.md) | Password reset CLI | M2 Admin access | AUTH-02 | ✅ |
 | 11 ‖ | [I18N-02](../../i18n/tickets/TICKET-I18N-02-locale-switcher-and-default.md) | Locale switcher and default locale | M2 Admin access | I18N-01, UI-02, AUTH-02 | ✅ |
 | 12 | [COL-01](../../collections/tickets/TICKET-COL-01-collection-management.md) | Collection management | M3 Collections and fields | AUTH-02, UI-02 | ✅ |
-| 13 | [COL-02](../../collections/tickets/TICKET-COL-02-field-editor.md) | Field editor | M3 Collections and fields | COL-01 | ⬜ |
+| 13 | [COL-02](../../collections/tickets/TICKET-COL-02-field-editor.md) | Field editor | M3 Collections and fields | COL-01 | ✅ |
 | 14 | [ITM-01](../../items/tickets/TICKET-ITM-01-item-schema-builder.md) | Item schema builder | M3 Collections and fields | COL-02 | ⬜ |
 | 15 | [ITM-02](../../items/tickets/TICKET-ITM-02-item-crud.md) | Create, edit and delete items | M4 Items | ITM-01 | ⬜ |
 | 16 | [ITM-05](../../items/tickets/TICKET-ITM-05-collection-views.md) | Collection views: table, grid, search, sort, filter | M4 Items | ITM-02 | ⬜ |

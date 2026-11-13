@@ -1,7 +1,7 @@
 # TICKET-COL-02: Field editor
 
 - **Area:** Collections
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Traceability:** [technical-design.md § Field](../../technical-design.md#field), [technical-design.md § Schema evolution](../../technical-design.md#schema-evolution) (rename, reorder, delete)
 
 ## User story
@@ -46,18 +46,35 @@ Type changes and select-option edits that touch item data are TICKET-COL-03.
 
 ## Acceptance criteria
 
-- [ ] All six field types can be added. Labels unique per collection are enforced server-side.
-- [ ] Reordering by drag and by buttons both persist, and positions stay dense 1..n.
-- [ ] Deleting a field removes its key from every item in the same transaction.
-- [ ] The title field cannot be deleted, made optional or made private, even through a crafted POST.
-- [ ] Persistence goes through `src/db/fields.ts`. Every action calls `requireAdmin()` and validates with zod.
-- [ ] Unit tests cover:
+- [x] All six field types can be added. Labels unique per collection are enforced server-side. (`field-schema.test.ts`
+      "accepts a … field" cases and "refuses a label another field has, ignoring case"; live: all six added by form
+      post, `ARTIST` refused with "Another field already has this label.")
+- [x] Reordering by drag and by buttons both persist, and positions stay dense 1..n. (`fields.test.ts` "moves a field
+      and keeps positions dense 1..n"; live: ↑/↓ buttons with JS off and on, and a drag of the 6th row onto the 1st
+      saved 1..6 through `moveFieldAction`. The drag was driven by dispatching real `DragEvent`s in Chromium, because
+      Orca's `drag` command doesn't start an HTML5 drag; a hand drag with the mouse was not automated)
+- [x] Deleting a field removes its key from every item in the same transaction. (`deleteField` in
+      `src/db/fields.ts`; `fields.test.ts` "deletes a field, removes its key from every item and closes the gap";
+      live: deleting Artist removed key `4` from both items, and the dialog said "2 items have a value…")
+- [x] The title field cannot be deleted, made optional or made private, even through a crafted POST. (enforced in the
+      SQL of `updateField` / `deleteField`; `fields.test.ts` "never deletes the title field…"; live: crafted edit only
+      renamed it, crafted delete answered 400; the UI disables its delete button and toggles)
+- [x] Persistence goes through `src/db/fields.ts`. Every action calls `requireAdmin()` and validates with zod.
+      (the route action goes through `collectionAction`, which calls `requireAdmin()` first, then `parseNewField` /
+      `parseFieldEdit` / zod id schemas; `moveFieldAction` calls `requireAdmin()` and parses with zod. Live: anonymous
+      POST 401, malformed id or unknown intent 400. No `prepare(` outside `src/db` except older auth tests)
+- [x] Unit tests cover: (`field-schema.test.ts`, `src/lib/order.test.ts`, `src/db/fields.test.ts`)
   - field-schema validation: duplicate label, select without options, duplicate options, options on a non-select
     field
   - `moveInList`: move up, move down, same position, out-of-range clamping
   - field delete removes the JSON key on a temp DB
-- [ ] Live browser check of add, edit, reorder (drag and buttons) and delete.
-- [ ] Verified with the fallow skill.
+- [x] Live browser check of add, edit, reorder (drag and buttons) and delete. (Orca browser at 1440 px and 360 px:
+      field rows with type, title, required and private badges; the options box shows only for "Choice"; an edit form
+      lists the current options; the delete dialog names the field and counts its values; ↑/↓ and the dialog delete
+      persist. JS off via form posts, including an edit error that re-opens its `<details>`. Drag: see above. Screens
+      match the notebook direction)
+- [x] Verified with the fallow skill. (0 complexity findings, 0 duplicates after extracting `collectionAction`;
+      `Textarea` is used again. Remaining dead code is from before: `table.tsx`, `popover.tsx`, `formatDate`)
 
 ## Notes
 

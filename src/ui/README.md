@@ -46,5 +46,8 @@ Every component takes `className`, merged with `cn()`. Use it for layout only.
 
 ## Client components
 
-None yet. A component that needs state gets `'use client'` and goes in this table. Public routes must never import
-one.
+A component that needs state gets `'use client'` and goes in this table. Public routes must never import one.
+
+| Component | File | Props |
+|---|---|---|
+| `SortableList` | `sortable-list.tsx` | `items: {id, content}[]`, `onMove(id, to)`: a server action taking the 1-based target position, `handleLabel` (the drag handle's tooltip), `className`. Drag-and-drop by a handle (hidden from assistive tech), optimistic with a fallback when saving fails. Rows must also carry no-JS move buttons. Uses `moveInList`. |

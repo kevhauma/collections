@@ -1,10 +1,10 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { redirect, type ActionFunctionArgs, type LoaderFunctionArgs, type Params } from "react-router";
+import { redirect, type LoaderFunctionArgs, type Params } from "react-router";
 import { requestContext } from "../context";
 import { deleteCollection, listSlugs, updateCollection } from "../db/collections";
 import { requireAdmin } from "../features/auth/guard";
 import { rejected, type Rejected } from "../features/collections/form";
-import { requireCollection } from "../features/collections/require-collection";
+import { collectionAction, requireCollection } from "../features/collections/require-collection";
 import { parseSettings } from "../features/collections/validation";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
@@ -24,10 +24,7 @@ export const loader = ({ params }: LoaderFunctionArgs) => {
 
 type ActionData = Rejected & { saved?: true };
 
-export const action = async ({ request, params }: ActionFunctionArgs) => {
-  requireAdmin();
-  const collection = requireCollection(params.slug);
-  const form = Object.fromEntries(await request.formData());
+export const action = collectionAction((collection, form) => {
   if (form.intent === "delete") {
     deleteCollection(collection.id);
     return redirect("/admin");
@@ -43,7 +40,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   return slug === collection.slug
     ? ({ errors: {}, values: { name, slug }, saved: true } satisfies ActionData)
     : redirect(`/admin/c/${slug}/settings`);
-};
+});
 
 export default function CollectionSettings({ params, actionData }: { params: Params; actionData?: ActionData }) {
   const { t } = useLingui();

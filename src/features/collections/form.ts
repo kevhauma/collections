@@ -1,10 +1,12 @@
 import { msg } from "@lingui/core/macro";
 import type { z } from "zod";
 import { actionI18n } from "../../i18n";
+import type { FieldErrorKey } from "./field-schema";
 import { maxSlugLength } from "./slug";
 import type { ErrorKey, FormInput } from "./validation";
 
-const messages: Record<ErrorKey, ReturnType<typeof msg>> = {
+// Translations for the issue keys of validation.ts and field-schema.ts.
+const messages: Record<ErrorKey | FieldErrorKey, ReturnType<typeof msg>> = {
   name: msg({ id: "collections.error.name", message: "Enter a name of up to 100 characters." }),
   format: msg({
     id: "collections.error.slugFormat",
@@ -12,19 +14,50 @@ const messages: Record<ErrorKey, ReturnType<typeof msg>> = {
   }),
   reserved: msg({ id: "collections.error.slugReserved", message: "This address is used by the app itself." }),
   taken: msg({ id: "collections.error.slugTaken", message: "Another collection already uses this address." }),
+  label: msg({ id: "fields.error.label", message: "Enter a label of up to 100 characters." }),
+  labelTaken: msg({ id: "fields.error.labelTaken", message: "Another field already has this label." }),
+  option: msg({ id: "fields.error.option", message: "Keep each option under 100 characters." }),
+  optionsMissing: msg({ id: "fields.error.optionsMissing", message: "A choice field needs at least one option." }),
+  optionsDuplicate: msg({ id: "fields.error.optionsDuplicate", message: "Each option can appear only once." }),
+  optionsNotSelect: msg({
+    id: "fields.error.optionsNotSelect",
+    message: "Only choice fields have options. Clear them or pick Choice.",
+  }),
 };
 
-export type FormErrors = Partial<Record<"name" | "slug", string>>;
+type Message = keyof typeof messages;
 
-export type Rejected = { errors: FormErrors; values: { name: string; slug: string } };
-
-// The first issue per field, translated into the admin's locale, plus what was typed so a no-JS reload keeps it.
-// Issues without a message key (a tampered checkbox or view value) aren't shown; the form just doesn't save.
-export const rejected = (error: z.ZodError, form: FormInput): Rejected => {
+// The first issue per form field, translated into the admin's locale. Issues without a message key (a tampered
+// checkbox or select value) aren't shown; the form just doesn't save.
+const formErrors = (error: z.ZodError): Partial<Record<string, string>> => {
   const i18n = actionI18n();
   const issues = error.issues.filter((issue) => issue.message in messages).toReversed();
-  return {
-    errors: Object.fromEntries(issues.map((issue) => [issue.path[0], i18n._(messages[issue.message as ErrorKey])])),
-    values: { name: String(form.name ?? ""), slug: String(form.slug ?? "") },
-  };
+  return Object.fromEntries(issues.map((issue) => [issue.path[0], i18n._(messages[issue.message as Message])]));
 };
+
+// What was typed, so a no-JS reload keeps it.
+const typed = <K extends string>(form: FormInput, keys: readonly K[]) =>
+  Object.fromEntries(keys.map((name) => [name, String(form[name] ?? "")])) as Record<K, string>;
+
+export type FormErrors = Partial<Record<"name" | "slug", string>>;
+export type Rejected = { errors: FormErrors; values: { name: string; slug: string } };
+
+export const rejected = (error: z.ZodError, form: FormInput): Rejected => ({
+  errors: formErrors(error),
+  values: typed(form, ["name", "slug"]),
+});
+
+const fieldKeys = ["label", "type", "options", "required", "isPublic"] as const;
+export type FieldFormErrors = Partial<Record<"label" | "type" | "options", string>>;
+// `target`: the field being edited, or "new" for the add form.
+export type FieldRejected = {
+  target: number | "new";
+  errors: FieldFormErrors;
+  values: Record<(typeof fieldKeys)[number], string>;
+};
+
+export const fieldRejected = (error: z.ZodError, form: FormInput, target: number | "new"): FieldRejected => ({
+  target,
+  errors: formErrors(error),
+  values: typed(form, fieldKeys),
+});

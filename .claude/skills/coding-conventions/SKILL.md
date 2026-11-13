@@ -25,7 +25,7 @@ npm run build          # production build (rsc, ssr and browser environments)
 npm start              # serve the production build
 npm test               # vitest
 npm run typecheck      # tsc --noEmit
-npm run i18n:extract   # update src/i18n/locales/{en,nl}.json
+npm run i18n:extract   # update src/i18n/locales/{en,nl}.json (--clean --overwrite: en.json always mirrors the code)
 npm run reset-password # admin password recovery; --stdin for scripted use (scripts/reset-password.ts)
 ```
 
@@ -123,6 +123,10 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   page with a form reads its data in the component (from `params`), and its `loader` only guards (`requireAdmin()`,
   404). Exemplar: [src/routes/admin-collection-settings.tsx](../../../src/routes/admin-collection-settings.tsx), with
   `requireCollection(params.slug)` from `src/features/collections/require-collection.ts`.
+- An `/admin/c/:slug` route action is `collectionAction((collection, form) => …)` from the same file: it runs
+  `requireAdmin()`, loads the collection (or 404) and reads the form. A page with several forms posts an `intent`
+  and dispatches through a lookup object; successful posts redirect back (to `#<anchor>` of the changed row). Exemplar:
+  [src/routes/admin-collection-fields.tsx](../../../src/routes/admin-collection-fields.tsx).
 - Form validation lives in `src/features/<area>/validation.ts` as zod schemas whose issue messages are **keys**, so
   vitest can test it (vitest has no Lingui plugin, so a module using `msg` can't be imported in a test). A sibling
   `form.ts` maps the keys to `msg` ids and returns `{ errors, values }`, echoing what was typed so a no-JS reload keeps
@@ -184,7 +188,9 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   and actions use `actionI18n()._(msg({ id, message }))`. The locale is resolved once in `entry.rsc.tsx` by the
   pure `resolveLocale` ([src/i18n/locale.ts](../../../src/i18n/locale.ts)) and read from `requestContext().locale`.
 - After adding a message: `npm run i18n:extract`, then fill in `nl.json`. `src/i18n/catalogs.test.ts` fails on a
-  missing or empty translation and on non-`area.thing` ids.
+  missing or empty translation, on placeholders that differ between locales, and on non-`area.thing` ids.
+- Interpolate plain variables (`const count = field.valueCount`), never expressions: an expression becomes a
+  positional `{0}` placeholder that translators can't read.
 - Catalogs are imported compiled through the Vite plugin (`./locales/nl.json?lingui`). There's no `lingui compile`
   step.
 - Format numbers and dates with `formatNumber` / `formatDate` from `src/i18n/`, never `toFixed` or string
