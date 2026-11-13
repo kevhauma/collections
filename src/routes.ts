@@ -55,6 +55,8 @@ export const routes = () =>
               lazy: () => import("./routes/admin-collection-settings"),
             },
             { id: "admin-settings", path: "settings", lazy: () => import("./routes/admin-settings") },
+            // The OAuth consent page for agents connecting to /api/mcp (TICKET-MCP-01).
+            { id: "admin-authorize", path: "authorize", lazy: () => import("./routes/admin-authorize") },
             { id: "admin-export", path: "export", lazy: () => import("./routes/admin-export") },
             // A resource route: its loader answers with the zip itself.
             { id: "admin-export-zip", path: "export.zip", lazy: () => import("./routes/admin-export-zip") },

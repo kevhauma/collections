@@ -150,7 +150,25 @@ describe("004-collection-image", () => {
   it("adds image to collections, null for collections that already exist", () => {
     db = atVersion(3);
     db.prepare("insert into collections (id, slug, name) values (1, 'records', 'Records')").run();
-    expect(migrate(db)).toEqual(["004-collection-image.sql"]);
+    expect(migrate(db)).toContain("004-collection-image.sql");
     expect(db.prepare("select image from collections").get()).toEqual({ image: null });
+  });
+});
+
+describe("005-oauth", () => {
+  it("adds the OAuth tables; a client's codes and tokens go with it", () => {
+    const oauth = atVersion(4);
+    db = oauth;
+    expect(migrate(oauth)).toEqual(["005-oauth.sql"]);
+    oauth.prepare("insert into oauth_clients (id, name, redirect_uris_json) values ('c', 'Agent', '[]')").run();
+    oauth.prepare(
+      "insert into oauth_codes (code_hash, client_id, redirect_uri, code_challenge, resource, expires_at) values ('h', 'c', 'u', 'x', 'r', 1)",
+    ).run();
+    oauth.prepare("insert into oauth_tokens (token_hash, client_id, kind, resource, expires_at) values ('t', 'c', 'access', 'r', 1)").run();
+    expect(() =>
+      oauth.prepare("insert into oauth_tokens (token_hash, client_id, kind, resource, expires_at) values ('u', 'c', 'other', 'r', 1)").run(),
+    ).toThrow(/CHECK/);
+    oauth.prepare("delete from oauth_clients").run();
+    expect(oauth.prepare("select (select count(*) from oauth_codes) + (select count(*) from oauth_tokens)").pluck().get()).toBe(0);
   });
 });

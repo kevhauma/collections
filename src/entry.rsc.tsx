@@ -22,8 +22,10 @@ import { declaresTooLarge, limitBody } from "./lib/body-limit";
 import { parseCookies, runWithContext } from "./context";
 import { db } from "./db/connection";
 import { getDefaultLocale } from "./db/settings";
+import { deleteExpiredOAuth } from "./db/oauth";
 import { deleteExpiredSessions } from "./db/sessions";
 import { getSession, sessionCookie, sessionCookieName } from "./features/auth/session";
+import { api as apiHandler } from "./features/mcp/api";
 import { localeCookie, resolveLocale } from "./i18n/locale";
 import { routes } from "./routes";
 
@@ -74,10 +76,17 @@ const withCookies = (response: Response, cookies: string[]): Response => {
   return copy;
 };
 
+// Exported for server.ts: /api/* and the OAuth discovery documents (TICKET-MCP-01). They bypass React Router and
+// never see the session cookie: their only credential is a Bearer token.
+export const api = (incoming: Request): Promise<Response> | Response =>
+  declaresTooLarge(incoming) ? new Response(null, { status: 413 }) : apiHandler(limitBody(incoming));
+
 // Exported for server.ts: opens and migrates the DB before it listens, so a failing migration aborts startup.
 export const initDb = (): void => {
   db();
-  deleteExpiredSessions(Math.floor(Date.now() / 1000));
+  const now = Math.floor(Date.now() / 1000);
+  deleteExpiredSessions(now);
+  deleteExpiredOAuth(now);
 };
 
 // Exported for server.ts so /healthz checks the same DB connection the app uses, inside this bundle.

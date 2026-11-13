@@ -25,6 +25,7 @@ Tickets are named `TICKET-<PREFIX>-<NN>-<slug>.md`. A prefix maps to exactly one
 | `PUB` | [sharing](sharing/overview.md) | Public index and public have/want pages |
 | `BAK` | [backup](backup/overview.md) | Export zip, restore (v2) |
 | `IMP` | [import](import/overview.md) | CSV import (v2), catalog lookups (v2) |
+| `MCP` | [mcp](mcp/overview.md) | MCP server for admin edits by an AI agent, OAuth for agents |
 
 ## Build plan
 

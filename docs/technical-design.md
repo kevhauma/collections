@@ -7,7 +7,9 @@ Decided in a design session on 2026-11-11. Build plan and tickets: [releases/v1/
 
 ## Scope
 
-**One owner.** A single admin account manages everything. Everyone else is an anonymous, read-only visitor.
+**One owner.** A single admin account manages everything. Everyone else is an anonymous, read-only visitor. The owner
+can also connect an AI agent through the MCP server at `/api/mcp`, which acts as the owner after a one-time approval
+(TICKET-MCP-01, [ADR 0006](adr/0006-mcp-with-oauth.md)).
 
 | v1 | v2 |
 |---|---|
@@ -111,10 +113,24 @@ Decided in a design session on 2026-11-11. Build plan and tickets: [releases/v1/
 | `/admin/c/:slug/settings` | Name, slug, public toggle, default view, delete collection. |
 | `/admin/c/:slug/fields` | Field editor. |
 | `/admin/c/:slug/items/new`, `/admin/c/:slug/items/:id` | Item form. |
-| `/admin/settings` | Default language for visitors. |
+| `/admin/settings` | Default language for visitors; connected apps with Revoke (TICKET-MCP-01). |
+| `/admin/authorize` | OAuth consent for an agent: Approve or Deny (TICKET-MCP-01). |
 | `/admin/export` | Download the full export zip. |
 
 Admin pages may use client components freely.
+
+### API (TICKET-MCP-01, [ADR 0006](adr/0006-mcp-with-oauth.md))
+
+Served by `src/features/mcp/api.ts` ahead of React Router. Exempt from the cross-origin write check; never read the
+session cookie.
+
+| Route | Purpose |
+|---|---|
+| `POST /api/mcp` | MCP over Streamable HTTP, stateless. `Authorization: Bearer` only; 401 with `WWW-Authenticate` otherwise. |
+| `GET /.well-known/oauth-protected-resource/api/mcp` | Protected Resource Metadata (RFC 9728). |
+| `GET /.well-known/oauth-authorization-server` | Authorization Server Metadata (RFC 8414). |
+| `POST /api/oauth/register` | Dynamic Client Registration (RFC 7591). |
+| `POST /api/oauth/token` | Authorization code with PKCE, refresh token with rotation. |
 
 ## Auth and security
 
@@ -128,6 +144,9 @@ Admin pages may use client components freely.
 - All action input is validated with zod on the server.
 - Mutating requests check `Origin` matches the host, on top of `SameSite=Lax`.
 - TLS is handled by the reverse proxy in front of the app. The `Secure` cookie requires HTTPS.
+- Agents (TICKET-MCP-01, [ADR 0006](adr/0006-mcp-with-oauth.md)): OAuth 2.1 with this app as the authorization
+  server. Opaque tokens stored as SHA-256 hashes (access 1 h, refresh 30 days with rotation and reuse detection, codes
+  60 s), bound to `<origin>/api/mcp`. Admin pages send `frame-ancestors 'none'` so the consent page can't be framed.
 
 ## Images
 
@@ -174,6 +193,14 @@ items(id INTEGER PRIMARY KEY, collection_id INTEGER NOT NULL REFERENCES collecti
       values_json TEXT NOT NULL DEFAULT '{}', image TEXT, created_at INTEGER, updated_at INTEGER,
       CHECK ((status = 'have' AND coalesce(quantity, 0) >= 1 AND rank IS NULL)
           OR (status = 'want' AND coalesce(rank, 0) >= 1 AND quantity IS NULL)))
+-- 005: OAuth for agents (TICKET-MCP-01). Codes and tokens by SHA-256 hash; a client's go with it.
+oauth_clients(id TEXT PRIMARY KEY, name TEXT NOT NULL, redirect_uris_json TEXT NOT NULL,
+              approved_at INTEGER, last_used_at INTEGER, created_at INTEGER)
+oauth_codes(code_hash TEXT PRIMARY KEY, client_id TEXT NOT NULL REFERENCES oauth_clients ON DELETE CASCADE,
+            redirect_uri TEXT NOT NULL, code_challenge TEXT NOT NULL, resource TEXT NOT NULL, expires_at INTEGER NOT NULL)
+oauth_tokens(token_hash TEXT PRIMARY KEY, client_id TEXT NOT NULL REFERENCES oauth_clients ON DELETE CASCADE,
+             kind TEXT NOT NULL CHECK (kind IN ('access','refresh')), resource TEXT NOT NULL,
+             expires_at INTEGER NOT NULL, used_at INTEGER)
 ```
 
 - `created_at` / `updated_at` are unix seconds (`DEFAULT (unixepoch())`).
@@ -188,6 +215,7 @@ items(id INTEGER PRIMARY KEY, collection_id INTEGER NOT NULL REFERENCES collecti
 
 | Concern | Choice |
 |---|---|
+| MCP | `@modelcontextprotocol/server` (SDK v2, exact pin), stateless Streamable HTTP. See [ADR 0006](adr/0006-mcp-with-oauth.md). |
 | Rendering | React 19 Server Components via **React Router v8 RSC, data mode**, on **`@vitejs/plugin-rsc`**, served by **Express** through `@remix-run/node-fetch-server`. See [ADR 0001](adr/0001-rsc-react-router-vite.md). |
 | Versions | **Exact pins** for `react`, `react-dom`, `react-server-dom-*`, `react-router`, `@vitejs/plugin-rsc`, `@lingui/*`. Everything in this layer is officially experimental. |
 | Mutations | `'use server'` actions bound to `<form action>`, so they work before hydration. Client-invoked actions only where a form doesn't fit (dropping a dragged want), with `useOptimistic`. |
