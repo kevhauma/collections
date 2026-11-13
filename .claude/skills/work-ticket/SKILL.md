@@ -17,12 +17,12 @@ contract.
 
 ## Running mode: in-session or delegated
 
-Work a single ticket inline, especially when the user wants to review the plan. For several tickets in a row, you
+Work a single ticket inline. For several tickets in a row, you
 may hand each one to a general-purpose subagent ("Run the work-ticket skill on TICKET-X, stop after Step 5, report
 back"). Rules for delegating:
 
 - **One at a time, never in parallel.** They share one working tree and the same test and build commands.
-- You do Step 1 and the plan approval yourself, and pass the approved plan into the prompt.
+- You do Step 1 and the plan yourself, and pass the plan into the prompt.
 - The subagent leaves live-browser criteria open. **You** run them afterwards and tick them with evidence.
 - Relay each report to the user: status, what changed, unticked criteria and why, verification result.
 - Nobody commits unless the user asks.
@@ -52,7 +52,7 @@ Restate the ticket's intent in one or two sentences so the user can confirm.
 
 Set the ticket's row in the release overview to **🔄**.
 
-## Step 3: Plan, then pause for approval
+## Step 3: Plan
 
 Produce a concrete plan **mapped to the acceptance criteria**: which routes, actions, repositories, migrations,
 `src/ui` components and i18n ids change, and which unit tests get added (name the cases). Respect the hard rules:
@@ -64,7 +64,7 @@ Produce a concrete plan **mapped to the acceptance criteria**: which routes, act
 - Every new UI string gets an explicit i18n id in both `en.json` and `nl.json`.
 - Exact version pins in the RSC and i18n layer. Never bump them as a side effect; an upgrade is its own ticket.
 
-Track the steps with the task tools. **Present the plan and wait for the go-ahead before editing code.**
+Track the steps with the task tools.
 
 ## Step 4: Implement
 
