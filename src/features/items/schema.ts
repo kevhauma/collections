@@ -20,13 +20,13 @@ export type ValidationId = (typeof validationIds)[keyof typeof validationIds];
 export type ValueField = Pick<Field, "id" | "type" | "options" | "required">;
 
 // Low-level parsers: undefined when the text isn't a value of that kind. TICKET-COL-03's convertValue reuses them.
-const parseNumber = (text: string): number | undefined =>
+export const parseNumber = (text: string): number | undefined =>
   /^[-+]?(\d+([.,]\d*)?|[.,]\d+)$/.test(text) ? Number(text.replace(",", ".")) : undefined;
 
-const isDate = (text: string): boolean =>
+export const isDate = (text: string): boolean =>
   /^\d{4}-\d{2}-\d{2}$/.test(text) && new Date(`${text}T00:00:00Z`).toISOString().startsWith(text);
 
-const isHttpUrl = (text: string): boolean => /^https?:$/.test(URL.parse(text)?.protocol ?? "");
+export const isHttpUrl = (text: string): boolean => /^https?:$/.test(URL.parse(text)?.protocol ?? "");
 
 const text = z.string({ error: validationIds.text }).trim();
 

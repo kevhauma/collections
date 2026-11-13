@@ -4,7 +4,22 @@ import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createCollection, getCollectionBySlug } from "./collections";
 import { db } from "./connection";
-import { createField, deleteField, listFields, moveField, updateField } from "./fields";
+import {
+  changeFieldType,
+  createField,
+  deleteField,
+  fieldValues,
+  itemsWithOption,
+  listFields,
+  moveField,
+  removeOption,
+  renameOption,
+  updateField,
+  type FieldType,
+  type FieldValueRow,
+} from "./fields";
+import { createItem, getItem, updateItem } from "./items";
+import { planTypeChange } from "../features/collections/convert";
 
 beforeAll(() => {
   process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "collections-fields-"));
@@ -76,5 +91,80 @@ describe("fields repository", () => {
     expect(deleteField(coins.id, artist.id)).toBe(false);
     updateField(coins.id, artist.id, { label: "Hacked", options: null, required: 1, isPublic: 0 });
     expect(listFields(vinyl.id)[1]).toMatchObject({ label: "Artist", required: 0, isPublic: 1 });
+  });
+});
+
+describe("schema changes that rewrite item data", () => {
+  const plan = (toType: FieldType) => (rows: FieldValueRow[]) => planTypeChange(rows, toType);
+
+  const setupWithItems = (slug: string, type: FieldType, options: string[] | null, values: unknown[]) => {
+    const { id, titleFieldId } = setup(slug);
+    createField(id, { label: "Grade", type, options, required: 0, isPublic: 1 });
+    const grade = byLabel(id, "Grade");
+    const items = values.map((value, index) =>
+      createItem(id, { status: "have", quantity: 1, values: { [titleFieldId]: `T${index}`, [grade.id]: value } }),
+    );
+    const valueOf = (itemId: number) => getItem(id, itemId)?.values[grade.id];
+    return { id, titleFieldId, grade, items, valueOf };
+  };
+
+  it("changes text → number, converting 12 / 12,5 / 12.5 and blanking abc", () => {
+    const { id, grade, items, valueOf } = setupWithItems("type-number", "text", null, ["12", "12,5", "12.5", "abc"]);
+    expect(planTypeChange(fieldValues(id, grade.id), "number").blanked.map((row) => row.title)).toEqual(["T3"]);
+    expect(changeFieldType(id, grade.id, "number", plan("number"))).toBe(true);
+    expect(items.map(valueOf)).toEqual([12, 12.5, 12.5, undefined]);
+    expect(byLabel(id, "Grade").type).toBe("number");
+  });
+
+  it("converts on the values at apply time, not at preview time", () => {
+    const { id, grade, items, valueOf, titleFieldId } = setupWithItems("type-late", "text", null, ["1", "abc"]);
+    const preview = planTypeChange(fieldValues(id, grade.id), "number");
+    expect(preview.blanked).toHaveLength(1);
+    updateItem(id, items[1]!, { status: "have", quantity: 1, values: { [titleFieldId]: "T1", [grade.id]: "7" } });
+    changeFieldType(id, grade.id, "number", plan("number"));
+    expect(items.map(valueOf)).toEqual([1, 7]);
+  });
+
+  it("keeps booleans as booleans through a type change, and gives a choice field its values as options", () => {
+    const { id, grade, items, valueOf } = setupWithItems("type-bool", "checkbox", null, [true, false]);
+    expect(fieldValues(id, grade.id).map((row) => row.value)).toEqual([true, false]);
+    changeFieldType(id, grade.id, "select", plan("select"));
+    expect(items.map(valueOf)).toEqual(["true", "false"]);
+    expect(byLabel(id, "Grade")).toMatchObject({ type: "select", options: ["false", "true"] });
+  });
+
+  it("changes nothing when the write fails halfway", () => {
+    const { id, grade, items, valueOf } = setupWithItems("type-fail", "text", null, ["1", "2"]);
+    // A BigInt can't be serialised, so the second item's write throws after the field was updated.
+    const failing = () => ({ kept: [{ id: items[0]!, value: 1 }, { id: items[1]!, value: 2n }], blanked: [], options: null });
+    expect(() => changeFieldType(id, grade.id, "number", failing)).toThrow();
+    expect(byLabel(id, "Grade").type).toBe("text");
+    expect(items.map(valueOf)).toEqual(["1", "2"]);
+  });
+
+  it("never moves the title field out of the text-like types", () => {
+    const { id, titleFieldId } = setup("type-title");
+    expect(changeFieldType(id, titleFieldId, "number", plan("number"))).toBe(false);
+    expect(changeFieldType(id, titleFieldId, "url", plan("url"))).toBe(true);
+    expect(listFields(id)[0]).toMatchObject({ type: "url", isTitle: 1 });
+  });
+
+  it("renames an option and only the values exactly equal to it", () => {
+    const { id, grade, items, valueOf } = setupWithItems("rename", "select", ["NM", "VG"], ["NM", "VG", "NM"]);
+    const notes = createItem(id, { status: "want", values: { [grade.id]: "nm" } });
+    expect(renameOption(id, grade.id, "NM", "Near Mint")).toBe(true);
+    expect([...items, notes].map(valueOf)).toEqual(["Near Mint", "VG", "Near Mint", "nm"]);
+    expect(byLabel(id, "Grade").options).toEqual(["Near Mint", "VG"]);
+    expect(renameOption(id, grade.id, "VG", "Near Mint")).toBe(false);
+    expect(renameOption(id, grade.id, "Mint", "M")).toBe(false);
+  });
+
+  it("removes an option, blanking only matching values, and keeps the last option", () => {
+    const { id, grade, items, valueOf } = setupWithItems("remove", "select", ["NM", "VG"], ["NM", "VG", "NM"]);
+    expect(itemsWithOption(id, grade.id, "NM").map((row) => row.title)).toEqual(["T0", "T2"]);
+    expect(removeOption(id, grade.id, "NM")).toBe(true);
+    expect(items.map(valueOf)).toEqual([undefined, "VG", undefined]);
+    expect(byLabel(id, "Grade").options).toEqual(["VG"]);
+    expect(removeOption(id, grade.id, "VG")).toBe(false);
   });
 });

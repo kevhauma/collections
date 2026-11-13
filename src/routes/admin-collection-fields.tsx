@@ -2,9 +2,9 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { redirect, type LoaderFunctionArgs, type Params } from "react-router";
 import { z } from "zod";
 import type { Collection } from "../db/collections";
-import { createField, deleteField, listFields, moveField, updateField } from "../db/fields";
+import { createField, deleteField, listFields, moveField, renameOption, updateField } from "../db/fields";
 import { requireAdmin } from "../features/auth/guard";
-import { labelsOf, parseFieldEdit, parseNewField } from "../features/collections/field-schema";
+import { labelsOf, parseFieldEdit, parseNewField, parseOptionRename } from "../features/collections/field-schema";
 import { fieldRejected, type FieldRejected } from "../features/collections/form";
 import { collectionAction, requireCollection } from "../features/collections/require-collection";
 import type { FormInput } from "../features/collections/validation";
@@ -61,6 +61,14 @@ const intents: Record<string, Intent> = {
     updateField(collection.id, field.id, parsed.data);
     return back(collection, field.id);
   },
+  // renameOption refuses an unknown option; an unchanged name just goes back.
+  renameOption: (collection, form) => {
+    const field = fieldOf(collection, form);
+    const parsed = parseOptionRename(form, field);
+    if (!parsed.success) return fieldRejected(parsed.error, form, field.id);
+    const { option, to } = parsed.data;
+    return to === option || renameOption(collection.id, field.id, option, to) ? back(collection, field.id) : badRequest();
+  },
   move: (collection, form) => {
     const { fieldId: id, to } = parseOrRefuse(move, form);
     moveField(collection.id, id, to);
@@ -101,7 +109,7 @@ export default function CollectionFields({ params, actionData }: { params: Param
           className="grid gap-2"
           items={fields.map((field) => ({
             id: field.id,
-            content: <FieldRow field={field} last={fields.length} failed={failedFor(field.id)} />,
+            content: <FieldRow field={field} slug={collection.slug} last={fields.length} failed={failedFor(field.id)} />,
           }))}
           onMove={moveFieldAction.bind(null, collection.slug)}
           handleLabel={t({ id: "fields.dragHandle", message: "Drag to reorder" })}

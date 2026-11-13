@@ -4,7 +4,14 @@ import type { FormInput } from "./validation";
 
 // Validation for a field definition (TICKET-COL-02). Issue messages are keys that form.ts translates.
 
-export type FieldErrorKey = "label" | "labelTaken" | "option" | "optionsMissing" | "optionsDuplicate" | "optionsNotSelect";
+export type FieldErrorKey =
+  | "label"
+  | "labelTaken"
+  | "option"
+  | "optionName"
+  | "optionsMissing"
+  | "optionsDuplicate"
+  | "optionsNotSelect";
 const key = (errorKey: FieldErrorKey) => errorKey;
 
 // An unchecked checkbox sends nothing.
@@ -60,5 +67,15 @@ export const parseFieldEdit = (form: FormInput, field: Field, taken: ReadonlySet
     .refine((edit) => edit.options === null || unique(edit.options), {
       message: key("optionsDuplicate"),
       path: ["options"],
+    })
+    .safeParse(form);
+
+// Renaming one option (TICKET-COL-03). `option` must be one of the field's; the caller checks that first.
+export const parseOptionRename = (form: FormInput, field: Field) =>
+  z
+    .object({ option: z.string(), to: z.string().trim().min(1, key("optionName")).max(100, key("optionName")) })
+    .refine(({ option, to }) => to === option || !field.options?.includes(to), {
+      message: key("optionsDuplicate"),
+      path: ["to"],
     })
     .safeParse(form);

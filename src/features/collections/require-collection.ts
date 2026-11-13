@@ -1,5 +1,6 @@
 import { data, type ActionFunctionArgs, type Params } from "react-router";
 import { getCollectionBySlug, type Collection } from "../../db/collections";
+import { listFields, type Field } from "../../db/fields";
 import { requireAdmin } from "../auth/guard";
 import type { FormInput } from "./validation";
 
@@ -19,3 +20,10 @@ export const collectionAction =
     const collection = requireCollection(params.slug);
     return handle(collection, Object.fromEntries(await request.formData()), params);
   };
+
+// The field named in an /admin/c/:slug/fields/:fieldId URL, or the not-found page. Only this collection's fields match.
+export const requireField = (collection: Collection, fieldId: string | undefined): Field => {
+  const field = listFields(collection.id).find((candidate) => String(candidate.id) === fieldId);
+  if (!field) throw data(null, { status: 404 });
+  return field;
+};

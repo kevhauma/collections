@@ -3,7 +3,7 @@ import { Plural, Trans, useLingui } from "@lingui/react/macro";
 import { fieldTypes, type Field, type FieldType } from "../db/fields";
 import type { FieldRejected } from "../features/collections/form";
 import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
+import { Button, LinkButton } from "../ui/button";
 import { Checkbox } from "../ui/choice";
 import { Dialog } from "../ui/dialog";
 import { FormField } from "../ui/form-field";
@@ -15,7 +15,7 @@ import { Input, Select, Textarea } from "../ui/input";
 type Values = FieldRejected["values"];
 type Failed = FieldRejected | undefined;
 
-const typeLabels: Record<FieldType, ReturnType<typeof msg>> = {
+export const typeLabels: Record<FieldType, ReturnType<typeof msg>> = {
   text: msg({ id: "fields.type.text", message: "Text" }),
   number: msg({ id: "fields.type.number", message: "Number" }),
   date: msg({ id: "fields.type.date", message: "Date" }),
@@ -126,8 +126,51 @@ const valuesOf = (field: Field): Values => ({
   isPublic: flag(field.isPublic),
 });
 
+// A choice field's options (TICKET-COL-03): each renames in place through its own form, or opens the removal
+// preview, which shows the items that would lose the value first.
+const OptionList = ({ field, slug, failed }: { field: Field; slug: string; failed: Failed }) => {
+  const { t } = useLingui();
+  return (
+    field.options && (
+      <div className="mt-5 grid gap-2">
+        <p className="font-bold">
+          <Trans id="fields.options.list">Rename or remove options</Trans>
+        </p>
+        <ul className="grid gap-3">
+          {field.options.map((option, index) => (
+            <li key={option} className="flex flex-wrap items-end gap-2">
+              <form method="post" className="flex min-w-0 flex-1 items-end gap-2">
+                <Hidden values={{ intent: "renameOption", fieldId: field.id, option }} />
+                <FormField
+                  id={`field-${field.id}-option-${index}`}
+                  label={option}
+                  error={failed?.option === option ? failed.errors.to : undefined}
+                  className="min-w-0 flex-1"
+                >
+                  {(control) => <Input {...control} name="to" defaultValue={option} maxLength={100} />}
+                </FormField>
+                <Button size="sm" type="submit">
+                  <Trans id="fields.options.rename">Rename</Trans>
+                </Button>
+              </form>
+              <LinkButton
+                size="sm"
+                variant="danger"
+                href={`/admin/c/${slug}/fields/${field.id}/remove-option?option=${encodeURIComponent(option)}`}
+                aria-label={t({ id: "fields.options.removeLabel", message: `Remove option ${option}` })}
+              >
+                <Trans id="fields.options.remove">Remove</Trans>
+              </LinkButton>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  );
+};
+
 // Opens by itself when its last save failed, so the error is visible after a no-JS reload.
-const EditField = ({ field, failed }: { field: Field; failed: Failed }) => {
+const EditField = ({ field, slug, failed }: { field: Field; slug: string; failed: Failed }) => {
   const { t } = useLingui();
   const values = failed?.values ?? valuesOf(field);
   const id = `field-${field.id}`;
@@ -155,6 +198,7 @@ const EditField = ({ field, failed }: { field: Field; failed: Failed }) => {
           </Button>
         </div>
       </form>
+      <OptionList field={field} slug={slug} failed={failed} />
     </details>
   );
 };
@@ -194,7 +238,9 @@ const DeleteDialog = ({ field }: { field: Field }) => {
 };
 
 // One field: what it is, the no-JS move buttons, edit and delete. `last` is the highest position.
-export const FieldRow = ({ field, last, failed }: { field: Field; last: number; failed: Failed }) => {
+type FieldRowProps = { field: Field; slug: string; last: number; failed: Failed };
+
+export const FieldRow = ({ field, slug, last, failed }: FieldRowProps) => {
   const { t, i18n } = useLingui();
   const label = field.label;
   const flags = [
@@ -240,6 +286,14 @@ export const FieldRow = ({ field, last, failed }: { field: Field; last: number; 
               ↓
             </Button>
           </form>
+          <LinkButton
+            variant="ghost"
+            size="sm"
+            href={`/admin/c/${slug}/fields/${field.id}/type`}
+            aria-label={t({ id: "fields.changeTypeLabel", message: `Change the type of ${label}` })}
+          >
+            <Trans id="fields.changeType">Change type</Trans>
+          </LinkButton>
           <Button
             variant="danger"
             size="sm"
@@ -252,7 +306,7 @@ export const FieldRow = ({ field, last, failed }: { field: Field; last: number; 
           </Button>
         </div>
       </div>
-      <EditField field={field} failed={failed} />
+      <EditField field={field} slug={slug} failed={failed} />
       <DeleteDialog field={field} />
     </article>
   );

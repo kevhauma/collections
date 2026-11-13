@@ -37,6 +37,16 @@ export const routes = () =>
               lazy: () => import("./routes/admin-collection-fields"),
             },
             {
+              id: "admin-field-type",
+              path: "c/:slug/fields/:fieldId/type",
+              lazy: () => import("./routes/admin-field-type"),
+            },
+            {
+              id: "admin-field-option",
+              path: "c/:slug/fields/:fieldId/remove-option",
+              lazy: () => import("./routes/admin-field-option"),
+            },
+            {
               id: "admin-collection-settings",
               path: "c/:slug/settings",
               lazy: () => import("./routes/admin-collection-settings"),

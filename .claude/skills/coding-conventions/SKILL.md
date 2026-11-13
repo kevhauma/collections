@@ -146,6 +146,10 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - Values always go through bound parameters. The only interpolated SQL is a **validated integer field id** that
   belongs to the collection (dynamic `ORDER BY` / `json_extract` paths), validated by `parseListParams` or the
   equivalent.
+- Read a stored value with `values_json -> path` and `JSON.parse` when its JSON type matters: `json_extract` turns
+  `true` into `1` (`fieldValues` in [src/db/fields.ts](../../../src/db/fields.ts)). A change that rewrites item data
+  takes a `plan` callback and runs it inside its transaction, so the policy stays pure and tested in
+  `src/features/` and the plan sees current data (`changeFieldType`).
 - Item values live in `items.values_json`, keyed by field id as a string. Use SQLite JSON functions
   (`json_extract`, `json_each`, `json_set`, `json_remove`) rather than loading and rewriting rows in JS.
 - Rank changes follow ADR 0004 (dense 1..n, shift + set in one transaction) and reuse `moveInList` from

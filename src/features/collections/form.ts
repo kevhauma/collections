@@ -17,6 +17,7 @@ const messages: Record<ErrorKey | FieldErrorKey, ReturnType<typeof msg>> = {
   label: msg({ id: "fields.error.label", message: "Enter a label of up to 100 characters." }),
   labelTaken: msg({ id: "fields.error.labelTaken", message: "Another field already has this label." }),
   option: msg({ id: "fields.error.option", message: "Keep each option under 100 characters." }),
+  optionName: msg({ id: "fields.error.optionName", message: "Enter an option of up to 100 characters." }),
   optionsMissing: msg({ id: "fields.error.optionsMissing", message: "A choice field needs at least one option." }),
   optionsDuplicate: msg({ id: "fields.error.optionsDuplicate", message: "Each option can appear only once." }),
   optionsNotSelect: msg({
@@ -48,16 +49,18 @@ export const rejected = (error: z.ZodError, form: FormInput): Rejected => ({
 });
 
 const fieldKeys = ["label", "type", "options", "required", "isPublic"] as const;
-export type FieldFormErrors = Partial<Record<"label" | "type" | "options", string>>;
-// `target`: the field being edited, or "new" for the add form.
+export type FieldFormErrors = Partial<Record<"label" | "type" | "options" | "to", string>>;
+// `target`: the field being edited, or "new" for the add form. `option`: the option whose rename failed.
 export type FieldRejected = {
   target: number | "new";
   errors: FieldFormErrors;
   values: Record<(typeof fieldKeys)[number], string>;
+  option?: string;
 };
 
 export const fieldRejected = (error: z.ZodError, form: FormInput, target: number | "new"): FieldRejected => ({
   target,
   errors: formErrors(error),
   values: typed(form, fieldKeys),
+  option: typeof form.option === "string" ? form.option : undefined,
 });

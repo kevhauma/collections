@@ -64,7 +64,7 @@ Decided in a design session on 2026-11-11. Build plan and tickets: [releases/v1/
 | Delete field | Confirm, then remove the key from every item. The export is the undo. |
 | Change field type | Preview: convert what parses, list values that would be blanked, apply on confirm. |
 | Rename select option | Rewrite matching item values (one `json_set` UPDATE). |
-| Remove select option | Preview affected items, blank those values on confirm. |
+| Remove select option | Preview affected items, blank those values on confirm. The last option stays. |
 | Make a field required | Allowed; existing blank values stay until the item is next edited. |
 
 ### Slugs
