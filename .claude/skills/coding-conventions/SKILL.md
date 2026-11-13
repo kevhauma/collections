@@ -189,7 +189,8 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   params. The production payload has none of that.
 - Redirect targets are same-origin paths only: build them with `safeRedirectTarget`
   ([src/lib/redirect.ts](../../../src/lib/redirect.ts)). Cookies are `HttpOnly`, `SameSite=Lax`, and `Secure` outside local
-  dev.
+  dev. A header switcher (language, theme) posts to a route whose action is `cookieSwitchAction(name, values)` from
+  [src/routes/cookie-switch.ts](../../../src/routes/cookie-switch.ts).
 - Never log passwords, session tokens or full request bodies.
 - The session is resolved once per request in `entry.rsc.tsx` (`requestContext().session`). To send a cookie from an
   action, push it onto `requestContext().setCookies`; `entry.rsc.tsx` adds them to whatever response goes out
@@ -251,7 +252,9 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   caller's `className` with `cn()` (tailwind-merge).
 - Outside `src/ui/`, only layout utilities (flex, grid, gap, margin, padding, width) go on elements.
 - Colours, radius and spacing come from the Tailwind `@theme` tokens in `src/ui/styles.css`. No hex values in
-  components.
+  components. Each colour token is `light-dark(day, night)` (TICKET-UI-03): a new colour needs both values, AA on
+  dark paper too. The build compiles `light-dark()` into variables resolved on `:root`, so a nested `color-scheme`
+  can't flip tokens; post-its restate the day values they use instead.
 - Interactivity uses native HTML first: `<dialog>`, the Popover API, `<details>`, `:has()`.
 - Accessibility is not optional: labelled controls (`FormField`), visible `focus-visible` rings, `aria-current` /
   `aria-sort` / `aria-invalid` where they apply, and image `alt` = item title.

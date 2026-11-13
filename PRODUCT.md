@@ -55,7 +55,7 @@ leave the server.
 - Public pages ship no client components. Admin pages may.
 - Private or unknown collections return 404, never a login prompt. Admin login is unlinked from the public site.
 - No pagination in v1. Grid cards show the title plus the first two fields.
-- Dark mode is out of scope for v1 (TICKET-UI-01).
+- Dark mode follows the device, with a System / Light / Dark switch in both headers (TICKET-UI-03).
 - Terminology: collection, field, item, have, want, rank, title field, public / private.
 
 ## Brand Commitments

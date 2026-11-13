@@ -22,6 +22,7 @@ export const routes = () =>
           ],
         },
         { id: "locale", path: "locale", lazy: () => import("./routes/locale") },
+        { id: "theme", path: "theme", lazy: () => import("./routes/theme") },
         {
           id: "admin",
           path: "admin",

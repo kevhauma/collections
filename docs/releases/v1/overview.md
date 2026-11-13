@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **23 / 26 done**
+Progress: **24 / 26 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -36,7 +36,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 22 | [BAK-01](../../backup/tickets/TICKET-BAK-01-export-zip.md) | Full export as zip | M6 Backup | ITM-04 | ⛔ Excel double-click on `;`-separator systems: CSV kept as commas by decision, criterion open |
 | 23 ‖ | [COL-04](../../collections/tickets/TICKET-COL-04-field-prefix-suffix.md) | Field prefix and suffix | M7 After the first cut | COL-02, ITM-05 | ✅ |
 | 24 ‖ | [COL-05](../../collections/tickets/TICKET-COL-05-rating-field.md) | Rating field | M7 After the first cut | COL-03 | ✅ |
-| 25 ‖ | [UI-03](../../ui/tickets/TICKET-UI-03-dark-mode.md) | Dark mode | M7 After the first cut | UI-02, I18N-02 | ⬜ |
+| 25 ‖ | [UI-03](../../ui/tickets/TICKET-UI-03-dark-mode.md) | Dark mode | M7 After the first cut | UI-02, I18N-02 | ✅ |
 | 26 ‖ | [COL-06](../../collections/tickets/TICKET-COL-06-collection-picture.md) | Collection picture | M7 After the first cut | COL-01, ITM-04, BAK-01 (built) | ⬜ |
 
 ## Why this order

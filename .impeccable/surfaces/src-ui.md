@@ -25,6 +25,10 @@ Signature interaction: a want reranks in place and keeps its highlighter until n
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
+## Dark addendum (TICKET-UI-03)
+
+NIGHT: The same notebook page at night, not a new world. Dark blue-black paper (#12151d, grid #20273a, rule #46526e), light gel-pen ink #d3ddff for text and every drawn outline (ink-soft #a4b3e2, pencil #9ba2b6), a brighter red pen #f05a4f, and the highlighter as a dim amber marker band #5b4b0a that light ink stays readable on. Post-its keep their paper colours and their day contents (dark ink, day red), pinned to the dark page with deeper shadows. Photos are never recoloured. Follows the device by default; a System / Light / Dark switch sits next to the language switch in both headers. Every text pair meets WCAG AA (values and ratios in DESIGN.md › Colors › Night).
+
 ## Unresolved
 
 - Handwriting face (Kalam) for data at small sizes on phones: verify legibility at 360 px, fall back to a set face for table data if it fails.

@@ -1,5 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
   "entry": ["src/entry.rsc.tsx", "src/entry.ssr.tsx", "src/entry.browser.tsx", "lingui.config.ts"],
-  "ignoreExports": [{ "file": "src/routes/*.tsx", "exports": ["Layout", "ErrorBoundary", "loader", "action"] }]
+  "ignoreExports": [
+    { "file": "src/routes/*.tsx", "exports": ["Layout", "ErrorBoundary", "loader", "action"] },
+    { "file": "src/routes/*.ts", "exports": ["loader", "action"] }
+  ]
 }

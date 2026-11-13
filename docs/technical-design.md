@@ -77,7 +77,7 @@ Decided in a design session on 2026-11-11. Build plan and tickets: [releases/v1/
 
 - Generated from the name (`Magic: The Gathering` → `magic-the-gathering`), unique, editable.
 - No redirect from an old slug: old shared links 404. Accepted for a personal app.
-- Reserved: `admin`, `setup`, `uploads`, `api`, `locale`, `assets`.
+- Reserved: `admin`, `setup`, `uploads`, `api`, `locale`, `theme`, `assets`.
 - See [ADR 0005](adr/0005-plain-public-slugs.md).
 
 ## Routes
@@ -90,6 +90,7 @@ Decided in a design session on 2026-11-11. Build plan and tickets: [releases/v1/
 | `/:slug` | The `have` tab of a public collection. |
 | `/:slug/want` | The `want` tab, ordered by rank by default. |
 | `POST /locale` | Sets the locale cookie and redirects back (works without JS). |
+| `POST /theme` | Sets the theme cookie (`system` / `light` / `dark`) and redirects back (works without JS). |
 
 - Private or unknown collections return **404**, not a login prompt.
 - View, search, sort and filter live in the query string and are handled on the server through GET forms:
@@ -190,7 +191,7 @@ items(id INTEGER PRIMARY KEY, collection_id INTEGER NOT NULL REFERENCES collecti
 | Client components | Admin: allowed freely. Public: avoid. Drag-and-drop uses native HTML drag events, no `@dnd-kit`. |
 | Database | `better-sqlite3`, plain SQL, numbered `.sql` migrations applied at startup. See [ADR 0003](adr/0003-plain-sql.md). |
 | Validation | zod. Item schemas are built at runtime from a collection's field definitions by one function shared by server and client. |
-| Styling | Tailwind (v4, `@tailwindcss/vite`). |
+| Styling | Tailwind (v4, `@tailwindcss/vite`). Colour tokens hold a day and a night value (`light-dark()`); `color-scheme` on `<html>` picks one, from the device or the `theme` cookie (TICKET-UI-03). |
 | UI library | Own components in `src/ui/`: native `<dialog>` / Popover API, variants with `cva` + `tailwind-merge`. No showcase page, no Storybook. |
 | i18n | Lingui, explicit message ids, minimal JSON catalogs, NL + EN. Imports go through `src/i18n/` where possible. See [ADR 0002](adr/0002-lingui-explicit-ids.md). |
 | Locale | Cookie → `Accept-Language` → `settings.default_locale`. No URL prefix. User-typed content (collection names, field labels, options) is not translated. |

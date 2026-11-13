@@ -158,7 +158,7 @@ The whole collection lives on one page of a squared-paper notebook, written and 
 
 The handwriting carries the voice. Titles are scrawled large and loose; everything you read for information is written in a neater, steadier hand that stays legible down to 360 px table data. Colour is a pen case, not a palette: blue ink for nearly everything, a red pen for marks that demand attention, a highlighter for the one thing that matters most.
 
-The world refuses the grey database app: a neutral sidebar, hairline tables, a single blue accent on white. Dark mode is out of scope; the page is paper.
+The world refuses the grey database app: a neutral sidebar, hairline tables, a single blue accent on white. At night it is the same page under a desk lamp: dark paper, light ink, the post-its still paper.
 
 **Key Characteristics:**
 - Squared paper background (18px grid) under everything.
@@ -187,6 +187,9 @@ A ballpoint pen case on white squared paper: one blue ink in three strengths, on
 - **Margin Rule Blue** (rule): dashed table row rules and the scrollbar thumb.
 - **Faded Ink** (ink-soft): secondary text (hints, notes, empty-state copy) and the primary button's hover fill. 6.03:1 on paper.
 - **Pencil Grey** (pencil): placeholders and the pencil badge, for text that is provisional. 6.63:1 on paper.
+
+### Night
+The same page at night (TICKET-UI-03): dark paper and light gel-pen ink, following the device or a System / Light / Dark switch. Every token has a night value (`light-dark()` in `src/ui/styles.css`): paper #12151d, grid #20273a, rule #46526e, ink #d3ddff (13.5:1 on paper), ink-soft #a4b3e2 (8.8:1), pencil #9ba2b6 (7.2:1), red-pen #f05a4f (5.5:1, and paper on red 5.5:1), highlighter #5b4b0a, a dim amber marker band (ink on it 6.3:1). Post-its keep their paper colours by night and stay day-coloured inside, so a red numeral or tape on a post-it looks as it does by day. Shadows deepen to black. Photos are never recoloured.
 
 ### Named Rules
 **The Pen Case Rule.** Only the twelve colours above exist; the theme resets Tailwind's palette. A new colour needs a new pen, not a new shade.

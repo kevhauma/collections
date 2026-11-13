@@ -4,17 +4,20 @@
 @import "@fontsource/reenie-beanie/latin-400.css";
 @import "tailwindcss";
 
-/* The notebook page: ballpoint on squared paper (.impeccable/surfaces/src-ui.md). Only these colours exist. */
+/* The notebook page: ballpoint on squared paper (.impeccable/surfaces/src-ui.md). Only these colours exist.
+   Each is light-dark(day, night) (TICKET-UI-03): the same page at night, dark paper and light gel-pen ink. The
+   element's color-scheme picks one: the device's by default, or the one <html data-theme> forces. Post-its keep
+   their paper colours, and stay light inside (see postit-corner), so nothing on them changes. */
 @theme {
   --color-*: initial;
-  --color-paper: #fdfdfb;
-  --color-grid: #e3e9f3;
-  --color-rule: #b4c0da;
-  --color-ink: #1f3a93;
-  --color-ink-soft: #4a5f9e;
-  --color-pencil: #555b6e;
-  --color-red-pen: #d6312b;
-  --color-highlighter: #fff27a;
+  --color-paper: light-dark(#fdfdfb, #12151d);
+  --color-grid: light-dark(#e3e9f3, #20273a);
+  --color-rule: light-dark(#b4c0da, #46526e);
+  --color-ink: light-dark(#1f3a93, #d3ddff);
+  --color-ink-soft: light-dark(#4a5f9e, #a4b3e2);
+  --color-pencil: light-dark(#555b6e, #9ba2b6);
+  --color-red-pen: light-dark(#d6312b, #f05a4f);
+  --color-highlighter: light-dark(#fff27a, #5b4b0a);
   --color-postit-yellow: #ffe66d;
   --color-postit-pink: #ffb3c7;
   --color-postit-blue: #a9dcf5;
@@ -27,11 +30,30 @@
   --radius-drawn: 6px 12px 5px 10px / 10px 6px 12px 5px;
   --radius-scrap: 3px 9px 4px 8px;
 
-  --shadow-postit: 1px 3px 4px rgb(31 58 147 / 0.18);
-  --shadow-pin: inset -2px -2px 0 rgb(0 0 0 / 0.25), 1px 2px 2px rgb(0 0 0 / 0.25);
+  --shadow-postit: 1px 3px 4px light-dark(rgb(31 58 147 / 0.18), rgb(0 0 0 / 0.55));
+  --shadow-pin: inset -2px -2px 0 rgb(0 0 0 / 0.25), 1px 2px 2px light-dark(rgb(0 0 0 / 0.25), rgb(0 0 0 / 0.6));
 
   /* One square of the paper; the default 4px spacing scale stays for layout. */
   --grid-square: 18px;
+}
+
+/* A checked box's tick is an image, which light-dark() can't reach: its ink is swapped with the theme. */
+:root {
+  --ink-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M3 11l5 5L18 3' fill='none' stroke='%231f3a93' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --ink-tick-night: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M3 11l5 5L18 3' fill='none' stroke='%23d3ddff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  color-scheme: light dark;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink-tick: var(--ink-tick-night);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink-tick: var(--ink-tick-night);
+  }
 }
 
 @layer base {
@@ -97,8 +119,14 @@
   background: linear-gradient(176deg, transparent 16%, var(--color-highlighter) 18% 84%, transparent 86%);
 }
 
-/* A post-it with its bottom-right corner lifting. */
+/* A post-it with its bottom-right corner lifting. It's paper-coloured by day and night, so what's on it (a red-pen
+   numeral, the tape) keeps the day colours. The build compiles light-dark() into variables resolved on :root, so a
+   color-scheme here can't flip the tokens: the day values of the three used on post-its are restated instead. */
 @utility postit-corner {
+  color-scheme: light;
+  --color-paper: #fdfdfb;
+  --color-ink: #1f3a93;
+  --color-red-pen: #d6312b;
   &::before {
     content: "";
     position: absolute;
@@ -122,7 +150,7 @@
   filter: url(#ink-wobble);
   cursor: pointer;
   &:checked {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M3 11l5 5L18 3' fill='none' stroke='%231f3a93' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-image: var(--ink-tick);
   }
   &[type="radio"] {
     border-radius: 50%;

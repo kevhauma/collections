@@ -2,6 +2,7 @@ import { Trans } from "@lingui/react/macro";
 import type { ReactNode } from "react";
 import { Outlet } from "react-router";
 import { LocaleSwitcher } from "./locale-switcher";
+import { ThemeSwitcher } from "./theme-switcher";
 import { RouteError } from "./route-error";
 
 // Frame for the visitor-facing pages. Server components only: entry.ssr also skips the bootstrap script for
@@ -12,7 +13,10 @@ export const Layout = ({ children }: { children: ReactNode }) => (
       <a href="/" className="font-hand text-4xl leading-none text-ink no-underline">
         <Trans id="app.name">Collections</Trans>
       </a>
-      <LocaleSwitcher />
+      <div className="flex flex-wrap items-center gap-3">
+        <LocaleSwitcher />
+        <ThemeSwitcher />
+      </div>
     </header>
     <main id="main" tabIndex={-1} className="flex-1 py-4 focus-visible:outline-none">
       {children}
