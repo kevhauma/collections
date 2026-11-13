@@ -4,7 +4,9 @@ import type { Field, FieldType } from "../db/fields";
 import type { Item, ItemSort, ItemStatus } from "../db/items";
 import { formatDate, formatNumber } from "../i18n";
 import { PostIt } from "../ui/post-it";
+import { Input } from "../ui/input";
 import { Rank } from "../ui/rank";
+import { SortableList } from "../ui/sortable-list";
 import { Table, Td, Th } from "../ui/table";
 
 // The item list as a table or a grid of post-its (TICKET-ITM-05). Server components, shared by the admin list and the
@@ -21,7 +23,12 @@ export type ItemViewProps = {
   titleFieldId: number;
   slug: string;
   sortLink: (sort: ItemSort) => SortLink;
+  // Admin want tab sorted by rank (TICKET-ITM-03): rank inputs, plus drag handles when the rows shown are the whole
+  // rank order (ascending, unfiltered), so a row's position is its rank.
+  ranking?: Ranking;
 };
+
+type Ranking = { draggable: boolean; count: number; onMove: (id: number, to: number) => Promise<void> };
 
 const Yes = () => <Trans id="items.value.yes">Yes</Trans>;
 
@@ -68,53 +75,149 @@ const Thumbnail = ({ item, className, size }: { item: Item; className?: string; 
   />
 );
 
-export const ItemTable = ({ mode, slug, status, items, fields, titleFieldId, sortLink }: ItemViewProps) => {
+// Type a new rank and press Enter: a plain form posting to the list route's action, so it works without JS.
+const RankForm = ({ item, title, count }: { item: Item; title: string; count: number }) => {
   const { t } = useLingui();
   return (
-    <Table>
-      <thead>
-        <tr>
-          {status === "want" && <Th sort={sortLink("rank")}>#</Th>}
-          <Th>
-            <span className="sr-only">{t({ id: "items.column.image", message: "Image" })}</span>
-          </Th>
-          {fields.map((field) => (
-            <Th key={field.id} sort={sortLink(field.id)}>
-              {field.label}
-            </Th>
-          ))}
-          {status === "have" && <Th>{t({ id: "items.form.quantity", message: "How many" })}</Th>}
-        </tr>
-      </thead>
-      <tbody>
-        {items.map((item) => (
-          <tr key={item.id} id={`item-${item.id}`} className="scroll-mt-6">
-            {status === "want" && (
-              <Td>
-                <Rank>{item.rank}</Rank>
-              </Td>
-            )}
-            <Td className="w-18">
-              <Thumbnail item={item} size="sm" />
-            </Td>
-            {fields.map((field) => (
-              <Td key={field.id}>
-                {field.id === titleFieldId ? (
-                  <strong>
-                    <Title mode={mode} slug={slug} titleFieldId={titleFieldId} item={item} />
-                  </strong>
-                ) : (
-                  <FieldValue field={field} value={item.values[field.id]} />
-                )}
-              </Td>
-            ))}
-            {status === "have" && <Td>{formatNumber(item.quantity ?? 1)}</Td>}
-          </tr>
-        ))}
-      </tbody>
-    </Table>
+    <form method="post">
+      <input type="hidden" name="intent" value="move" />
+      <input type="hidden" name="itemId" value={item.id} />
+      <Input
+        type="number"
+        name="rank"
+        min={1}
+        max={count}
+        step={1}
+        defaultValue={item.rank ?? ""}
+        aria-label={t({ id: "items.rank.label", message: `Priority of ${title}` })}
+        className="w-20"
+      />
+    </form>
   );
 };
+
+type RankCellProps = { item: Item; titleFieldId: number; ranking?: Ranking; className?: string };
+
+// The rank input while reordering, the scrawled numeral otherwise.
+const RankCell = ({ item, titleFieldId, ranking, className }: RankCellProps) =>
+  ranking ? (
+    // Keyed by rank, so after a reorder the input shows the new number rather than keeping the old one.
+    <RankForm key={`${item.id}-${item.rank}`} item={item} title={titleOf(item, titleFieldId)} count={ranking.count} />
+  ) : (
+    <Rank className={className}>{item.rank}</Rank>
+  );
+
+// One sortable list of rows, or a plain one. The handle and its failure message are the same for table and grid.
+const Rows = ({ items, ranking, layout, className, row }: {
+  items: Item[];
+  ranking?: Ranking;
+  layout: "table" | "list";
+  className?: string;
+  row: (item: Item) => ReactNode;
+}) => {
+  const { t } = useLingui();
+  return ranking?.draggable ? (
+    <SortableList
+      layout={layout}
+      className={className}
+      items={items.map((item) => ({ id: item.id, anchor: `item-${item.id}`, content: row(item) }))}
+      onMove={ranking.onMove}
+      handleLabel={t({ id: "items.dragHandle", message: "Drag to reorder" })}
+      failedMessage={t({ id: "order.moveFailed", message: "Couldn't save the new order. Try again." })}
+    />
+  ) : (
+    <PlainRows layout={layout} className={className} items={items} row={row} />
+  );
+};
+
+const PlainRows = ({ layout, className, items, row }: {
+  layout: "table" | "list";
+  className?: string;
+  items: Item[];
+  row: (item: Item) => ReactNode;
+}) =>
+  layout === "table" ? (
+    <tbody className={className}>
+      {items.map((item) => (
+        <tr key={item.id} id={`item-${item.id}`} className="scroll-mt-6">
+          {row(item)}
+        </tr>
+      ))}
+    </tbody>
+  ) : (
+    <ul className={className}>
+      {items.map((item) => (
+        <li key={item.id} id={`item-${item.id}`} className="scroll-mt-6">
+          {row(item)}
+        </li>
+      ))}
+    </ul>
+  );
+
+const TableCells = ({ item, ...props }: ItemViewProps & { item: Item }) => (
+  <>
+    {props.status === "want" && (
+      <Td>
+        <RankCell item={item} titleFieldId={props.titleFieldId} ranking={props.ranking} />
+      </Td>
+    )}
+    <Td className="w-18">
+      <Thumbnail item={item} size="sm" />
+    </Td>
+    {props.fields.map((field) => (
+      <Td key={field.id}>
+        {field.id === props.titleFieldId ? (
+          <strong>
+            <Title mode={props.mode} slug={props.slug} titleFieldId={props.titleFieldId} item={item} />
+          </strong>
+        ) : (
+          <FieldValue field={field} value={item.values[field.id]} />
+        )}
+      </Td>
+    ))}
+    {props.status === "have" && <Td>{formatNumber(item.quantity ?? 1)}</Td>}
+  </>
+);
+
+// The drag handles' column, when there are handles.
+const HandleHeader = ({ ranking }: { ranking?: Ranking }) => {
+  const { t } = useLingui();
+  return (
+    ranking?.draggable && (
+      <Th>
+        <span className="sr-only">{t({ id: "items.dragHandle", message: "Drag to reorder" })}</span>
+      </Th>
+    )
+  );
+};
+
+const TableHead = ({ status, fields, sortLink, ranking }: ItemViewProps) => {
+  const { t } = useLingui();
+  return (
+    <thead>
+      <tr>
+        <HandleHeader ranking={ranking} />
+        {status === "want" && <Th sort={sortLink("rank")}>#</Th>}
+        <Th>
+          <span className="sr-only">{t({ id: "items.column.image", message: "Image" })}</span>
+        </Th>
+        {fields.map((field) => (
+          <Th key={field.id} sort={sortLink(field.id)}>
+            {field.label}
+          </Th>
+        ))}
+        {status === "have" && <Th>{t({ id: "items.form.quantity", message: "How many" })}</Th>}
+      </tr>
+    </thead>
+  );
+};
+
+export const ItemTable = (props: ItemViewProps) => (
+  <Table>
+    <TableHead {...props} />
+    <Rows items={props.items} ranking={props.ranking} layout="table" row={(item) => <TableCells {...props} item={item} />} />
+  </Table>
+);
 
 // Have: "×2" beside the title when there's more than one. Want: the rank on the post-it.
 const Quantity = ({ quantity }: { quantity: number | null }) => {
@@ -122,30 +225,42 @@ const Quantity = ({ quantity }: { quantity: number | null }) => {
   return (quantity ?? 1) > 1 && <span className="text-ink-soft"> ×{count}</span>;
 };
 
-export const ItemGrid = ({ mode, slug, status, items, fields, titleFieldId }: Omit<ItemViewProps, "sortLink">) => {
-  // The title plus the first two other fields, as a ticketing default.
-  const shown = fields.filter((field) => field.id !== titleFieldId).slice(0, 2);
-  return (
-    <ul className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
-      {items.map((item) => (
-        <li key={item.id} id={`item-${item.id}`} className="grid scroll-mt-6 content-start gap-3">
-          <div className="relative">
-            <Thumbnail item={item} size="md" className="aspect-square size-auto w-full max-w-44" />
-            {status === "want" && <Rank className="absolute -top-3 -left-1">{item.rank}</Rank>}
-          </div>
-          <div className="grid gap-0.5">
-            <strong>
-              <Title mode={mode} slug={slug} titleFieldId={titleFieldId} item={item} />
-              {status === "have" && <Quantity quantity={item.quantity} />}
-            </strong>
-            {shown.map((field) => (
-              <span key={field.id} className="text-sm text-ink-soft">
-                <FieldValue field={field} value={item.values[field.id]} />
-              </span>
-            ))}
-          </div>
-        </li>
+// A want's numeral sits on its post-it's corner; its rank input, while reordering, under the title.
+const GridCard = ({ item, shown, ...props }: ItemViewProps & { item: Item; shown: Field[] }) => (
+  <div className="relative grid content-start gap-3">
+    <Thumbnail item={item} size="md" className="aspect-square size-auto w-full max-w-44" />
+    <div className="grid gap-0.5">
+      <strong>
+        <Title mode={props.mode} slug={props.slug} titleFieldId={props.titleFieldId} item={item} />
+        {props.status === "have" && <Quantity quantity={item.quantity} />}
+      </strong>
+      {shown.map((field) => (
+        <span key={field.id} className="text-sm text-ink-soft">
+          <FieldValue field={field} value={item.values[field.id]} />
+        </span>
       ))}
-    </ul>
+      {props.status === "want" && (
+        <RankCell
+          item={item}
+          titleFieldId={props.titleFieldId}
+          ranking={props.ranking}
+          className="absolute -top-3 -left-1"
+        />
+      )}
+    </div>
+  </div>
+);
+
+export const ItemGrid = (props: ItemViewProps) => {
+  // The title plus the first two other fields, as a ticketing default.
+  const shown = props.fields.filter((field) => field.id !== props.titleFieldId).slice(0, 2);
+  return (
+    <Rows
+      items={props.items}
+      ranking={props.ranking}
+      layout="list"
+      className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-5"
+      row={(item) => <GridCard {...props} item={item} shown={shown} />}
+    />
   );
 };

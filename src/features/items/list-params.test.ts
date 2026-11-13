@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { filterInput, listQuery, parseListParams, sortToggle, switchTab, type ListContext } from "./list-params";
+import {
+  filterInput,
+  listQuery,
+  parseListParams,
+  reorderable,
+  sortToggle,
+  switchTab,
+  type ListContext,
+} from "./list-params";
 
 const fields = [
   { id: 1, type: "text", options: null, isPublic: 1 },
@@ -92,5 +100,16 @@ describe("filterInput", () => {
     const params = parse("f.3=EP&f.4=no");
     expect([3, 4, 1].map((fieldId) => filterInput(params, fieldId))).toEqual(["EP", "no", ""]);
     expect(filterInput(parse("f.4=yes"), 4)).toBe("yes");
+  });
+});
+
+describe("reorderable", () => {
+  it("offers rank inputs on the want tab sorted by rank, and drag only for the whole ascending order", () => {
+    expect(reorderable(parse("", want), "want")).toEqual({ draggable: true });
+    expect(reorderable(parse("dir=desc", want), "want")).toEqual({ draggable: false });
+    expect(reorderable(parse("q=blue", want), "want")).toEqual({ draggable: false });
+    expect(reorderable(parse("f.3=LP", want), "want")).toEqual({ draggable: false });
+    expect(reorderable(parse("sort=2", want), "want")).toBeUndefined();
+    expect(reorderable(parse(""), "have")).toBeUndefined();
   });
 });

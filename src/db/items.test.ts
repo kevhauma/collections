@@ -6,7 +6,17 @@ import { itemStatusSchema } from "../features/items/schema";
 import { createCollection, getCollectionBySlug } from "./collections";
 import { createField, listFields, type FieldType } from "./fields";
 import { db } from "./connection";
-import { countItems, createItem, deleteItem, getItem, listItems, updateItem, type ItemQuery, type ItemWrite } from "./items";
+import {
+  countItems,
+  createItem,
+  deleteItem,
+  getItem,
+  listItems,
+  moveWant,
+  updateItem,
+  type ItemQuery,
+  type ItemWrite,
+} from "./items";
 
 beforeAll(() => {
   process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "collections-items-"));
@@ -196,5 +206,55 @@ describe("listItems", () => {
 
   it("counts haves and wants", () => {
     expect(countItems(vinyl.id)).toEqual({ have: 5, want: 0 });
+  });
+});
+
+describe("moveWant", () => {
+  it("moves the 5th want to the top, and clamps 99 to the bottom", () => {
+    const { id, want, ranks } = setup("moves");
+    const [, b, , , e] = ["A", "B", "C", "D", "E"].map(want);
+    expect(moveWant(id, e!, 1)).toBe(true);
+    expect(ranks()).toEqual(["1:E", "2:A", "3:B", "4:C", "5:D"]);
+    expect(moveWant(id, b!, 99)).toBe(true);
+    expect(ranks()).toEqual(["1:E", "2:A", "3:C", "4:D", "5:B"]);
+    expect(moveWant(id, b!, 0)).toBe(true);
+    expect(ranks()).toEqual(["1:B", "2:E", "3:A", "4:C", "5:D"]);
+  });
+
+  it("refuses a have, or a want of another collection", () => {
+    const { id, values } = setup("moves-2");
+    const have = createItem(id, { status: "have", quantity: 1, values: values("H") });
+    const other = getCollectionBySlug("moves")!;
+    const foreign = listItems({ collectionId: other.id, status: "want", sort: "rank" })[0]!.id;
+    expect(moveWant(id, have, 1)).toBe(false);
+    expect(moveWant(id, foreign, 1)).toBe(false);
+    expect(getItem(other.id, foreign)?.rank).toBe(1);
+  });
+
+  it("keeps ranks dense 1..n through 200 random moves, inserts, deletes and status changes", () => {
+    const { id, values } = setup("random");
+    // A seeded generator, so a failure replays the same sequence.
+    let seed = 42;
+    const random = (n: number) => {
+      seed = (seed * 1103515245 + 12345) % 2 ** 31;
+      return seed % n;
+    };
+    const wantIds = () => listItems({ collectionId: id, status: "want" }).map((item) => item.id);
+    const all = () => [...wantIds(), ...listItems({ collectionId: id, status: "have" }).map((item) => item.id)];
+    const pick = (ids: number[]) => ids[random(ids.length)]!;
+    const steps = [
+      () => createItem(id, { status: "want", values: values("w") }),
+      () => createItem(id, { status: "have", quantity: 1, values: values("h") }),
+      () => wantIds().length > 0 && moveWant(id, pick(wantIds()), random(wantIds().length + 4) - 1),
+      () => all().length > 0 && deleteItem(id, pick(all())),
+      () => all().length > 0 && updateItem(id, pick(all()), { status: "want", values: values("s") }),
+      () => all().length > 0 && updateItem(id, pick(all()), { status: "have", quantity: 2, values: values("s") }),
+    ];
+    for (let step = 0; step < 200; step++) {
+      steps[random(steps.length)]!();
+      const ranks = listItems({ collectionId: id, status: "want", sort: "rank" }).map((item) => item.rank);
+      expect(ranks).toEqual(ranks.map((_, index) => index + 1));
+    }
+    expect(wantIds().length).toBeGreaterThan(3);
   });
 });

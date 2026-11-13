@@ -52,4 +52,4 @@ A component that needs state gets `'use client'` and goes in this table. Public 
 
 | Component | File | Props |
 |---|---|---|
-| `SortableList` | `sortable-list.tsx` | `items: {id, content}[]`, `onMove(id, to)`: a server action taking the 1-based target position, `handleLabel` (the drag handle's tooltip), `className`. Drag-and-drop by a handle (hidden from assistive tech), optimistic with a fallback when saving fails. Rows must also carry no-JS move buttons. Uses `moveInList`. |
+| `SortableList` | `sortable-list.tsx` | `items: {id, content, anchor?}[]` (`anchor` = the row's HTML id), `onMove(id, to)`: a server action taking the 1-based target position, `handleLabel` (the drag handle's tooltip), `failedMessage` (shown when a save fails), `layout`: `list` (an `<ol>`, default) · `table` (a `<tbody>`; each `content` is the row's `<td>`s and the handle gets its own cell, so add a header column), `className`. Drag-and-drop by a handle (hidden from assistive tech), optimistic with a fallback and the message when saving fails; the drop target gets the highlighter. Rows must also carry no-JS move controls. Uses `moveInList`. |

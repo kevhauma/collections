@@ -1,14 +1,16 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { data, type LoaderFunctionArgs, type Params } from "react-router";
+import { data, redirect, type LoaderFunctionArgs, type Params } from "react-router";
+import { z } from "zod";
 import { requestContext } from "../context";
 import type { Collection } from "../db/collections";
 import { listFields } from "../db/fields";
-import { countItems, listItems, type ItemStatus } from "../db/items";
+import { countItems, listItems, moveWant, type ItemStatus } from "../db/items";
 import { requireAdmin } from "../features/auth/guard";
-import { requireCollection } from "../features/collections/require-collection";
+import { collectionAction, requireCollection } from "../features/collections/require-collection";
 import {
   listQuery,
   parseListParams,
+  reorderable,
   sortToggle,
   switchTab,
   type ListContext,
@@ -19,6 +21,7 @@ import { LinkButton } from "../ui/button";
 import { EmptyState } from "../ui/empty-state";
 import { TabLinks } from "../ui/tab-links";
 import { listHref } from "./item-paths";
+import { moveWantAction } from "./item-actions";
 import { ItemToolbar } from "./item-toolbar";
 import { ItemGrid, ItemTable, type ItemViewProps } from "./item-views";
 import { VisibilityBadge } from "./visibility-badge";
@@ -42,6 +45,26 @@ const contextOf = (collection: Collection, status: ItemStatus): ListContext => (
   status,
   defaultView: collection.defaultView,
   titleFieldId: collection.titleFieldId,
+});
+
+// The tab's list params, read from the request URL.
+const currentList = (collection: Collection, status: ItemStatus) => {
+  const context = contextOf(collection, status);
+  const search = new URL(requestContext().request.url).searchParams;
+  return { context, list: parseListParams(search, listFields(collection.id), context) };
+};
+
+const moveInput = z.object({ intent: z.literal("move"), itemId: z.coerce.number().int(), rank: z.coerce.number().int() });
+
+// The rank inputs post here (no JS needed). The item must be a want of this collection; back to the same list after.
+export const action = collectionAction((collection, form, params) => {
+  const parsed = moveInput.safeParse(form);
+  const status = statusOf(params.tab);
+  if (!parsed.success || !moveWant(collection.id, parsed.data.itemId, parsed.data.rank)) {
+    throw new Response(null, { status: 400 });
+  }
+  const { context, list } = currentList(collection, status);
+  return redirect(`${listHref(collection.slug, status)}${listQuery(list, context)}#item-${parsed.data.itemId}`);
 });
 
 const views = { table: ItemTable, grid: ItemGrid };
@@ -79,8 +102,7 @@ export default function AdminCollection({ params }: { params: Params }) {
   const collection = requireCollection(params.slug);
   const status = statusOf(params.tab);
   const fields = listFields(collection.id);
-  const context = contextOf(collection, status);
-  const list = parseListParams(new URL(requestContext().request.url).searchParams, fields, context);
+  const { context, list } = currentList(collection, status);
   const items = listItems({ collectionId: collection.id, status, ...list });
   const counts = countItems(collection.id);
   const slug = collection.slug;
@@ -98,6 +120,7 @@ export default function AdminCollection({ params }: { params: Params }) {
     { status: "want", label: t({ id: "items.tab.wantCount", message: `Want · ${wantCount}` }) },
   ] as const;
   const addHref = `/admin/c/${slug}/items/new?status=${status}`;
+  const reorder = reorderable(list, status);
   return (
     <div className="grid gap-6">
       <title>{t({ id: "collections.page.title", message: `${name} · Collections` })}</title>
@@ -142,6 +165,7 @@ export default function AdminCollection({ params }: { params: Params }) {
           const { next, direction } = sortToggle(list, sort);
           return { href: hrefFor(next), direction };
         }}
+        ranking={reorder && { ...reorder, count: counts.want, onMove: moveWantAction.bind(null, slug) }}
         view={list.view}
         total={counts[status]}
         addHref={addHref}

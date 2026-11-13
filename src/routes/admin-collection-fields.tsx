@@ -105,6 +105,7 @@ export default function CollectionFields({ params, actionData }: { params: Param
           }))}
           onMove={moveFieldAction.bind(null, collection.slug)}
           handleLabel={t({ id: "fields.dragHandle", message: "Drag to reorder" })}
+          failedMessage={t({ id: "order.moveFailed", message: "Couldn't save the new order. Try again." })}
         />
       </Card>
 

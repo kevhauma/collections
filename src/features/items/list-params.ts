@@ -88,6 +88,13 @@ export const listQuery = (params: ListParams, context: ListContext): string => {
   return query.size > 0 ? `?${query}` : "";
 };
 
+// Wants can be reordered when the want tab is sorted by rank (rank inputs). Dragging also needs the rows shown to be
+// the whole rank order, ascending and unfiltered, so a row's position is its rank.
+export const reorderable = (params: ListParams, status: ItemStatus): { draggable: boolean } | undefined =>
+  status === "want" && params.sort === "rank"
+    ? { draggable: params.dir === "asc" && params.q === "" && params.filters.length === 0 }
+    : undefined;
+
 type SortDirection = "ascending" | "descending" | "none";
 
 // A sortable column header: its current aria-sort, and the params its link leads to (ascending first, then a click on

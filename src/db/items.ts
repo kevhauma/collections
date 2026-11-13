@@ -1,3 +1,4 @@
+import { moveInList } from "../lib/order";
 import { db } from "./connection";
 
 // All SQL for items (TICKET-ITM-02). Every statement is scoped to the collection. Status changes keep want ranks
@@ -162,6 +163,20 @@ export const updateItem = (collectionId: number, itemId: number, item: ItemWrite
            updated_at = unixepoch() where id = @itemId`,
       )
       .run({ itemId, status: item.status, ...placement(collectionId, item, current), values: JSON.stringify(item.values) });
+    return true;
+  })();
+
+// Moves a want to `toRank` (clamped to 1..n) and renumbers the wants 1..n in one transaction (ADR 0004). False when
+// the item isn't a want in this collection.
+export const moveWant = (collectionId: number, itemId: number, toRank: number): boolean =>
+  db().transaction(() => {
+    const ids = db()
+      .prepare("select id from items where collection_id = ? and status = 'want' order by rank")
+      .pluck()
+      .all(collectionId) as number[];
+    if (!ids.includes(itemId)) return false;
+    const setRank = db().prepare("update items set rank = ? where id = ?");
+    moveInList(ids, ids.indexOf(itemId), toRank - 1).forEach((id, index) => setRank.run(index + 1, id));
     return true;
   })();
 

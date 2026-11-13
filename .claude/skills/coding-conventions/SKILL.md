@@ -150,7 +150,10 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   (`json_extract`, `json_each`, `json_set`, `json_remove`) rather than loading and rewriting rows in JS.
 - Rank changes follow ADR 0004 (dense 1..n, shift + set in one transaction) and reuse `moveInList` from
   `src/lib/order.ts`. Status changes place the rank inside the item write's transaction (append at n+1, close the gap):
-  [src/db/items.ts](../../../src/db/items.ts).
+  [src/db/items.ts](../../../src/db/items.ts). A move loads the ordered ids, applies `moveInList` and renumbers
+  (`moveField`, `moveWant`). Drag-and-drop is `SortableList` calling a bound `'use server'` action
+  ([src/routes/item-actions.ts](../../../src/routes/item-actions.ts)); the no-JS twin (move buttons, rank inputs)
+  posts the same move to the route action.
 - The connection is `db()` from [src/db/connection.ts](../../../src/db/connection.ts) (WAL, `foreign_keys = ON`,
   migrated on open by [src/db/migrate.ts](../../../src/db/migrate.ts)). Repository tests open a temp DB with
   `openDatabase(tempDir)`, as in [src/db/migrate.test.ts](../../../src/db/migrate.test.ts).
