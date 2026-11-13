@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **14 / 22 done**
+Progress: **15 / 22 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -26,7 +26,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 12 | [COL-01](../../collections/tickets/TICKET-COL-01-collection-management.md) | Collection management | M3 Collections and fields | AUTH-02, UI-02 | ✅ |
 | 13 | [COL-02](../../collections/tickets/TICKET-COL-02-field-editor.md) | Field editor | M3 Collections and fields | COL-01 | ✅ |
 | 14 | [ITM-01](../../items/tickets/TICKET-ITM-01-item-schema-builder.md) | Item schema builder | M3 Collections and fields | COL-02 | ✅ |
-| 15 | [ITM-02](../../items/tickets/TICKET-ITM-02-item-crud.md) | Create, edit and delete items | M4 Items | ITM-01 | ⬜ |
+| 15 | [ITM-02](../../items/tickets/TICKET-ITM-02-item-crud.md) | Create, edit and delete items | M4 Items | ITM-01 | ✅ |
 | 16 | [ITM-05](../../items/tickets/TICKET-ITM-05-collection-views.md) | Collection views: table, grid, search, sort, filter | M4 Items | ITM-02 | ⬜ |
 | 17 ‖ | [ITM-03](../../items/tickets/TICKET-ITM-03-want-ranking.md) | Reorder wants | M4 Items | ITM-02 | ⬜ |
 | 18 ‖ | [ITM-04](../../items/tickets/TICKET-ITM-04-item-images.md) | Item images | M4 Items | ITM-02 | ⬜ |

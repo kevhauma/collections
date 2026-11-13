@@ -15,7 +15,7 @@ const messages: Record<ValidationId, ReturnType<typeof msg>> = {
   "validation.status": msg({ id: "validation.status", message: "Choose have or want." }),
 };
 
-// For server actions (actionI18n, Lingui #2615). shortcut: unused until TICKET-ITM-02 renders item forms.
+// For server actions (actionI18n, Lingui #2615).
 export const translateItemErrors = (errors: ItemErrors): Partial<Record<string, string>> => {
   const i18n = actionI18n();
   return Object.fromEntries(Object.entries(errors).map(([input, id]) => [input, id && i18n._(messages[id])]));

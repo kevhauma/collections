@@ -92,12 +92,11 @@ export type ItemErrors = Partial<Record<string, ValidationId>>;
 const issuesByInput = (issues: z.core.$ZodIssue[], prefix = "") =>
   issues.toReversed().map((issue) => [`${prefix}${String(issue.path[0] ?? "status")}`, issue.message as ValidationId]);
 
-// Reads `f.<fieldId>` inputs plus `status` / `quantity` from an item form.
+// Reads `f.<fieldId>` inputs plus `status` / `quantity` from a posted item form (`Object.fromEntries(formData)`).
 export const parseItemForm = (
-  formData: FormData,
+  form: Record<string, unknown>,
   fields: ValueField[],
 ): { success: true; data: ItemInput } | { success: false; errors: ItemErrors } => {
-  const form = Object.fromEntries(formData);
   const valueInputs = Object.entries(form).filter(([name]) => name.startsWith("f."));
   const values = buildValuesSchema(fields).safeParse(
     Object.fromEntries(valueInputs.map(([name, value]) => [name.slice(2), value])),

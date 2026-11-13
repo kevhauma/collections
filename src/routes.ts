@@ -27,7 +27,10 @@ export const routes = () =>
           children: [
             { id: "admin-home", index: true, lazy: () => import("./routes/admin-home") },
             { id: "admin-collection-new", path: "collections/new", lazy: () => import("./routes/admin-collection-new") },
-            { id: "admin-collection", path: "c/:slug", lazy: () => import("./routes/admin-collection") },
+            // `tab` is empty (have) or "want"; anything else 404s. Static siblings (fields, settings) rank first.
+            { id: "admin-collection", path: "c/:slug/:tab?", lazy: () => import("./routes/admin-collection") },
+            { id: "admin-item-new", path: "c/:slug/items/new", lazy: () => import("./routes/admin-item") },
+            { id: "admin-item", path: "c/:slug/items/:id", lazy: () => import("./routes/admin-item") },
             {
               id: "admin-collection-fields",
               path: "c/:slug/fields",

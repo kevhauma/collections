@@ -123,8 +123,9 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   page with a form reads its data in the component (from `params`), and its `loader` only guards (`requireAdmin()`,
   404). Exemplar: [src/routes/admin-collection-settings.tsx](../../../src/routes/admin-collection-settings.tsx), with
   `requireCollection(params.slug)` from `src/features/collections/require-collection.ts`.
-- An `/admin/c/:slug` route action is `collectionAction((collection, form) => …)` from the same file: it runs
-  `requireAdmin()`, loads the collection (or 404) and reads the form. A page with several forms posts an `intent`
+- An `/admin/c/:slug` route action is `collectionAction((collection, form, params) => …)` from the same file: it
+  runs `requireAdmin()`, loads the collection (or 404) and reads the form; `params` carries the rest of the URL (an
+  item id). A page with several forms posts an `intent`
   and dispatches through a lookup object; successful posts redirect back (to `#<anchor>` of the changed row). Exemplar:
   [src/routes/admin-collection-fields.tsx](../../../src/routes/admin-collection-fields.tsx).
 - Form validation lives in `src/features/<area>/validation.ts` as zod schemas whose issue messages are **keys**, so
@@ -146,7 +147,8 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - Item values live in `items.values_json`, keyed by field id as a string. Use SQLite JSON functions
   (`json_extract`, `json_each`, `json_set`, `json_remove`) rather than loading and rewriting rows in JS.
 - Rank changes follow ADR 0004 (dense 1..n, shift + set in one transaction) and reuse `moveInList` from
-  `src/lib/order.ts`.
+  `src/lib/order.ts`. Status changes place the rank inside the item write's transaction (append at n+1, close the gap):
+  [src/db/items.ts](../../../src/db/items.ts).
 - The connection is `db()` from [src/db/connection.ts](../../../src/db/connection.ts) (WAL, `foreign_keys = ON`,
   migrated on open by [src/db/migrate.ts](../../../src/db/migrate.ts)). Repository tests open a temp DB with
   `openDatabase(tempDir)`, as in [src/db/migrate.test.ts](../../../src/db/migrate.test.ts).
@@ -212,6 +214,9 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - A drawn box is the `ink-outline` utility (pen outline on `::before`/`::after`); recolour it with `--ink-line`.
   Controls that can't carry pseudo-elements (`<input>`, `<select>`) get it on a wrapper, as in
   [src/ui/input.tsx](../../../src/ui/input.tsx).
+- A form built from field definitions maps `field.type → control` with a lookup object, posts with `noValidate` so
+  the server's translated messages show, and lists every invalid input in an `ErrorSummary` at the top. Exemplar:
+  [src/routes/admin-item.tsx](../../../src/routes/admin-item.tsx).
 - `FormField` wires ids through a render prop (`{(control) => <Input {...control} />}`), so form components stay
   hook-free server components. Dialogs and popovers open with `commandfor`/`command` and `popoverTarget`, no JS.
 - Use `src/ui/` components before writing markup. If a pattern appears twice, it belongs in `src/ui/`.

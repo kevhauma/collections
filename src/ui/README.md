@@ -32,7 +32,8 @@ Every component takes `className`, merged with `cn()`. Use it for layout only.
 | `Select` | `input.tsx` | All `<select>` attributes, same split as `Input`. Children are `<option>`s. |
 | `Checkbox` | `choice.tsx` | All `<input>` attributes except `type`, plus `label: ReactNode`. The checkbox is its own label, so it doesn't go inside `FormField`. |
 | `RadioGroup` | `choice.tsx` | `legend: ReactNode`, `name`, `options: {value, label}[]`, `defaultValue?`, `required?`. Renders a `<fieldset>`. |
-| `FormField` | `form-field.tsx` | `id`, `label: ReactNode`, `hint?`, `error?`, `children: (control) => ReactNode`. Spread `control` (`id`, `aria-describedby`, `aria-invalid`) onto the control: `{(control) => <Input {...control} name="title" />}`. The error is read before the hint. |
+| `FormField` | `form-field.tsx` | `id`, `label: ReactNode`, `hint?`, `error?`, `required?: string` (the word screen readers hear; the label gets an asterisk), `children: (control) => ReactNode`. Spread `control` (`id`, `aria-describedby`, `aria-invalid`, `aria-required`) onto the control: `{(control) => <Input {...control} name="title" />}`. The error is read before the hint. |
+| `ErrorSummary` | `error-summary.tsx` | `title: ReactNode`, `errors: {href, text}[]` (each links to its control). A red-pen box with `role="alert"` at the top of a failed form; renders nothing without errors. |
 | `Card` | `card.tsx` | `heading?: ReactNode` (an `<h2>` on a paper-scrap tab), `tone`: `red` (default) · `ink`, `children`. A drawn `<section>`. |
 | `Badge` | `badge.tsx` | `variant`: `outline` (default) · `highlight` · `pencil` (private / secondary), `children`. |
 | `PostIt` | `post-it.tsx` | `color`: `yellow` · `pink` · `blue` · `green`. `tilt`: `left` · `right` · `none`. `size`: `sm` (56 px) · `md` (80 px) · `lg` (176 px). `fastening`: `pin` (default) · `tape` · `none`. `children`: a photo (`<img className="size-full object-cover">`) or a note. This is the item image frame. |

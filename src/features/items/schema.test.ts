@@ -93,7 +93,7 @@ describe("parseItemForm", () => {
   const form = (entries: Record<string, string>) => {
     const data = new FormData();
     Object.entries(entries).forEach(([name, input]) => data.append(name, input));
-    return data;
+    return Object.fromEntries(data);
   };
 
   it("returns the typed item input", () => {
