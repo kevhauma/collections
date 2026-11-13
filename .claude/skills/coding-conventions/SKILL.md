@@ -85,7 +85,7 @@ scripts/           # CLI scripts, run with plain `node` (native TS type strippin
   must work fully without JavaScript.
 - Public routes sit under the server-only `public` layout route ([src/routes.ts](../../../src/routes.ts)). It has no
   client providers; `ClientI18nProvider` lives in the admin layout. `entry.ssr` omits `bootstrapScriptContent` when a
-  match has id `public`, so these pages never hydrate. React Router's runtime is still preloaded (see TICKET-PUB-02).
+  match has id `public`, so these pages never hydrate. React Router's runtime is still preloaded: kept by decision (TICKET-PUB-02 notes).
 - A layout route module exports `Layout` (its frame, which also wraps its `ErrorBoundary`), a default component
   rendering `<Outlet />`, and `ErrorBoundary = RouteError` ([src/routes/public-layout.tsx](../../../src/routes/public-layout.tsx)).
   Pages render their own `<title>`. A private or unknown resource answers 404 by throwing
@@ -172,7 +172,10 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 ## Public data and security
 
 - Public routes read through `publicOnly: true` repository calls, which **strip private field keys at the query
-  layer** and refuse private fields for search, sort and filter.
+  layer** and refuse private fields for search, sort and filter. A list page gets its fields and items from
+  `itemView(…, { publicOnly: true })` ([src/features/items/view.ts](../../../src/features/items/view.ts)) and renders
+  them with `CollectionItems` ([src/routes/collection-items.tsx](../../../src/routes/collection-items.tsx)), the same
+  component as the admin list.
 - Private and unknown collections both return the same 404.
 - Check that private data stays out of a page against the **production build** (`npm run build && npm start`): in
   dev, React's debug rows in the inline RSC payload can carry other requests' data, such as an admin route's

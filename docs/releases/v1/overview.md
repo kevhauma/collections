@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **20 / 22 done**
+Progress: **21 / 22 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -32,7 +32,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 18 ‖ | [ITM-04](../../items/tickets/TICKET-ITM-04-item-images.md) | Item images | M4 Items | ITM-02 | ✅ |
 | 19 ‖ | [COL-03](../../collections/tickets/TICKET-COL-03-schema-evolution.md) | Field type changes and option edits | M4 Items | COL-02, ITM-02 | ✅ |
 | 20 | [PUB-01](../../sharing/tickets/TICKET-PUB-01-public-index.md) | Public index of collections | M5 Sharing | COL-01, UI-02 | ✅ |
-| 21 | [PUB-02](../../sharing/tickets/TICKET-PUB-02-public-collection-pages.md) | Public have and want pages | M5 Sharing | ITM-05, ITM-03, PUB-01 | 🔄 |
+| 21 | [PUB-02](../../sharing/tickets/TICKET-PUB-02-public-collection-pages.md) | Public have and want pages | M5 Sharing | ITM-05, ITM-03, PUB-01 | ✅ |
 | 22 | [BAK-01](../../backup/tickets/TICKET-BAK-01-export-zip.md) | Full export as zip | M6 Backup | ITM-04 | ⬜ |
 
 ## Why this order

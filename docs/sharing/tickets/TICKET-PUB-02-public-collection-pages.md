@@ -62,7 +62,7 @@ fields stripped on the server and essentially no client JavaScript.
 - [x] Unit/integration test: render data for a collection with a private field through the public path, and assert
       the private key is absent from the rows given to the view. (`src/features/items/view.test.ts` "hands the view
       only public fields, and items without private keys": `itemView(…, { publicOnly: true })` is exactly what the
-      page passes to `CollectionItems`; `npm test` 650 passed)
+      page passes to `CollectionItems`; `npm test` 649 passed)
 - [x] Live browser check of both tabs and both views, sharing a filtered URL in a private window. (Orca with the
       session cookie deleted, production build: `/vinyl/want?view=grid&f.4=Long+Play` opened as shared, with the
       filter kept and ranks shown; the have table at 360 px scrolls inside its box with no page overflow
@@ -80,3 +80,6 @@ fields stripped on the server and essentially no client JavaScript.
 - Public pages don't hydrate (`entry.ssr.tsx` skips the bootstrap under the `public` route), but plugin-rsc still
   emits `modulepreload` hints for React Router's client runtime, about 350 KB that phones download and never run
   (found in TICKET-UI-02). Decide whether to strip them, for example by filtering the hints in `entry.ssr`.
+  **Decided (2026-11-13): keep them for v1.** Stripping them means rewriting the HTML stream in `entry.ssr`, where a
+  `<link>` can be split across chunks, for about 107 KB gzip that the browser caches as immutable hashed assets, so
+  a visitor pays it once per release. Revisit if public pages get heavy mobile traffic.
