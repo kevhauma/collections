@@ -22,6 +22,28 @@ database migrations at startup. If a migration fails, the container exits instea
 | `DATA_DIR` | `/data` | Where `db.sqlite` and `uploads/` live. Leave it as is and mount a volume there. |
 | `TRUST_PROXY` | off | Express "trust proxy". Set it to the number of proxies in front (usually `1`). See below. |
 
+## Without Docker (systemd)
+
+On any Linux with systemd and Node 26 or newer on the `PATH` (`/usr/bin` or `/usr/local/bin`, not an nvm
+install). The unit is [deploy/collections.service](../../deploy/collections.service): it runs `npm start` in your
+checkout as your user, starts on boot and restarts after a crash. Data stays in the checkout's `data/` folder, as
+with a manual `npm start`.
+
+One-time setup, from the checkout, as the user that does the `git pull` (stop any `npm start` you run by hand first):
+
+```bash
+echo 'PORT=8080' | sudo tee /etc/collections.env   # the port; TRUST_PROXY=1 goes here too when behind a proxy
+sed "s|^User=.*|User=$USER|; s|^WorkingDirectory=.*|WorkingDirectory=$PWD|" deploy/collections.service   | sudo tee /etc/systemd/system/collections.service
+sudo systemctl daemon-reload && sudo systemctl enable --now collections
+curl -fsS http://127.0.0.1:8080/healthz && echo ok
+```
+
+Deploying a new version is then `git pull && npm run build && sudo systemctl restart collections`. Change the port
+by editing `/etc/collections.env` and restarting. `journalctl -u collections -f` shows the log.
+
+The app listens on all interfaces. Unless it sits behind a proxy on the same host (below), open the port in the
+firewall. If you set `TRUST_PROXY`, block it instead so only the proxy can reach it.
+
 ## Upgrade
 
 ```bash

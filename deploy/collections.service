@@ -1,0 +1,20 @@
+# systemd unit: runs `npm start` in the checkout you git pull into. Install: docs/platform/deploy.md § Without Docker
+[Unit]
+Description=Collections
+After=network.target
+
+[Service]
+# The user that does the git pull, and the folder it pulls into (the install command fills these in).
+User=collections
+WorkingDirectory=/opt/collections
+# Default port. Override PORT (or TRUST_PROXY, DATA_DIR) in /etc/collections.env, which wins over this.
+Environment=PORT=3000
+EnvironmentFile=-/etc/collections.env
+ExecStart=/usr/bin/env npm start
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
