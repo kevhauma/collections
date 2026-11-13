@@ -1,7 +1,7 @@
 # TICKET-ITM-05: Collection views: table, grid, search, sort, filter
 
 - **Area:** Items
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Traceability:** [technical-design.md § Routes](../../technical-design.md#routes), [technical-design.md § Data model](../../technical-design.md#data-model) (search/sort notes), [ADR 0003](../../adr/0003-plain-sql.md)
 
 ## User story
@@ -56,22 +56,46 @@ by the URL. The query layer and the view components are built to be reused read-
 
 ## Acceptance criteria
 
-- [ ] Searching "blue" finds items with "Blue" in any text/url/select field and doesn't match field ids or
-      number/date values.
-- [ ] Sorting by a number field orders 9 before 10. Empty values sort last in both directions.
-- [ ] Filtering by a select option and a checkbox combines (AND) correctly.
-- [ ] A foreign or private field id in `sort` / `f.*` is ignored, and with `publicOnly` the private field is never
-      searched.
-- [ ] Changing view keeps `q` / `sort` / filters. The URL alone reproduces the page.
-- [ ] Everything works with JavaScript disabled.
-- [ ] Persistence goes through `src/db/items.ts`. No SQL in route modules.
-- [ ] Unit tests cover:
+- [x] Searching "blue" finds items with "Blue" in any text/url/select field and doesn't match field ids or
+      number/date values. (`listItems` searches `json_each` keys in a subquery of the collection's text/url/select
+      field ids; test "searches text, url and select values case-insensitively, never field ids, numbers or dates";
+      live `?q=blue` → Blue, Blue Train, Kind of Blue)
+- [x] Sorting by a number field orders 9 before 10. Empty values sort last in both directions. (test "sorts numbers
+      numerically and text case-insensitively, with empty values last both ways"; live `?sort=2` → 9, 10, 1958, 1959,
+      1971, then the item without a year, and `dir=desc` keeps it last)
+- [x] Filtering by a select option and a checkbox combines (AND) correctly. (test "combines a select and a checkbox
+      filter with AND", including an item saved before the checkbox existed counting as "no"; live `?f.4=LP&f.5=yes`
+      → Giant Steps, Kind of Blue)
+- [x] A foreign or private field id in `sort` / `f.*` is ignored, and with `publicOnly` the private field is never
+      searched. (`parseListParams` only knows the collection's own fields and drops private ones when `publicOnly`;
+      `listItems` also re-checks them against the public field ids and limits the search scope to `is_public` fields.
+      Tests "drops a foreign field id…", "drops a private field for sort and filter when publicOnly", "with
+      publicOnly, strips private keys and never searches, sorts or filters on a private field"; live
+      `?sort=999&f.999=x&view=nope` renders the default list)
+- [x] Changing view keeps `q` / `sort` / filters. The URL alone reproduces the page. (`listQuery` / `switchTab` tests,
+      including a round trip; live in Orca: Search "blue" + Signed Yes → Grid link → `?view=grid&q=blue&f.5=yes` with
+      both controls still filled; the Want tab link carries `?view=grid&q=blue` and takes its own rank sort)
+- [x] Everything works with JavaScript disabled. (the toolbar is a GET form and the view toggle, tabs and sort
+      headers are plain links; fetching the exact URL the form submits returns the filtered rows as HTML, and an
+      unknown tab answers 404)
+- [x] Persistence goes through `src/db/items.ts`. No SQL in route modules. (`grep "prepare(|db()"` finds nothing in
+      `src/routes` or `src/features/items`. Field ids are bound as parameters, never interpolated: as strings, since
+      better-sqlite3 binds numbers as REAL and `'$."' || 3.0` is the wrong path)
+- [x] Unit tests cover:
   - `parseListParams`: valid params; a foreign field id dropped; a private field dropped when `publicOnly`;
     `rank` sort rejected on the have tab; overlong `q` truncated or rejected
+    (`src/features/items/list-params.test.ts`; overlong `q` is truncated to 200)
   - `listItems` on a temp DB: search scope, LIKE wildcard escaping (`%` and `_` in `q`), numeric vs text sort,
-    nulls last, combined filters, private keys stripped with `publicOnly`
-- [ ] Live browser check of both views, search, sort and filters at 360 px and desktop.
-- [ ] Verified with the fallow skill.
+    nulls last, combined filters, private keys stripped with `publicOnly` (`src/db/items.test.ts` § listItems;
+    `npm test` 498 passed)
+- [x] Live browser check of both views, search, sort and filters at 360 px and desktop. (Orca at 1440 px: table with
+      sortable headers (Title ↑, `aria-sort`), Yes for ticked checkboxes, dates as "Aug 17, 1959", years ungrouped,
+      blank post-it thumbnails; grid of post-its with title, ×2 quantities and two fields. At 360 px: toolbar wraps,
+      the table scrolls inside its box (610 px in 328 px) while the page doesn't (360 = 360), the grid has 2 columns
+      with red ranks on the want post-its. Screens match the notebook direction. Thumbnails stay blank post-its
+      until TICKET-ITM-04, which adds the image with `loading="lazy"` and the title as `alt`)
+- [x] Verified with the fallow skill. (`npx fallow audit --base HEAD` → pass: 0 dead code, 0 duplicates, 0
+      complexity findings, after moving the toolbar's filter value helper into `list-params.ts` as `filterInput`)
 
 ## Notes
 

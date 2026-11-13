@@ -37,6 +37,7 @@ Every component takes `className`, merged with `cn()`. Use it for layout only.
 | `Card` | `card.tsx` | `heading?: ReactNode` (an `<h2>` on a paper-scrap tab), `tone`: `red` (default) · `ink`, `children`. A drawn `<section>`. |
 | `Badge` | `badge.tsx` | `variant`: `outline` (default) · `highlight` · `pencil` (private / secondary), `children`. |
 | `PostIt` | `post-it.tsx` | `color`: `yellow` · `pink` · `blue` · `green`. `tilt`: `left` · `right` · `none`. `size`: `sm` (56 px) · `md` (80 px) · `lg` (176 px). `fastening`: `pin` (default) · `tape` · `none`. `children`: a photo (`<img className="size-full object-cover">`) or a note. This is the item image frame. |
+| `Rank` | `rank.tsx` | `children` (the number). A want's rank scrawled in red pen, Reenie Beanie 36 px. |
 | `EmptyState` | `empty-state.tsx` | `title: ReactNode` (scrawled), `children?` (explanation), `action?` (usually a `Button` or `LinkButton`). |
 | `Table` | `table.tsx` | `children` (`<thead>` / `<tbody>`). Wraps the table in a horizontal scroller and uses tabular numerals. |
 | `Th` | `table.tsx` | `children`, `sort?: { href, direction: "ascending" \| "descending" \| "none" }`. A sortable header renders a plain link and sets `aria-sort`. |

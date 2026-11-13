@@ -141,6 +141,8 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   test file sets `DATA_DIR` to a temp dir before the first `db()` call
   ([src/features/auth/session.test.ts](../../../src/features/auth/session.test.ts)). Prefer a single atomic
   statement (`INSERT … ON CONFLICT DO NOTHING`, then check `changes`) over check-then-insert.
+- Bind a field id used in a JSON path as a **string** (`'$."' || @id || '"'`): better-sqlite3 binds JS numbers as
+  REAL, which makes the path `$."3.0"`.
 - Values always go through bound parameters. The only interpolated SQL is a **validated integer field id** that
   belongs to the collection (dynamic `ORDER BY` / `json_extract` paths), validated by `parseListParams` or the
   equivalent.
@@ -175,7 +177,10 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 ## URL state
 
 - List view state (`view`, `q`, `sort`, `dir`, `f.<fieldId>`) lives in the query string, parsed once at the route
-  with zod (`parseListParams`) and passed down as props. Children never read the URL themselves.
+  with zod (`parseListParams`) and passed down as props. Children never read the URL themselves. Links are built with
+  `listQuery` (defaults left out), `switchTab` and `sortToggle` from
+  [src/features/items/list-params.ts](../../../src/features/items/list-params.ts). The views are `ItemTable` /
+  `ItemGrid` / `ItemToolbar` in `src/routes/item-views.tsx` and `item-toolbar.tsx`, with `mode: "admin" | "public"`.
 - Invalid params are dropped, not turned into errors. Toolbars are GET forms, so every state is shareable and works
   without JS.
 

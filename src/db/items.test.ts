@@ -4,8 +4,9 @@ import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { itemStatusSchema } from "../features/items/schema";
 import { createCollection, getCollectionBySlug } from "./collections";
+import { createField, listFields, type FieldType } from "./fields";
 import { db } from "./connection";
-import { createItem, deleteItem, getItem, listItems, updateItem, type ItemWrite } from "./items";
+import { countItems, createItem, deleteItem, getItem, listItems, updateItem, type ItemQuery, type ItemWrite } from "./items";
 
 beforeAll(() => {
   process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "collections-items-"));
@@ -16,8 +17,11 @@ const setup = (slug: string) => {
   const { id, titleFieldId } = getCollectionBySlug(slug)!;
   const values = (title: string) => ({ [titleFieldId]: title });
   const want = (title: string) => createItem(id, { status: "want", values: values(title) });
-  const ranks = () => listItems(id, "want").map((item) => `${getItem(id, item.id)!.rank}:${String(item.title)}`);
-  return { id, values, want, ranks };
+  const ranks = () =>
+    listItems({ collectionId: id, status: "want", sort: "rank" }).map(
+      (item) => `${item.rank}:${String(item.values[titleFieldId])}`,
+    );
+  return { id, titleFieldId, values, want, ranks };
 };
 
 describe("items repository", () => {
@@ -87,10 +91,110 @@ describe("items repository", () => {
   it("only touches items of the given collection", () => {
     const books = getCollectionBySlug("books")!;
     const vinyl = getCollectionBySlug("vinyl")!;
-    const dune = listItems(books.id, "have")[0]!.id;
+    const dune = listItems({ collectionId: books.id, status: "have" })[0]!.id;
     expect(getItem(vinyl.id, dune)).toBeUndefined();
     expect(updateItem(vinyl.id, dune, { status: "want", values: {} })).toBe(false);
     expect(deleteItem(vinyl.id, dune)).toBe(false);
     expect(db().prepare("select status from items where id = ?").pluck().get(dune)).toBe("have");
+  });
+});
+
+describe("listItems", () => {
+  // Title (text), Artist (text), Year (number), Format (select), Signed (checkbox), Notes (private text), Released (date).
+  const setupVinyl = () => {
+    createCollection("Records", "records", "Title");
+    const { id, titleFieldId } = getCollectionBySlug("records")!;
+    const add = (label: string, type: FieldType, isPublic: 0 | 1 = 1) =>
+      createField(id, { label, type, options: type === "select" ? ["LP", "EP"] : null, required: 0, isPublic });
+    add("Artist", "text");
+    add("Year", "number");
+    add("Format", "select");
+    add("Signed", "checkbox");
+    add("Notes", "text", 0);
+    add("Released", "date");
+    const f = Object.fromEntries(listFields(id).map((field) => [field.label, String(field.id)]));
+    const have = (values: Record<string, unknown>) =>
+      createItem(id, {
+        status: "have",
+        quantity: 1,
+        values: Object.fromEntries(Object.entries(values).map(([label, value]) => [f[label]!, value])),
+      });
+    have({ Title: "Kind of Blue", Artist: "Miles Davis", Year: 1959, Format: "LP", Signed: false });
+    have({ Title: "Blue Train", Artist: "John Coltrane", Year: 10, Format: "EP", Signed: true, Released: "1957-09-15" });
+    have({ Title: "Giant Steps", Artist: "Coltrane", Year: 9, Format: "LP", Signed: true, Notes: "blue sleeve" });
+    have({ Title: "100% Pure_Jazz", Signed: false, Released: "2001-01-01" });
+    have({ Title: "Moanin'", Artist: "Art Blakey" });
+    return { id, titleFieldId, f };
+  };
+  let vinyl: ReturnType<typeof setupVinyl>;
+  beforeAll(() => {
+    vinyl = setupVinyl();
+  });
+  const titles = (query: Partial<ItemQuery>) =>
+    listItems({ collectionId: vinyl.id, status: "have", ...query }).map((item) => item.values[vinyl.titleFieldId]);
+
+  it("searches text, url and select values case-insensitively, never field ids, numbers or dates", () => {
+    expect(titles({ q: "blue", sort: vinyl.titleFieldId })).toEqual(["Blue Train", "Giant Steps", "Kind of Blue"]);
+    expect(titles({ q: "lp", sort: vinyl.titleFieldId })).toEqual(["Giant Steps", "Kind of Blue"]);
+    expect(titles({ q: vinyl.f.Artist })).toEqual([]);
+    expect(titles({ q: "1959" })).toEqual([]);
+    expect(titles({ q: "1957" })).toEqual([]);
+  });
+
+  it("escapes LIKE wildcards in the search", () => {
+    expect(titles({ q: "%" })).toEqual(["100% Pure_Jazz"]);
+    expect(titles({ q: "e_j" })).toEqual(["100% Pure_Jazz"]);
+    expect(titles({ q: "_" })).toEqual(["100% Pure_Jazz"]);
+  });
+
+  it("sorts numbers numerically and text case-insensitively, with empty values last both ways", () => {
+    const year = Number(vinyl.f.Year);
+    expect(titles({ sort: year })).toEqual(["Giant Steps", "Blue Train", "Kind of Blue", "100% Pure_Jazz", "Moanin'"]);
+    expect(titles({ sort: year, dir: "desc" })).toEqual([
+      "Kind of Blue",
+      "Blue Train",
+      "Giant Steps",
+      "100% Pure_Jazz",
+      "Moanin'",
+    ]);
+    expect(titles({ sort: Number(vinyl.f.Artist) }).slice(0, 4)).toEqual([
+      "Moanin'",
+      "Giant Steps",
+      "Blue Train",
+      "Kind of Blue",
+    ]);
+    expect(titles({ sort: Number(vinyl.f.Artist), dir: "desc" }).at(-1)).toBe("100% Pure_Jazz");
+  });
+
+  it("combines a select and a checkbox filter with AND", () => {
+    const format = Number(vinyl.f.Format);
+    const signed = Number(vinyl.f.Signed);
+    const both = (value: boolean) => [
+      { fieldId: format, value: "LP" },
+      { fieldId: signed, value },
+    ];
+    expect(titles({ filters: both(true) })).toEqual(["Giant Steps"]);
+    expect(titles({ filters: both(false) })).toEqual(["Kind of Blue"]);
+    // An item saved before the checkbox existed counts as "no".
+    expect(titles({ filters: [{ fieldId: signed, value: false }], sort: vinyl.titleFieldId })).toEqual([
+      "100% Pure_Jazz",
+      "Kind of Blue",
+      "Moanin'",
+    ]);
+  });
+
+  it("with publicOnly, strips private keys and never searches, sorts or filters on a private field", () => {
+    const notes = vinyl.f.Notes!;
+    const all = listItems({ collectionId: vinyl.id, status: "have", publicOnly: true });
+    expect(all.some((item) => notes in item.values)).toBe(false);
+    expect(all.find((item) => item.values[vinyl.titleFieldId] === "Giant Steps")?.values).not.toHaveProperty(notes);
+    expect(titles({ q: "sleeve" })).toEqual(["Giant Steps"]);
+    expect(titles({ q: "sleeve", publicOnly: true })).toEqual([]);
+    expect(titles({ filters: [{ fieldId: Number(notes), value: "blue sleeve" }], publicOnly: true })).toHaveLength(5);
+    expect(titles({ sort: Number(notes), publicOnly: true })).toEqual(titles({ sort: "created" }));
+  });
+
+  it("counts haves and wants", () => {
+    expect(countItems(vinyl.id)).toEqual({ have: 5, want: 0 });
   });
 });
