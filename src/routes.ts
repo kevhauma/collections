@@ -54,6 +54,9 @@ export const routes = () =>
               lazy: () => import("./routes/admin-collection-settings"),
             },
             { id: "admin-settings", path: "settings", lazy: () => import("./routes/admin-settings") },
+            { id: "admin-export", path: "export", lazy: () => import("./routes/admin-export") },
+            // A resource route: its loader answers with the zip itself.
+            { id: "admin-export-zip", path: "export.zip", lazy: () => import("./routes/admin-export-zip") },
             { id: "admin-logout", path: "logout", lazy: () => import("./routes/admin-logout") },
           ],
         },

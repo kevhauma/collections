@@ -8,7 +8,7 @@ import { ImageError } from "./fetch";
 // Item images (TICKET-ITM-04): a display size and a thumbnail, as WebP, named by a random UUID. The original isn't
 // kept, and sharp drops EXIF / GPS metadata unless asked to keep it.
 
-const uploadsDir = (): string => join(dataDir(), "uploads");
+export const uploadsDir = (): string => join(dataDir(), "uploads");
 
 const sizes = [
   { suffix: "", max: 1000 },

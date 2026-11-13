@@ -33,7 +33,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 19 ‖ | [COL-03](../../collections/tickets/TICKET-COL-03-schema-evolution.md) | Field type changes and option edits | M4 Items | COL-02, ITM-02 | ✅ |
 | 20 | [PUB-01](../../sharing/tickets/TICKET-PUB-01-public-index.md) | Public index of collections | M5 Sharing | COL-01, UI-02 | ✅ |
 | 21 | [PUB-02](../../sharing/tickets/TICKET-PUB-02-public-collection-pages.md) | Public have and want pages | M5 Sharing | ITM-05, ITM-03, PUB-01 | ✅ |
-| 22 | [BAK-01](../../backup/tickets/TICKET-BAK-01-export-zip.md) | Full export as zip | M6 Backup | ITM-04 | ⬜ |
+| 22 | [BAK-01](../../backup/tickets/TICKET-BAK-01-export-zip.md) | Full export as zip | M6 Backup | ITM-04 | ⛔ Excel double-click on `;`-separator systems: CSV kept as commas by decision, criterion open |
 
 ## Why this order
 

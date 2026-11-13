@@ -54,21 +54,40 @@ collection, and all images.
 
 ## Acceptance criteria
 
-- [ ] Downloading produces a zip that opens in the OS. It contains `data.json`, one CSV per collection and the
-      images.
-- [ ] Every item's image path in `data.json` and the CSVs exists in the zip.
+- [x] Downloading produces a zip that opens in the OS. It contains `data.json`, one CSV per collection and the
+      images. (production build: `GET /admin/export.zip` → 200 `application/zip`, `attachment;
+      filename="collections-export-2026-11-13.zip"`, `no-store`; Windows `Expand-Archive` unpacks `data.json`,
+      `csv/secret.csv`, `csv/vinyl.csv` and `images/<uuid>.webp`)
+- [x] Every item's image path in `data.json` and the CSVs exists in the zip. (checked on the unpacked live export: 1
+      image path, all present; an image whose file is gone gets `image: null` and is listed under `missingImages`,
+      test "round-trips…")
 - [ ] CSVs open correctly in Excel and LibreOffice with accented characters, commas, quotes and newlines intact.
-- [ ] Private fields are included (this is the owner's backup).
-- [ ] Not reachable without an admin session.
-- [ ] Unit tests cover:
-  - `toCsv`: commas, quotes, newlines, leading `=`/`+`/`-`/`@`, empty values, BOM
+      **Open for Excel, by decision (2026-11-13).** LibreOffice: correct (17 rows, 13 columns, `Café, "Olé"` with
+      its line break and `– naïve` intact). Excel 16 reads the BOM, accents, quotes and line breaks correctly, but a
+      double-click splits on Windows' list separator, which is `;` on the owner's machine, so every row lands in
+      column A. A `sep=,` hint fixes the columns but makes Excel ignore the BOM and garble accents; a semicolon file
+      opens perfectly there but breaks comma-separator systems. The owner chose to keep RFC 4180 commas as
+      specified; in Excel, open the CSV through Data › From Text/CSV.
+- [x] Private fields are included (this is the owner's backup). (live export: the private Paid and Condition fields
+      and the 731.42 values are in `data.json` and the CSV; the round-trip test checks a private field)
+- [x] Not reachable without an admin session. (`requireAdmin()` in the resource route's loader: without a session
+      `GET /admin/export.zip` → 302 to `/admin`, no zip; the `/admin/export` page is guarded the same way)
+- [x] Unit tests cover:
+  - `toCsv`: commas, quotes, newlines, leading `=`/`+`/`-`/`@`, empty values, BOM (`src/features/backup/csv.test.ts`)
   - export round trip: build the zip in memory from a temp DB with fixtures, read it back with `yauzl` (dev
     dependency), and assert `data.json` matches the DB and the image files are present
-- [ ] Live browser check of the download.
-- [ ] Verified with the fallow skill.
+    (`src/features/backup/export.test.ts`; `npm test` 671 passed)
+- [x] Live browser check of the download. (Orca at 1440 px: the Export page, highlighted in the nav, explains the
+      three parts and that restore comes later; "Download export" started a download named
+      `collections-export-2026-11-13.zip`; no sideways scroll at 360 px (360 = 360). Screens match the notebook
+      direction)
+- [x] Verified with the fallow skill. (`npx fallow audit --base HEAD` → pass: 0 dead code, 0 duplicates, 0
+      complexity findings; `yazl` is used at runtime and `yauzl` only by the test)
 
 ## Notes
 
 - Needs TICKET-ITM-04.
 - The `data.json` format is the contract for TICKET-BAK-02 (restore). Change it only by bumping `version`.
 - The formula-injection prefix alters CSV cell text. That's fine because restore reads `data.json`, never the CSVs.
+- Excel and the CSV delimiter (2026-11-13): see the open criterion. Kept as RFC 4180 commas by the owner's choice.
+  Closing the criterion needs a different format decision (semicolons, a per-locale delimiter, or an .xlsx).

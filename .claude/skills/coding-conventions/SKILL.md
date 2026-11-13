@@ -111,6 +111,9 @@ Every `'use server'` action follows the same shape:
    `i18n._(descriptor, values)` is a type error in Lingui 6.12.
 5. On success, redirect (form flows) or return the minimal result (client-invoked actions such as reordering).
 
+A download is a resource route: a module with only a `loader` that returns a `Response` (stream a Node stream with
+`Readable.toWeb`). Exemplar: [src/routes/admin-export-zip.ts](../../../src/routes/admin-export-zip.ts).
+
 Plain forms (setup, login, settings) use a React Router route `action`: `<form method="post">`, and the route's server
 component receives the result as `actionData`, so they need no client code and work without JS. Exemplars:
 [src/routes/setup.tsx](../../../src/routes/setup.tsx) (public),
