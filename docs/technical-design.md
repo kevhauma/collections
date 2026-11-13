@@ -25,7 +25,9 @@ Decided in a design session on 2026-11-11. Build plan and tickets: [releases/v1/
 
 - A collection **is** its own schema: one level, no separate "type". Categorising inside a collection is done
   with a select field plus a filter.
-- Has `name`, `slug`, `is_public` (default **off**), `default_view` (`table` | `grid`), and a `title_field_id`.
+- Has `name`, `slug`, `is_public` (default **off**), `default_view` (`table` | `grid`), a `title_field_id`, and an
+  optional `image`: one picture of the whole collection, stored and served like an item image, shown on its cards, above
+  its items and as the public link preview (TICKET-COL-06).
 
 ### Field
 
@@ -159,7 +161,8 @@ sessions(token_hash TEXT PRIMARY KEY, expires_at INTEGER NOT NULL)
 settings(id INTEGER PRIMARY KEY CHECK (id = 1), default_locale TEXT NOT NULL DEFAULT 'en')
 collections(id INTEGER PRIMARY KEY, slug TEXT UNIQUE NOT NULL, name TEXT NOT NULL,
             is_public INTEGER NOT NULL DEFAULT 0, default_view TEXT NOT NULL DEFAULT 'table',
-            title_field_id INTEGER, created_at INTEGER, updated_at INTEGER)
+            title_field_id INTEGER, created_at INTEGER, updated_at INTEGER,
+            image TEXT)  -- 004
 fields(id INTEGER PRIMARY KEY, collection_id INTEGER NOT NULL REFERENCES collections ON DELETE CASCADE,
        label TEXT NOT NULL, type TEXT NOT NULL, options_json TEXT, required INTEGER NOT NULL DEFAULT 0,
        is_public INTEGER NOT NULL DEFAULT 1, position INTEGER NOT NULL,

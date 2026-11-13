@@ -25,6 +25,7 @@ const exportCollection = (collection: SnapshotCollection, imageOf: (id: string |
   isPublic: collection.isPublic === 1,
   defaultView: collection.defaultView,
   titleFieldId: collection.titleFieldId,
+  image: imageOf(collection.image),
   fields: collection.fields.map((field) => ({ ...field, required: field.required === 1, isPublic: field.isPublic === 1 })),
   items: collection.items.map((item) => ({
     status: item.status,
@@ -49,10 +50,13 @@ const csvRows = (collection: ExportedCollection): string[][] => [
   ]),
 ];
 
-// Builds the zip from one snapshot. An image whose file is gone is left out: its items get `image: null` and its id
-// is listed under `missingImages`, so every path in the zip's data points at a file that's there.
+// Every image the snapshot points at: collection pictures (TICKET-COL-06) and item images.
+const imagesOf = (collection: SnapshotCollection) => [collection.image, ...collection.items.map((item) => item.image)];
+
+// Builds the zip from one snapshot. An image whose file is gone is left out: whatever pointed at it gets `image: null`
+// and its id is listed under `missingImages`, so every path in the zip's data points at a file that's there.
 export const buildExport = (snapshot: Snapshot, uploads: string, now = new Date()): ZipFile => {
-  const referenced = [...new Set(snapshot.collections.flatMap((c) => c.items.flatMap((item) => item.image ?? [])))];
+  const referenced = [...new Set(snapshot.collections.flatMap(imagesOf).filter((id) => id !== null))];
   const present = new Set(referenced.filter((id) => existsSync(join(uploads, `${id}.webp`))));
   const imageOf = (id: string | null) => (id && present.has(id) ? imagePath(id) : null);
   const collections = snapshot.collections.map((collection) => exportCollection(collection, imageOf));

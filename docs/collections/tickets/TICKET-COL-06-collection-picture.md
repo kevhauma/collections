@@ -1,7 +1,7 @@
 # TICKET-COL-06: Collection picture
 
 - **Area:** Collections
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Traceability:** [technical-design.md § Collection](../../technical-design.md#collection) (extends it), [TICKET-ITM-04](../../items/tickets/TICKET-ITM-04-item-images.md) (the image pipeline it reuses)
 
 ## User story
@@ -59,24 +59,51 @@ at the top of the collection page. It reuses the item image pipeline as is.
 
 ## Acceptance criteria
 
-- [ ] Uploading a JPEG in settings shows it on the admin home card, the admin collection page and, for a public
+- [x] Uploading a JPEG in settings shows it on the admin home card, the admin collection page and, for a public
       collection, the public index card and both public tabs.
-- [ ] Setting a picture by URL works; a non-image URL and a file over 15 MB show the same errors as the item form.
-- [ ] Replacing the picture deletes the old files; removing it deletes them and the cards fall back to text only.
-- [ ] A failing settings save (e.g. a taken slug) with a new picture chosen leaves no new files in `uploads/`.
-- [ ] Deleting a collection deletes its picture's files along with its items' images.
-- [ ] A private collection's picture appears on no public page and in no public link preview.
-- [ ] The public link preview uses the collection picture when set, else the first item's image.
-- [ ] The export zip holds the collection picture under `images/`, referenced from `data.json`; CSVs unchanged.
-- [ ] Public pages still ship no client components (the picture is plain `<img>`; `ImageField` is admin only).
-- [ ] Persistence goes through `src/db/collections.ts`. The settings action calls `requireAdmin()` and validates with
+      (Orca, prod build: a 900×600 JPEG uploaded in Shop's settings showed as the thumbnail on the admin home and
+      public index cards and at display size on `/admin/c/shop`, `/shop` and `/shop/want`)
+- [x] Setting a picture by URL works; a non-image URL and a file over 15 MB show the same errors as the item form.
+      (`https://httpbin.org/image/jpeg` saved; `https://example.com/` gave "This isn't an image that can be read…" and a
+      16 MB file "This image is too large (max 15 MB).", the same text as the item form for the same input, with JS
+      (client check) and without (multipart post))
+- [x] Replacing the picture deletes the old files; removing it deletes them and the cards fall back to text only.
+      (by-URL replace left only the new id's two files in `uploads/`; `removeImage=on` set `image` to NULL, left 0
+      files and the public index had no `<img>`)
+- [x] A failing settings save (e.g. a taken slug) with a new picture chosen leaves no new files in `uploads/`.
+      (slug `books` (taken) with a JPEG chosen → "Another collection already uses this address", `uploads/` file count
+      unchanged: settings are parsed before `prepareFormImage`)
+- [x] Deleting a collection deletes its picture's files along with its items' images.
+      (Books with a picture deleted → its files gone; `collections.test.ts` › "returns the picture with the item
+      images when deleting a collection")
+- [x] A private collection's picture appears on no public page and in no public link preview.
+      (private Books with a picture: `/` HTML has no trace of its id, `/books` is 404, so there is no preview either)
+- [x] The public link preview uses the collection picture when set, else the first item's image.
+      (`og:image` on `/shop` is the collection picture; `collection.image ?? firstImage(…)` in
+      `public-collection.tsx`)
+- [x] The export zip holds the collection picture under `images/`, referenced from `data.json`; CSVs unchanged.
+      (zip: `images/<id>.webp` present, `data.json` Books `image: "images/<id>.webp"`, Shop `null`; CSV header
+      unchanged; `export.test.ts` covers a present and a missing picture)
+- [x] Public pages still ship no client components (the picture is plain `<img>`; `ImageField` is admin only).
+      (`CollectionPicture` is a server component rendering `<img>`; `/` and `/shop` have no module script)
+- [x] Persistence goes through `src/db/collections.ts`. The settings action calls `requireAdmin()` and validates with
       zod.
-- [ ] Unit tests cover: the migration on a version-1 DB, `updateCollection` setting and clearing the image,
+      (`updateCollection(id, settings, image)` and `deleteCollection` in `src/db/collections.ts`; the action runs through
+      `collectionAction` (`requireAdmin()`) and `parseSettings`)
+- [x] Unit tests cover: the migration on a version-1 DB, `updateCollection` setting and clearing the image,
       `deleteCollection` returning the collection picture with the item images, and the export including it (and
       leaving out a missing file).
-- [ ] UI follows the design direction in `.impeccable/surfaces/src-ui.md`; live browser check of settings, both home
+      (`migrate.test.ts` › "004-collection-image", `collections.test.ts` › "sets, keeps and clears the picture" and
+      "returns the picture with the item images…", `export.test.ts` round-trip)
+- [x] UI follows the design direction in `.impeccable/surfaces/src-ui.md`; live browser check of settings, both home
       pages and a collection page, with and without a picture, at 360 px and desktop, JS on and off.
-- [ ] Verified with the fallow skill.
+      (Orca, 2026-11-13, at 360 px and the pane's 553 px max, light and dark: settings with the picture section,
+      admin home and public index cards with and without a picture, collection pages. JS off = the multipart posts
+      above. The picture is a pinned `PostIt`, lazy on cards; on the collection page it sits under the title and
+      pushes the list down by its own height only)
+- [x] Verified with the fallow skill.
+      (`npx fallow@3.42.0 audit --base HEAD` → no issues, after splitting the settings action into `save` /
+      `remove` / `saved` / `pictureRejected`)
 
 ## Notes
 

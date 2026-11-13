@@ -6,6 +6,7 @@ import { requirePublicCollection } from "../features/collections/require-collect
 import { imageUrl } from "../features/images/shared";
 import { itemView } from "../features/items/view";
 import { CollectionItems, statusOf } from "./collection-items";
+import { CollectionPicture } from "./collection-picture";
 
 // /:slug (have) and /:slug/want (TICKET-PUB-02): a public collection, read-only. Only public fields reach the view
 // (itemView with publicOnly), so private values are in neither the HTML nor the RSC payload. Server components only,
@@ -17,7 +18,8 @@ export const loader = ({ params }: LoaderFunctionArgs) => {
   return null;
 };
 
-// Link previews in chat apps: the page title and, when there is one, the tab's first image (absolute).
+// Link previews in chat apps: the page title and, when there is one, the collection's picture or else the tab's first
+// image (absolute).
 const LinkPreview = ({ title, image }: { title: string; image?: string }) => (
   <>
     <meta property="og:type" content="website" />
@@ -43,8 +45,9 @@ export default function PublicCollection({ params }: { params: Params }) {
   return (
     <div className="grid gap-6">
       <title>{titles[status]}</title>
-      <LinkPreview title={titles[status]} image={firstImage(collection.id, status)} />
+      <LinkPreview title={titles[status]} image={collection.image ?? firstImage(collection.id, status)} />
       <h1>{name}</h1>
+      <CollectionPicture image={collection.image} name={name} size="page" />
       <CollectionItems
         mode="public"
         collection={collection}

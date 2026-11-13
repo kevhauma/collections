@@ -69,23 +69,33 @@ const setup = async () => {
     image,
   });
   createItem(vinyl.id, { status: "want", values: { [title!]: "=cmd|' /C calc'!A0", [signed!]: false }, image: "gone" });
+  // Collection pictures (TICKET-COL-06): Vinyl's file exists, Books' is gone.
+  const cover = await processImage(
+    await sharp({ create: { width: 400, height: 400, channels: 3, background: "#1f3a93" } }).png().toBuffer(),
+    uploads,
+  );
+  updateCollection(vinyl.id, { ...vinyl, isPublic: 1, defaultView: "grid" }, cover);
   createCollection("Books", "books", "Title");
-  return { vinyl, image, ids: { title: title!, paid: paid!, signed: signed! } };
+  const books = getCollectionBySlug("books")!;
+  updateCollection(books.id, books, "lost-cover");
+  return { vinyl, image, cover, ids: { title: title!, paid: paid!, signed: signed! } };
 };
 
 describe("buildExport", () => {
   it("round-trips: data.json matches the DB, CSVs are written, and every referenced image is in the zip", async () => {
-    const { image, ids } = await setup();
+    const { image, cover, ids } = await setup();
     const now = new Date("2026-11-13T10:00:00Z");
     const files = await unzip(await bytesOf(buildExport(readSnapshot(), uploads, now)));
 
-    expect([...files.keys()].sort()).toEqual(["csv/books.csv", "csv/vinyl.csv", "data.json", `images/${image}.webp`]);
+    expect([...files.keys()].sort()).toEqual(
+      ["csv/books.csv", "csv/vinyl.csv", "data.json", `images/${cover}.webp`, `images/${image}.webp`].sort(),
+    );
     const data = JSON.parse(files.get("data.json")!.toString());
     expect(data).toMatchObject({ version: 1, exportedAt: "2026-11-13T10:00:00.000Z", settings: { defaultLocale: "nl" } });
-    expect(data.missingImages).toEqual(["gone"]);
+    expect(data.missingImages.toSorted()).toEqual(["gone", "lost-cover"]);
     const [books, vinyl] = data.collections;
-    expect(books).toMatchObject({ slug: "books", fields: [{ label: "Title" }], items: [] });
-    expect(vinyl).toMatchObject({ slug: "vinyl", name: "Vinyl", isPublic: true, defaultView: "grid" });
+    expect(books).toMatchObject({ slug: "books", fields: [{ label: "Title" }], items: [], image: null });
+    expect(vinyl).toMatchObject({ slug: "vinyl", name: "Vinyl", isPublic: true, defaultView: "grid", image: `images/${cover}.webp` });
     type Exported = { label: string; isPublic: boolean; required: boolean; prefix: string | null; suffix: string | null };
     expect(vinyl.fields.map((field: Exported) => [field.label, field.isPublic, field.required, field.prefix, field.suffix])).toEqual([
       ["Title", true, true, null, null],

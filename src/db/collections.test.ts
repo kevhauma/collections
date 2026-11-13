@@ -61,6 +61,28 @@ describe("collections repository", () => {
     expect(getCollectionBySlug("records")).toMatchObject({ id, name: "Records", isPublic: 1, defaultView: "grid" });
   });
 
+  it("sets, keeps and clears the picture (TICKET-COL-06)", () => {
+    createCollection("Lego", "lego", "Title");
+    const lego = getCollectionBySlug("lego")!;
+    expect(lego.image).toBeNull();
+    updateCollection(lego.id, lego, "wall");
+    expect(getCollectionBySlug("lego")!.image).toBe("wall");
+    updateCollection(lego.id, { ...lego, name: "LEGO" });
+    expect(getCollectionBySlug("lego")).toMatchObject({ name: "LEGO", image: "wall" });
+    expect(listCollections().find((collection) => collection.id === lego.id)?.image).toBe("wall");
+    updateCollection(lego.id, lego, null);
+    expect(getCollectionBySlug("lego")!.image).toBeNull();
+  });
+
+  it("returns the picture with the item images when deleting a collection", () => {
+    createCollection("Shelf", "shelf", "Title");
+    const shelf = getCollectionBySlug("shelf")!;
+    updateCollection(shelf.id, shelf, "shelf-photo");
+    createItem(shelf.id, { status: "have", quantity: 1, values: { [shelf.titleFieldId]: "A" }, image: "item-photo" });
+    createItem(shelf.id, { status: "have", quantity: 1, values: { [shelf.titleFieldId]: "B" } });
+    expect(deleteCollection(shelf.id).toSorted()).toEqual(["item-photo", "shelf-photo"]);
+  });
+
   it("deletes a collection with its fields and items", () => {
     const { id } = getCollectionBySlug("records")!;
     expect(count("items", id)).toBe(3);

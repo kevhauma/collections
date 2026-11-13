@@ -8,10 +8,8 @@ import { createItem, deleteItem, getItem, updateItem, type Item, type ItemStatus
 import { requireAdmin } from "../features/auth/guard";
 import { collectionAction, requireCollection } from "../features/collections/require-collection";
 import type { FormInput } from "../features/collections/validation";
-import { commitImage, imageSource, prepareImage, sourceInput } from "../features/images/change";
-import { ImageError } from "../features/images/fetch";
-import { imageErrorText } from "../features/images/messages";
-import { thumbUrl } from "../features/images/shared";
+import { commitImage } from "../features/images/change";
+import { prepareFormImage } from "../features/images/form";
 import { translateItemErrors } from "../features/items/messages";
 import { parseItemForm } from "../features/items/schema";
 import { Button } from "../ui/button";
@@ -21,9 +19,8 @@ import { Dialog } from "../ui/dialog";
 import { ErrorSummary } from "../ui/error-summary";
 import { FormField, type ControlProps } from "../ui/form-field";
 import { Input, Select } from "../ui/input";
-import { PostIt } from "../ui/post-it";
 import { Rating } from "../ui/rating";
-import { ImageField } from "./image-field";
+import { ImageSection } from "./image-section";
 import { listHref } from "./item-paths";
 
 // /admin/c/:slug/items/new and /admin/c/:slug/items/:id (TICKET-ITM-02): the item form, built from the collection's
@@ -62,22 +59,11 @@ const write = (collectionId: number, item: Item | undefined, input: ItemWrite): 
 
 type Intent = (collection: Collection, form: FormInput, item: Item | undefined) => Promise<Response | Rejected>;
 
-// The new image's files are written before the DB (TICKET-ITM-04), or the error to show on the input it came from.
-const prepare = async (form: FormInput): Promise<{ image: string | null | undefined } | { errors: Errors }> => {
-  const source = imageSource(form);
-  try {
-    return { image: await prepareImage(source) };
-  } catch (error) {
-    if (!(error instanceof ImageError)) throw error;
-    return { errors: { [sourceInput(source)]: imageErrorText(error.reason) } };
-  }
-};
-
 // Values are checked before any image work, so a form with errors never leaves image files behind.
 const save: Intent = async (collection, form, item) => {
   const parsed = parseItemForm(form, listFields(collection.id));
   if (!parsed.success) return { errors: translateItemErrors(parsed.errors), values: typed(form) };
-  const prepared = await prepare(form);
+  const prepared = await prepareFormImage(form);
   if ("errors" in prepared) return { errors: prepared.errors, values: typed(form) };
   const { image } = prepared;
   const id = await commitImage(image, item?.image, () => write(collection.id, item, { ...parsed.data, image }));
@@ -257,48 +243,6 @@ const SaveButtons = ({ editing }: { editing: boolean }) => (
     )}
   </div>
 );
-
-type ImageSectionProps = {
-  image: string | null;
-  title: string;
-  url?: string;
-  errors: Errors;
-  labels: { image: string; imageUrl: string };
-};
-
-// The current image on a post-it with a "remove" box, then a file to upload or an address to download from.
-const ImageSection = ({ image, title, url, errors, labels }: ImageSectionProps) => {
-  const { t } = useLingui();
-  return (
-    <div className="grid gap-4">
-      {image && (
-        <div className="flex flex-wrap items-end gap-4">
-          <PostIt size="lg" tilt="left">
-            <img src={thumbUrl(image)} alt={title} className="size-full object-cover" />
-          </PostIt>
-          <Checkbox name="removeImage" label={t({ id: "items.image.remove", message: "Remove image" })} />
-        </div>
-      )}
-      <ImageField
-        label={labels.image}
-        error={errors.image}
-        tooLargeMessage={imageErrorText("tooLarge")}
-        previewAlt={title}
-      />
-      <FormField
-        id="item-image-url"
-        label={labels.imageUrl}
-        hint={t({
-          id: "items.image.urlHint",
-          message: "It's downloaded once and stored here. If you also choose a file, the file is used.",
-        })}
-        error={errors.imageUrl}
-      >
-        {(control) => <Input {...control} type="url" name="imageUrl" defaultValue={url} />}
-      </FormField>
-    </div>
-  );
-};
 
 type StatusFieldsProps = { values: FormValues; errors: Errors; labels: { status: string; quantity: string } };
 

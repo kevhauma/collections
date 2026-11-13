@@ -174,7 +174,10 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - File writes paired with DB writes (images): write new files first, commit the DB transaction, delete old files
   after the commit, and delete the new files if the transaction fails: `prepareImage` then `commitImage` from
   [src/features/images/change.ts](../../../src/features/images/change.ts). Files live under `dataDir()`
-  (`src/lib/env.ts`); image constants the browser needs too are in `src/features/images/shared.ts`.
+  (`src/lib/env.ts`); image constants the browser needs too are in `src/features/images/shared.ts`. A form with an
+  image renders `ImageSection` ([src/routes/image-section.tsx](../../../src/routes/image-section.tsx)) and its action
+  calls `prepareFormImage` (`src/features/images/form.ts`) after validating everything else. Exemplars: the item
+  form and [admin-collection-settings.tsx](../../../src/routes/admin-collection-settings.tsx).
 
 ## Public data and security
 

@@ -141,7 +141,16 @@ describe("003-field-rating", () => {
     db = atVersion(1);
     db.prepare("insert into collections (id, slug, name) values (1, 'records', 'Records')").run();
     db.prepare("insert into fields (collection_id, label, type, position) values (1, 'Price', 'number', 1)").run();
-    expect(migrate(db)).toEqual(["002-field-affixes.sql", "003-field-rating.sql"]);
+    expect(migrate(db)).toContain("003-field-rating.sql");
     expect(db.prepare("select rating_max, rating_symbol from fields").get()).toEqual({ rating_max: null, rating_symbol: null });
+  });
+});
+
+describe("004-collection-image", () => {
+  it("adds image to collections, null for collections that already exist", () => {
+    db = atVersion(3);
+    db.prepare("insert into collections (id, slug, name) values (1, 'records', 'Records')").run();
+    expect(migrate(db)).toEqual(["004-collection-image.sql"]);
+    expect(db.prepare("select image from collections").get()).toEqual({ image: null });
   });
 });

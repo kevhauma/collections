@@ -4,6 +4,7 @@ import { formatNumber } from "../i18n";
 import { LinkButton } from "../ui/button";
 import { Card } from "../ui/card";
 import { EmptyState } from "../ui/empty-state";
+import { CollectionPicture } from "./collection-picture";
 
 // / (TICKET-PUB-01): the collections the owner has made public. A server component with no client code; private
 // collections aren't read at all, so nothing here hints that they exist.
@@ -30,15 +31,18 @@ export default function Home() {
             return (
               <li key={collection.id}>
                 <Card heading={collection.name}>
-                  {/* Named after the collection so the repeated link texts stay distinguishable. */}
-                  <nav aria-label={collection.name} className="flex flex-wrap gap-2">
-                    <LinkButton href={`/${collection.slug}`} size="sm">
-                      {t({ id: "items.tab.haveCount", message: `Have · ${haveCount}` })}
-                    </LinkButton>
-                    <LinkButton href={`/${collection.slug}/want`} size="sm">
-                      {t({ id: "items.tab.wantCount", message: `Want · ${wantCount}` })}
-                    </LinkButton>
-                  </nav>
+                  <div className="flex items-start gap-4">
+                    <CollectionPicture image={collection.image} name={collection.name} size="card" />
+                    {/* Named after the collection so the repeated link texts stay distinguishable. */}
+                    <nav aria-label={collection.name} className="flex min-w-0 flex-1 flex-wrap gap-2">
+                      <LinkButton href={`/${collection.slug}`} size="sm">
+                        {t({ id: "items.tab.haveCount", message: `Have · ${haveCount}` })}
+                      </LinkButton>
+                      <LinkButton href={`/${collection.slug}/want`} size="sm">
+                        {t({ id: "items.tab.wantCount", message: `Want · ${wantCount}` })}
+                      </LinkButton>
+                    </nav>
+                  </div>
                 </Card>
               </li>
             );

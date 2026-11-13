@@ -1,4 +1,4 @@
-import type { Collection } from "./collections";
+import { columns, type Collection } from "./collections";
 import { db } from "./connection";
 import { listFields, type Field } from "./fields";
 import type { Item } from "./items";
@@ -28,10 +28,7 @@ const itemsOf = (collectionId: number): SnapshotItem[] =>
 
 const collectionsOf = (): Collection[] =>
   db()
-    .prepare(
-      `select id, slug, name, is_public as isPublic, default_view as defaultView, title_field_id as titleFieldId
-       from collections order by name collate nocase`,
-    )
+    .prepare(`select ${columns} from collections order by name collate nocase`)
     .all() as Collection[];
 
 // One read transaction, so every statement sees the same state even while someone saves an item.

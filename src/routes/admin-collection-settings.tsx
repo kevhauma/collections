@@ -1,19 +1,23 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { redirect, type LoaderFunctionArgs, type Params } from "react-router";
 import { requestContext } from "../context";
-import { deleteCollection, listSlugs, updateCollection } from "../db/collections";
+import { deleteCollection, listSlugs, updateCollection, type Collection } from "../db/collections";
 import { requireAdmin } from "../features/auth/guard";
+import { commitImage } from "../features/images/change";
+import { prepareFormImage } from "../features/images/form";
 import { removeImage } from "../features/images/process";
 import { rejected, type Rejected } from "../features/collections/form";
 import { collectionAction, requireCollection } from "../features/collections/require-collection";
-import { parseSettings } from "../features/collections/validation";
+import { parseSettings, type FormInput } from "../features/collections/validation";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Checkbox, RadioGroup } from "../ui/choice";
 import { Dialog } from "../ui/dialog";
 import { CollectionNameFields } from "./collection-name-fields";
+import { ImageSection } from "./image-section";
 
-// /admin/c/:slug/settings (TICKET-COL-01): name, slug, visibility, default view, and deletion.
+// /admin/c/:slug/settings (TICKET-COL-01): name, slug, visibility, default view, the picture (TICKET-COL-06), and
+// deletion.
 
 // The page reads the collection itself: after a form post, React Router's RSC mode renders without rerunning
 // loaders (loaderData is null), so the loader only guards.
@@ -23,26 +27,43 @@ export const loader = ({ params }: LoaderFunctionArgs) => {
   return null;
 };
 
-type ActionData = Rejected & { saved?: true };
+type ActionData = {
+  errors: Rejected["errors"] & Partial<Record<"image" | "imageUrl", string>>;
+  values: Rejected["values"] & { imageUrl?: string };
+  saved?: true;
+};
 
-export const action = collectionAction(async (collection, form) => {
-  if (form.intent === "delete") {
-    // Image files go after the rows are gone.
-    await Promise.all(deleteCollection(collection.id).map((image) => removeImage(image)));
-    return redirect("/admin");
-  }
+// Image files go after the rows are gone.
+const remove = async (collection: Collection) => {
+  await Promise.all(deleteCollection(collection.id).map((image) => removeImage(image)));
+  return redirect("/admin");
+};
+
+// A new slug moves this page; otherwise stay and say it saved.
+const saved = (collection: Collection, values: { name: string; slug: string }) =>
+  values.slug === collection.slug
+    ? ({ errors: {}, values, saved: true } satisfies ActionData)
+    : redirect(`/admin/c/${values.slug}/settings`);
+
+// The picture's error, with the typed address kept for a no-JS reload.
+const pictureRejected = (errors: ActionData["errors"], values: { name: string; slug: string }, form: FormInput) =>
+  ({ errors, values: { ...values, imageUrl: String(form.imageUrl ?? "") } }) satisfies ActionData;
+
+const save = async (collection: Collection, form: FormInput) => {
   // A hand-edited slug is never auto-suffixed: taken (by another collection) or reserved is an error.
   const taken = listSlugs();
   taken.delete(collection.slug);
   const parsed = parseSettings(form, taken);
+  // Settings are checked before any image work, so a refused save never leaves picture files behind.
   if (!parsed.success) return rejected(parsed.error, form);
   const { name, slug } = parsed.data;
-  updateCollection(collection.id, parsed.data);
-  // A new slug moves this page; otherwise stay and say it saved.
-  return slug === collection.slug
-    ? ({ errors: {}, values: { name, slug }, saved: true } satisfies ActionData)
-    : redirect(`/admin/c/${slug}/settings`);
-});
+  const prepared = await prepareFormImage(form);
+  if ("errors" in prepared) return pictureRejected(prepared.errors, { name, slug }, form);
+  await commitImage(prepared.image, collection.image, () => updateCollection(collection.id, parsed.data, prepared.image));
+  return saved(collection, { name, slug });
+};
+
+export const action = collectionAction((collection, form) => (form.intent === "delete" ? remove : save)(collection, form));
 
 export default function CollectionSettings({ params, actionData }: { params: Params; actionData?: ActionData }) {
   const { t } = useLingui();
@@ -60,7 +81,7 @@ export default function CollectionSettings({ params, actionData }: { params: Par
       </div>
 
       <Card heading={name} tone="ink">
-        <form method="post" className="grid gap-4">
+        <form method="post" encType="multipart/form-data" className="grid gap-4">
           <CollectionNameFields
             origin={new URL(requestContext().request.url).origin}
             name={values.name}
@@ -86,6 +107,26 @@ export default function CollectionSettings({ params, actionData }: { params: Par
               { value: "grid", label: t({ id: "collections.view.grid", message: "Grid" }) },
             ]}
           />
+          <fieldset className="grid gap-4">
+            <legend className="mb-1 font-bold">
+              <Trans id="collections.settings.picture">Picture</Trans>
+            </legend>
+            <p className="text-ink-soft">
+              <Trans id="collections.settings.pictureHint">
+                One photo of the whole collection, shown on its card and above its items.
+              </Trans>
+            </p>
+            <ImageSection
+              image={collection.image}
+              title={name}
+              url={actionData?.values.imageUrl}
+              errors={errors}
+              labels={{
+                image: t({ id: "items.image.file", message: "Photo" }),
+                imageUrl: t({ id: "items.image.url", message: "Or an image address" }),
+              }}
+            />
+          </fieldset>
           <div className="flex flex-wrap items-center gap-4">
             <Button variant="primary" type="submit">
               <Trans id="collections.settings.save">Save</Trans>

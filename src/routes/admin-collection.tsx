@@ -12,6 +12,7 @@ import { LinkButton } from "../ui/button";
 import { CollectionItems, statusOf } from "./collection-items";
 import { moveWantAction } from "./item-actions";
 import { listHref } from "./item-paths";
+import { CollectionPicture } from "./collection-picture";
 import { VisibilityBadge } from "./visibility-badge";
 
 // /admin/c/:slug (have) and /admin/c/:slug/want (TICKET-ITM-05): the items as a table or grid, with search, sort and
@@ -67,6 +68,7 @@ export default function AdminCollection({ params }: { params: Params }) {
           </LinkButton>
         </div>
       </div>
+      <CollectionPicture image={collection.image} name={name} size="page" />
       <CollectionItems
         mode="admin"
         collection={collection}

@@ -12,21 +12,24 @@ export type Collection = {
   isPublic: 0 | 1;
   defaultView: DefaultView;
   titleFieldId: number;
+  // The collection's picture (TICKET-COL-06): an image id, files as for item images.
+  image: string | null;
 };
 
-type CollectionSummary = Pick<Collection, "id" | "slug" | "name" | "isPublic"> & {
+type CollectionSummary = Pick<Collection, "id" | "slug" | "name" | "isPublic" | "image"> & {
   haveCount: number;
   wantCount: number;
 };
 
 export type CollectionSettings = Pick<Collection, "name" | "slug" | "isPublic" | "defaultView">;
 
-const columns = `id, slug, name, is_public as isPublic, default_view as defaultView, title_field_id as titleFieldId`;
+export const columns = `id, slug, name, is_public as isPublic, default_view as defaultView, title_field_id as titleFieldId,
+  image`;
 
 const summaries = (publicOnly: boolean): CollectionSummary[] =>
   db()
     .prepare(
-      `select c.id, c.slug, c.name, c.is_public as isPublic,
+      `select c.id, c.slug, c.name, c.is_public as isPublic, c.image,
          (select count(*) from items i where i.collection_id = c.id and i.status = 'have') as haveCount,
          (select count(*) from items i where i.collection_id = c.id and i.status = 'want') as wantCount
        from collections c where c.is_public = 1 or not ? order by c.name collate nocase`,
@@ -56,23 +59,27 @@ export const createCollection = (name: string, slug: string, titleLabel: string)
     db().prepare("update collections set title_field_id = ? where id = ?").run(field.lastInsertRowid, collection.lastInsertRowid);
   })();
 
-export const updateCollection = (id: number, settings: CollectionSettings): void => {
+// `image`: a new picture's id, null to remove it, undefined to keep it.
+export const updateCollection = (id: number, settings: CollectionSettings, image?: string | null): void => {
   db()
     .prepare(
       `update collections set name = @name, slug = @slug, is_public = @isPublic, default_view = @defaultView,
-         updated_at = unixepoch() where id = @id`,
+         image = iif(@keepImage, image, @image), updated_at = unixepoch() where id = @id`,
     )
-    .run({ ...settings, id });
+    .run({ ...settings, id, image: image ?? null, keepImage: image === undefined ? 1 : 0 });
 };
 
-// Fields and items go with it through ON DELETE CASCADE. Returns the ids of its items' images, whose files the caller
-// deletes after this commits.
+// Fields and items go with it through ON DELETE CASCADE. Returns the ids of its picture and its items' images, whose
+// files the caller deletes after this commits.
 export const deleteCollection = (id: number): string[] =>
   db().transaction(() => {
     const images = db()
-      .prepare("select image from items where collection_id = ? and image is not null")
+      .prepare(
+        `select image from collections where id = @id and image is not null
+         union all select image from items where collection_id = @id and image is not null`,
+      )
       .pluck()
-      .all(id) as string[];
+      .all({ id }) as string[];
     db().prepare("delete from collections where id = ?").run(id);
     return images;
   })();
