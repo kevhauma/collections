@@ -189,6 +189,9 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   pure `resolveLocale` ([src/i18n/locale.ts](../../../src/i18n/locale.ts)) and read from `requestContext().locale`.
 - After adding a message: `npm run i18n:extract`, then fill in `nl.json`. `src/i18n/catalogs.test.ts` fails on a
   missing or empty translation, on placeholders that differ between locales, and on non-`area.thing` ids.
+- A pure validation module whose errors outlive one form (item values, reused by the admin form and the CSV import)
+  uses i18n ids as its zod messages (`validationIds` in [src/features/items/schema.ts](../../../src/features/items/schema.ts)),
+  and a sibling `messages.ts` typed `Record<ValidationId, …>` holds their `msg` text.
 - Interpolate plain variables (`const count = field.valueCount`), never expressions: an expression becomes a
   positional `{0}` placeholder that translators can't read.
 - Catalogs are imported compiled through the Vite plugin (`./locales/nl.json?lingui`). There's no `lingui compile`

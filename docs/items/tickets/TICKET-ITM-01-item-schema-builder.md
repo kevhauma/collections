@@ -1,7 +1,7 @@
 # TICKET-ITM-01: Item schema builder
 
 - **Area:** Items
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Traceability:** [technical-design.md § Item](../../technical-design.md#item), [technical-design.md § Stack](../../technical-design.md#stack) (Validation row)
 
 ## User story
@@ -44,13 +44,19 @@ contains no UI and no DB access.
 
 ## Acceptance criteria
 
-- [ ] One schema module is imported by both server actions and (optionally) admin client components, with no
-      server-only imports inside.
-- [ ] Every error maps to an i18n id that exists in both catalogs.
-- [ ] Unit tests cover, per type, a valid value, an invalid value and an empty value (required vs optional). They
+- [x] One schema module is imported by both server actions and (optionally) admin client components, with no
+      server-only imports inside. (`src/features/items/schema.ts`: its only value import is `zod`, and `Field` comes in
+      as `import type`. `schema.test.ts` "imports nothing server-only" fails on any other value import. Server actions
+      translate through `src/features/items/messages.ts`; TICKET-ITM-02 is the first caller)
+- [x] Every error maps to an i18n id that exists in both catalogs. (every zod error carries an id from
+      `validationIds`, also for values of the wrong kind; `messages.ts` is typed `Record<ValidationId, …>`, and
+      `schema.test.ts` checks every id in `en.json` and `nl.json`)
+- [x] Unit tests cover, per type, a valid value, an invalid value and an empty value (required vs optional). They
       also cover: quantity bounds and default, unknown keys stripped, values for deleted fields ignored, checkbox
-      absent → false, `"12,5"` → 12.5.
-- [ ] Verified with the fallow skill.
+      absent → false, `"12,5"` → 12.5. (`src/features/items/schema.test.ts`, 32 tests: four per type for text, number,
+      date, select and url; checkbox; quantity 0/1/9999/10000/1.5/"two" and default; stripping; `parseItemForm`)
+- [x] Verified with the fallow skill. (0 complexity findings, 0 duplicates. `messages.ts` is reported unused on
+      purpose: its `translateItemErrors` carries a `shortcut:` until TICKET-ITM-02 renders item forms)
 
 ## Notes
 
