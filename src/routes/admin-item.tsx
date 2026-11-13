@@ -116,10 +116,38 @@ const valuesOf = (fields: Field[], item: Shown): FormValues => ({
 type Row = { field: Field; id: string; name: string; value: string; error?: string; required?: string };
 type Props = ControlProps & { name: string; defaultValue: string };
 
+const affixKeys = ["prefix", "suffix"] as const;
+
+// The field's prefix and suffix (TICKET-COL-04) as static text beside the input, never part of the value. Screen
+// readers hear them with the label through aria-describedby.
+const Affixed = ({ row, props, control }: { row: Row; props: ControlProps; control: (props: ControlProps) => ReactNode }) => {
+  const ids = affixKeys.filter((key) => row.field[key]).map((key) => `${row.id}-${key}`);
+  const describedBy = [props["aria-describedby"], ...ids].filter(Boolean).join(" ") || undefined;
+  const text = (key: (typeof affixKeys)[number]) =>
+    row.field[key] && (
+      <span id={`${row.id}-${key}`} className="shrink-0">
+        {row.field[key]}
+      </span>
+    );
+  return (
+    <div className="flex items-center gap-2">
+      {text("prefix")}
+      <div className="min-w-0 flex-1">{control({ ...props, "aria-describedby": describedBy })}</div>
+      {text("suffix")}
+    </div>
+  );
+};
+
 // A labelled, boxed control for one field type.
 const boxed = (control: (props: Props, field: Field) => ReactNode) => (row: Row) => (
   <FormField id={row.id} label={row.field.label} error={row.error} required={row.required}>
-    {(props) => control({ ...props, name: row.name, defaultValue: row.value }, row.field)}
+    {(props) => (
+      <Affixed
+        row={row}
+        props={props}
+        control={(described) => control({ ...described, name: row.name, defaultValue: row.value }, row.field)}
+      />
+    )}
   </FormField>
 );
 

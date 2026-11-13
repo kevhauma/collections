@@ -15,9 +15,9 @@ beforeAll(() => {
 const setup = () => {
   createCollection("Vinyl", "vinyl", "Title");
   const collection = getCollectionBySlug("vinyl")!;
-  createField(collection.id, { label: "Format", type: "select", options: ["LP", "EP"], required: 0, isPublic: 1 });
-  createField(collection.id, { label: "Paid", type: "number", options: null, required: 0, isPublic: 0 });
-  createField(collection.id, { label: "Condition", type: "select", options: ["Mint", "Worn"], required: 0, isPublic: 0 });
+  createField(collection.id, { label: "Format", type: "select", options: ["LP", "EP"], required: 0, isPublic: 1, prefix: null, suffix: null });
+  createField(collection.id, { label: "Paid", type: "number", options: null, required: 0, isPublic: 0, prefix: null, suffix: null });
+  createField(collection.id, { label: "Condition", type: "select", options: ["Mint", "Worn"], required: 0, isPublic: 0, prefix: null, suffix: null });
   const id = Object.fromEntries(listFields(collection.id).map((field) => [field.label, String(field.id)]));
   const item = (status: "have" | "want", title: string, format: string, paid: number, condition: string) =>
     createItem(collection.id, {

@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **21 / 22 done**
+Progress: **22 / 26 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -34,6 +34,10 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 20 | [PUB-01](../../sharing/tickets/TICKET-PUB-01-public-index.md) | Public index of collections | M5 Sharing | COL-01, UI-02 | ✅ |
 | 21 | [PUB-02](../../sharing/tickets/TICKET-PUB-02-public-collection-pages.md) | Public have and want pages | M5 Sharing | ITM-05, ITM-03, PUB-01 | ✅ |
 | 22 | [BAK-01](../../backup/tickets/TICKET-BAK-01-export-zip.md) | Full export as zip | M6 Backup | ITM-04 | ⛔ Excel double-click on `;`-separator systems: CSV kept as commas by decision, criterion open |
+| 23 ‖ | [COL-04](../../collections/tickets/TICKET-COL-04-field-prefix-suffix.md) | Field prefix and suffix | M7 After the first cut | COL-02, ITM-05 | ✅ |
+| 24 ‖ | [COL-05](../../collections/tickets/TICKET-COL-05-rating-field.md) | Rating field | M7 After the first cut | COL-03 | ⬜ |
+| 25 ‖ | [UI-03](../../ui/tickets/TICKET-UI-03-dark-mode.md) | Dark mode | M7 After the first cut | UI-02, I18N-02 | ⬜ |
+| 26 ‖ | [COL-06](../../collections/tickets/TICKET-COL-06-collection-picture.md) | Collection picture | M7 After the first cut | COL-01, ITM-04, BAK-01 (built) | ⬜ |
 
 ## Why this order
 
@@ -54,6 +58,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | M4 Items | Items with images, have/want, ranks, views and safe schema changes |
 | M5 Sharing | Public index and have/want pages, with private fields never leaked |
 | M6 Backup | Full zip export |
+| M7 After the first cut | Field units, ratings, dark mode and collection pictures: independent tickets added after M6 |
 
 ## Dependency graph
 
@@ -87,6 +92,14 @@ graph LR
   ITM05 --> PUB02
   ITM03 --> PUB02
   ITM04 --> BAK01[BAK-01 export]
+  COL02 --> COL04[COL-04 prefix/suffix]
+  ITM05 --> COL04
+  COL03 --> COL05[COL-05 rating]
+  UI02 --> UI03[UI-03 dark mode]
+  I18N02 --> UI03
+  COL01 --> COL06[COL-06 collection picture]
+  ITM04 --> COL06
+  BAK01 --> COL06
 ```
 
 ## Not in v1

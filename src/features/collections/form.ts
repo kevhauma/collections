@@ -24,6 +24,7 @@ const messages: Record<ErrorKey | FieldErrorKey, ReturnType<typeof msg>> = {
     id: "fields.error.optionsNotSelect",
     message: "Only choice fields have options. Clear them or pick Choice.",
   }),
+  affix: msg({ id: "fields.error.affix", message: "Keep it to 20 characters or fewer." }),
 };
 
 type Message = keyof typeof messages;
@@ -48,8 +49,8 @@ export const rejected = (error: z.ZodError, form: FormInput): Rejected => ({
   values: typed(form, ["name", "slug"]),
 });
 
-const fieldKeys = ["label", "type", "options", "required", "isPublic"] as const;
-export type FieldFormErrors = Partial<Record<"label" | "type" | "options" | "to", string>>;
+const fieldKeys = ["label", "type", "options", "required", "isPublic", "prefix", "suffix"] as const;
+export type FieldFormErrors = Partial<Record<"label" | "type" | "options" | "to" | "prefix" | "suffix", string>>;
 // `target`: the field being edited, or "new" for the add form. `option`: the option whose rename failed.
 export type FieldRejected = {
   target: number | "new";

@@ -55,8 +55,8 @@ const setup = async () => {
   createCollection("Vinyl", "vinyl", "Title");
   const vinyl = getCollectionBySlug("vinyl")!;
   updateCollection(vinyl.id, { ...vinyl, isPublic: 1, defaultView: "grid" });
-  createField(vinyl.id, { label: "Paid", type: "number", options: null, required: 0, isPublic: 0 });
-  createField(vinyl.id, { label: "Signed", type: "checkbox", options: null, required: 0, isPublic: 1 });
+  createField(vinyl.id, { label: "Paid", type: "number", options: null, required: 0, isPublic: 0, prefix: "€", suffix: "excl." });
+  createField(vinyl.id, { label: "Signed", type: "checkbox", options: null, required: 0, isPublic: 1, prefix: null, suffix: null });
   const [title, paid, signed] = listFields(vinyl.id).map((field) => String(field.id));
   const image = await processImage(
     await sharp({ create: { width: 1200, height: 800, channels: 3, background: "#ffb3c7" } }).png().toBuffer(),
@@ -86,10 +86,11 @@ describe("buildExport", () => {
     const [books, vinyl] = data.collections;
     expect(books).toMatchObject({ slug: "books", fields: [{ label: "Title" }], items: [] });
     expect(vinyl).toMatchObject({ slug: "vinyl", name: "Vinyl", isPublic: true, defaultView: "grid" });
-    expect(vinyl.fields.map((field: { label: string; isPublic: boolean; required: boolean }) => [field.label, field.isPublic, field.required])).toEqual([
-      ["Title", true, true],
-      ["Paid", false, false],
-      ["Signed", true, false],
+    type Exported = { label: string; isPublic: boolean; required: boolean; prefix: string | null; suffix: string | null };
+    expect(vinyl.fields.map((field: Exported) => [field.label, field.isPublic, field.required, field.prefix, field.suffix])).toEqual([
+      ["Title", true, true, null, null],
+      ["Paid", false, false, "€", "excl."],
+      ["Signed", true, false, null, null],
     ]);
     expect(vinyl.items).toEqual([
       {

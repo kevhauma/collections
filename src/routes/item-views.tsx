@@ -2,6 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import type { ReactNode } from "react";
 import type { Field, FieldType } from "../db/fields";
 import type { Item, ItemSort, ItemStatus } from "../db/items";
+import { affixes, isBlank } from "../features/collections/affixes";
 import { thumbUrl } from "../features/images/shared";
 import { formatDate, formatNumber } from "../i18n";
 import { PostIt } from "../ui/post-it";
@@ -48,8 +49,19 @@ const valueRenderers: Record<FieldType, (value: unknown) => ReactNode> = {
   ),
 };
 
-const FieldValue = ({ field, value }: { field: Field; value: unknown }) =>
-  value === undefined || value === null || value === "" ? null : valueRenderers[field.type](value);
+// `children` replaces the type's rendering (the title, which links to the item) but keeps the prefix and suffix.
+const FieldValue = ({ field, value, children }: { field: Field; value: unknown; children?: ReactNode }) => {
+  const { before, after } = affixes(field);
+  return (
+    !isBlank(value) && (
+      <>
+        {before}
+        {children ?? valueRenderers[field.type](value)}
+        {after}
+      </>
+    )
+  );
+};
 
 const titleOf = (item: Item, titleFieldId: number) => String(item.values[titleFieldId] ?? "");
 
@@ -173,7 +185,9 @@ const TableCells = ({ item, ...props }: ItemViewProps & { item: Item }) => (
       <Td key={field.id}>
         {field.id === props.titleFieldId ? (
           <strong>
-            <Title mode={props.mode} slug={props.slug} titleFieldId={props.titleFieldId} item={item} />
+            <FieldValue field={field} value={item.values[field.id]}>
+              <Title mode={props.mode} slug={props.slug} titleFieldId={props.titleFieldId} item={item} />
+            </FieldValue>
           </strong>
         ) : (
           <FieldValue field={field} value={item.values[field.id]} />
@@ -231,7 +245,7 @@ const Quantity = ({ quantity }: { quantity: number | null }) => {
 };
 
 // A want's numeral sits on its post-it's corner; its rank input, while reordering, under the title.
-const GridCard = ({ item, shown, ...props }: ItemViewProps & { item: Item; shown: Field[] }) => (
+const GridCard = ({ item, shown, titleField, ...props }: ItemViewProps & { item: Item; shown: Field[]; titleField: Field }) => (
   <div className="relative grid content-start gap-3">
     <Thumbnail
       item={item}
@@ -241,7 +255,9 @@ const GridCard = ({ item, shown, ...props }: ItemViewProps & { item: Item; shown
     />
     <div className="grid gap-0.5">
       <strong>
-        <Title mode={props.mode} slug={props.slug} titleFieldId={props.titleFieldId} item={item} />
+        <FieldValue field={titleField} value={item.values[titleField.id]}>
+          <Title mode={props.mode} slug={props.slug} titleFieldId={props.titleFieldId} item={item} />
+        </FieldValue>
         {props.status === "have" && <Quantity quantity={item.quantity} />}
       </strong>
       {shown.map((field) => (
@@ -264,13 +280,15 @@ const GridCard = ({ item, shown, ...props }: ItemViewProps & { item: Item; shown
 export const ItemGrid = (props: ItemViewProps) => {
   // The title plus the first two other fields, as a ticketing default.
   const shown = props.fields.filter((field) => field.id !== props.titleFieldId).slice(0, 2);
+  // The title field is always public, so it's in the list on public pages too.
+  const titleField = props.fields.find((field) => field.id === props.titleFieldId)!;
   return (
     <Rows
       items={props.items}
       ranking={props.ranking}
       layout="list"
       className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-5"
-      row={(item) => <GridCard {...props} item={item} shown={shown} />}
+      row={(item) => <GridCard {...props} item={item} shown={shown} titleField={titleField} />}
     />
   );
 };

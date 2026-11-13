@@ -1,6 +1,6 @@
 import { msg } from "@lingui/core/macro";
 import { Plural, Trans, useLingui } from "@lingui/react/macro";
-import { fieldTypes, type Field, type FieldType } from "../db/fields";
+import { affixTypes, fieldTypes, type Field, type FieldType } from "../db/fields";
 import type { FieldRejected } from "../features/collections/form";
 import { Badge } from "../ui/badge";
 import { Button, LinkButton } from "../ui/button";
@@ -80,7 +80,47 @@ const OptionsField = ({ id, label, values, failed, className }: {
   );
 };
 
-const newValues: Values = { label: "", type: "text", options: "", required: "", isPublic: "on" };
+// Prefix and suffix (TICKET-COL-04): display-only text around the value, never translated.
+const AffixFields = ({ id, values, failed, className }: { id: string; values: Values; failed: Failed; className?: string }) => {
+  const { t } = useLingui();
+  const affixes = [
+    {
+      name: "prefix",
+      label: t({ id: "fields.prefix", message: "Prefix" }),
+      hint: t({ id: "fields.prefix.hint", message: "Shown before the value, like €." }),
+    },
+    {
+      name: "suffix",
+      label: t({ id: "fields.suffix", message: "Suffix" }),
+      hint: t({ id: "fields.suffix.hint", message: "Shown after the value, like cm." }),
+    },
+  ] as const;
+  return (
+    <div className={className ?? "grid gap-4 sm:grid-cols-2"}>
+      {affixes.map((affix) => (
+        <FormField
+          key={affix.name}
+          id={`${id}-${affix.name}`}
+          label={affix.label}
+          hint={affix.hint}
+          error={failed?.errors[affix.name]}
+        >
+          {(control) => <Input {...control} name={affix.name} defaultValue={values[affix.name]} maxLength={20} />}
+        </FormField>
+      ))}
+    </div>
+  );
+};
+
+const newValues: Values = {
+  label: "",
+  type: "text",
+  options: "",
+  required: "",
+  isPublic: "on",
+  prefix: "",
+  suffix: "",
+};
 
 // The options box only shows while "Choice" is selected: CSS :has(), no JS.
 export const AddFieldForm = ({ failed }: { failed: Failed }) => {
@@ -108,6 +148,13 @@ export const AddFieldForm = ({ failed }: { failed: Failed }) => {
         failed={failed}
         className="hidden group-has-[option[value=select]:checked]:grid"
       />
+      {/* Only for the types in affixTypes; other types ignore them server-side. */}
+      <AffixFields
+        id="new-field"
+        values={values}
+        failed={failed}
+        className="hidden gap-4 sm:grid-cols-2 group-has-[option[value=text]:checked]:grid group-has-[option[value=number]:checked]:grid group-has-[option[value=select]:checked]:grid"
+      />
       <Toggles values={values} />
       <div>
         <Button variant="primary" type="submit">
@@ -124,6 +171,8 @@ const valuesOf = (field: Field): Values => ({
   options: "",
   required: flag(field.required),
   isPublic: flag(field.isPublic),
+  prefix: field.prefix ?? "",
+  suffix: field.suffix ?? "",
 });
 
 // A choice field's options (TICKET-COL-03): each renames in place through its own form, or opens the removal
@@ -169,6 +218,10 @@ const OptionList = ({ field, slug, failed }: { field: Field; slug: string; faile
   );
 };
 
+// An existing field shows the prefix and suffix inputs only when its type has them.
+const EditAffixes = ({ field, values, failed }: { field: Field; values: Values; failed: Failed }) =>
+  affixTypes.includes(field.type) && <AffixFields id={`field-${field.id}`} values={values} failed={failed} />;
+
 // Opens by itself when its last save failed, so the error is visible after a no-JS reload.
 const EditField = ({ field, slug, failed }: { field: Field; slug: string; failed: Failed }) => {
   const { t } = useLingui();
@@ -191,6 +244,7 @@ const EditField = ({ field, slug, failed }: { field: Field; slug: string; failed
             failed={failed}
           />
         )}
+        <EditAffixes field={field} values={values} failed={failed} />
         <Toggles values={values} locked={field.isTitle === 1} />
         <div>
           <Button variant="primary" size="sm" type="submit">

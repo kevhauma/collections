@@ -1,5 +1,5 @@
 import Database from "better-sqlite3";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdtempSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -70,8 +70,8 @@ describe("001-initial", () => {
     db = openDatabase(join(dir, "data"));
   });
 
-  it("creates db.sqlite at user_version 1 with the default locale seeded", () => {
-    expect(userVersion(db!)).toBe(1);
+  it("creates db.sqlite at the latest user_version with the default locale seeded", () => {
+    expect(userVersion(db!)).toBe(readdirSync("migrations").filter((file) => file.endsWith(".sql")).length);
     expect(db!.prepare("select default_locale from settings where id = 1").pluck().get()).toBe("en");
     expect(db!.pragma("foreign_keys", { simple: true })).toBe(1);
     expect(db!.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -113,5 +113,25 @@ describe("001-initial", () => {
     insertItem("have", 1, null);
     db!.prepare("delete from collections where id = 1").run();
     expect(db!.prepare("select (select count(*) from fields) + (select count(*) from items)").pluck().get()).toBe(0);
+  });
+});
+
+// A database left at an older version by a previous release, then opened by this one.
+const atVersion = (version: number) => {
+  const old = join(dir, "old-migrations");
+  mkdirSync(old);
+  readdirSync("migrations")
+    .filter((file) => Number.parseInt(file, 10) <= version)
+    .forEach((file) => copyFileSync(join("migrations", file), join(old, file)));
+  return openDatabase(join(dir, "data"), old);
+};
+
+describe("002-field-affixes", () => {
+  it("adds prefix and suffix, null for fields that already exist", () => {
+    db = atVersion(1);
+    db.prepare("insert into collections (id, slug, name) values (1, 'records', 'Records')").run();
+    db.prepare("insert into fields (collection_id, label, type, position) values (1, 'Price', 'number', 1)").run();
+    expect(migrate(db)).toContain("002-field-affixes.sql");
+    expect(db.prepare("select prefix, suffix from fields").get()).toEqual({ prefix: null, suffix: null });
   });
 });

@@ -119,14 +119,15 @@ describe("items repository", () => {
 
 describe("listItems", () => {
   // Title (text), Artist (text), Year (number), Format (select), Signed (checkbox), Notes (private text), Released (date).
+  // Year and Format carry a prefix and suffix (TICKET-COL-04), which sorting and searching never see.
   const setupVinyl = () => {
     createCollection("Records", "records", "Title");
     const { id, titleFieldId } = getCollectionBySlug("records")!;
-    const add = (label: string, type: FieldType, isPublic: 0 | 1 = 1) =>
-      createField(id, { label, type, options: type === "select" ? ["LP", "EP"] : null, required: 0, isPublic });
+    const add = (label: string, type: FieldType, isPublic: 0 | 1 = 1, prefix: string | null = null, suffix = prefix) =>
+      createField(id, { label, type, options: type === "select" ? ["LP", "EP"] : null, required: 0, isPublic, prefix, suffix });
     add("Artist", "text");
-    add("Year", "number");
-    add("Format", "select");
+    add("Year", "number", 1, "€", "excl.");
+    add("Format", "select", 1, "€");
     add("Signed", "checkbox");
     add("Notes", "text", 0);
     add("Released", "date");
@@ -157,6 +158,11 @@ describe("listItems", () => {
     expect(titles({ q: vinyl.f.Artist })).toEqual([]);
     expect(titles({ q: "1959" })).toEqual([]);
     expect(titles({ q: "1957" })).toEqual([]);
+  });
+
+  it("never matches a search on a prefix or suffix", () => {
+    expect(titles({ q: "€" })).toEqual([]);
+    expect(titles({ q: "excl" })).toEqual([]);
   });
 
   it("escapes LIKE wildcards in the search", () => {

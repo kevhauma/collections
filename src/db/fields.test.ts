@@ -29,7 +29,7 @@ const setup = (slug: string) => {
   createCollection(slug, slug, "Title");
   const { id, titleFieldId } = getCollectionBySlug(slug)!;
   const add = (label: string) =>
-    createField(id, { label, type: "text", options: null, required: 0, isPublic: 1 });
+    createField(id, { label, type: "text", options: null, required: 0, isPublic: 1, prefix: null, suffix: null });
   return { id, titleFieldId, add };
 };
 
@@ -42,7 +42,7 @@ describe("fields repository", () => {
   it("adds fields last and lists them in order with the title field marked", () => {
     const { id, add } = setup("vinyl");
     add("Artist");
-    createField(id, { label: "Format", type: "select", options: ["LP", "EP"], required: 1, isPublic: 0 });
+    createField(id, { label: "Format", type: "select", options: ["LP", "EP"], required: 1, isPublic: 0, prefix: null, suffix: null });
     expect(labels(id)).toEqual(["1:Title", "2:Artist", "3:Format"]);
     expect(listFields(id)[0]).toMatchObject({ isTitle: 1, required: 1, isPublic: 1 });
     expect(listFields(id)[2]).toMatchObject({ type: "select", options: ["LP", "EP"], required: 1, isPublic: 0 });
@@ -80,7 +80,7 @@ describe("fields repository", () => {
   it("never deletes the title field or makes it optional or private", () => {
     const { id, titleFieldId } = setup("coins");
     expect(deleteField(id, titleFieldId)).toBe(false);
-    updateField(id, titleFieldId, { label: "Name", options: null, required: 0, isPublic: 0 });
+    updateField(id, titleFieldId, { label: "Name", options: null, required: 0, isPublic: 0, prefix: null, suffix: null });
     expect(listFields(id)[0]).toMatchObject({ label: "Name", required: 1, isPublic: 1 });
   });
 
@@ -89,7 +89,7 @@ describe("fields repository", () => {
     const coins = getCollectionBySlug("coins")!;
     const artist = byLabel(vinyl.id, "Artist");
     expect(deleteField(coins.id, artist.id)).toBe(false);
-    updateField(coins.id, artist.id, { label: "Hacked", options: null, required: 1, isPublic: 0 });
+    updateField(coins.id, artist.id, { label: "Hacked", options: null, required: 1, isPublic: 0, prefix: null, suffix: null });
     expect(listFields(vinyl.id)[1]).toMatchObject({ label: "Artist", required: 0, isPublic: 1 });
   });
 });
@@ -99,7 +99,7 @@ describe("schema changes that rewrite item data", () => {
 
   const setupWithItems = (slug: string, type: FieldType, options: string[] | null, values: unknown[]) => {
     const { id, titleFieldId } = setup(slug);
-    createField(id, { label: "Grade", type, options, required: 0, isPublic: 1 });
+    createField(id, { label: "Grade", type, options, required: 0, isPublic: 1, prefix: null, suffix: null });
     const grade = byLabel(id, "Grade");
     const items = values.map((value, index) =>
       createItem(id, { status: "have", quantity: 1, values: { [titleFieldId]: `T${index}`, [grade.id]: value } }),
@@ -107,6 +107,16 @@ describe("schema changes that rewrite item data", () => {
     const valueOf = (itemId: number) => getItem(id, itemId)?.values[grade.id];
     return { id, titleFieldId, grade, items, valueOf };
   };
+
+  it("keeps a prefix and suffix through number → text, and clears them going to date", () => {
+    const { id, grade } = setupWithItems("type-affix", "number", null, [12]);
+    updateField(id, grade.id, { label: "Grade", options: null, required: 0, isPublic: 1, prefix: "€", suffix: "excl." });
+    expect(changeFieldType(id, grade.id, "text", plan("text"))).toBe(true);
+    expect(byLabel(id, "Grade")).toMatchObject({ prefix: "€", suffix: "excl." });
+    changeFieldType(id, grade.id, "number", plan("number"));
+    expect(changeFieldType(id, grade.id, "date", plan("date"))).toBe(true);
+    expect(byLabel(id, "Grade")).toMatchObject({ type: "date", prefix: null, suffix: null });
+  });
 
   it("changes text → number, converting 12 / 12,5 / 12.5 and blanking abc", () => {
     const { id, grade, items, valueOf } = setupWithItems("type-number", "text", null, ["12", "12,5", "12.5", "abc"]);

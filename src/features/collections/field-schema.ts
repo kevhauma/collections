@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { fieldTypes, type Field } from "../../db/fields";
+import { affixTypes, fieldTypes, type Field, type FieldType } from "../../db/fields";
 import type { FormInput } from "./validation";
 
 // Validation for a field definition (TICKET-COL-02). Issue messages are keys that form.ts translates.
@@ -11,7 +11,8 @@ export type FieldErrorKey =
   | "optionName"
   | "optionsMissing"
   | "optionsDuplicate"
-  | "optionsNotSelect";
+  | "optionsNotSelect"
+  | "affix";
 const key = (errorKey: FieldErrorKey) => errorKey;
 
 // An unchecked checkbox sends nothing.
@@ -41,12 +42,33 @@ const options = z.preprocess(
   z.array(z.string().max(100, key("option"))),
 );
 
+// Display-only text around a value (TICKET-COL-04); blank means none.
+const affix = z
+  .string()
+  .trim()
+  .max(20, key("affix"))
+  .optional()
+  .transform((value) => value || null);
+
+// A type without affixes ignores whatever was posted for them: the inputs stay in the no-JS form for every type.
+const withoutAffixes = ({ prefix: _prefix, suffix: _suffix, ...rest }: FormInput): FormInput => rest;
+const affixesFor = (type: unknown, form: FormInput): FormInput =>
+  affixTypes.includes(type as FieldType) ? form : withoutAffixes(form);
+
 export const labelsOf = (fields: Field[], except?: number): Set<string> =>
   new Set(fields.filter((field) => field.id !== except).map((field) => field.label.toLowerCase()));
 
 export const parseNewField = (form: FormInput, taken: ReadonlySet<string>) =>
   z
-    .object({ label: label(taken), type: z.enum(fieldTypes), options, required: checkbox, isPublic: checkbox })
+    .object({
+      label: label(taken),
+      type: z.enum(fieldTypes),
+      options,
+      required: checkbox,
+      isPublic: checkbox,
+      prefix: affix,
+      suffix: affix,
+    })
     .refine((field) => field.type !== "select" || field.options.length > 0, {
       message: key("optionsMissing"),
       path: ["options"],
@@ -57,18 +79,18 @@ export const parseNewField = (form: FormInput, taken: ReadonlySet<string>) =>
     })
     .refine((field) => unique(field.options), { message: key("optionsDuplicate"), path: ["options"] })
     .transform((field) => ({ ...field, options: field.type === "select" ? field.options : null }))
-    .safeParse(form);
+    .safeParse(affixesFor(form.type, form));
 
 // The type is read-only here, and a select field can only gain options (renaming and removing them is TICKET-COL-03).
 export const parseFieldEdit = (form: FormInput, field: Field, taken: ReadonlySet<string>) =>
   z
-    .object({ label: label(taken), options, required: checkbox, isPublic: checkbox })
+    .object({ label: label(taken), options, required: checkbox, isPublic: checkbox, prefix: affix, suffix: affix })
     .transform(({ options: added, ...rest }) => ({ ...rest, options: field.options && [...field.options, ...added] }))
     .refine((edit) => edit.options === null || unique(edit.options), {
       message: key("optionsDuplicate"),
       path: ["options"],
     })
-    .safeParse(form);
+    .safeParse(affixesFor(field.type, form));
 
 // Renaming one option (TICKET-COL-03). `option` must be one of the field's; the caller checks that first.
 export const parseOptionRename = (form: FormInput, field: Field) =>

@@ -12,6 +12,8 @@ const field = (overrides: Partial<Field>): Field => ({
   position: 1,
   isTitle: 0,
   valueCount: 0,
+  prefix: null,
+  suffix: null,
   ...overrides,
 });
 
@@ -29,6 +31,8 @@ describe("parseNewField", () => {
       options: null,
       required: 0,
       isPublic: 1,
+      prefix: null,
+      suffix: null,
     });
   });
 
@@ -70,7 +74,14 @@ describe("parseFieldEdit", () => {
 
   it("keeps its own label and appends new options", () => {
     const result = parseFieldEdit({ label: "format", options: "Single" }, format, labelsOf([...fields, format], 3));
-    expect(result.data).toEqual({ label: "format", options: ["LP", "EP", "Single"], required: 0, isPublic: 0 });
+    expect(result.data).toEqual({
+      label: "format",
+      options: ["LP", "EP", "Single"],
+      required: 0,
+      isPublic: 0,
+      prefix: null,
+      suffix: null,
+    });
   });
 
   it("refuses an added option that already exists", () => {
@@ -85,5 +96,37 @@ describe("parseFieldEdit", () => {
 
   it("gives a non-select field no options", () => {
     expect(parseFieldEdit({ label: "Artist", options: "x" }, artist, labelsOf(fields, 2)).data?.options).toBeNull();
+  });
+});
+
+describe("prefix and suffix", () => {
+  it("trims them and stores blank or whitespace-only as null", () => {
+    const result = parseNewField({ label: "Price", type: "number", prefix: " € ", suffix: "   " }, taken);
+    expect(result.data).toMatchObject({ prefix: "€", suffix: null });
+  });
+
+  it.each(["prefix", "suffix"])("refuses a %s over 20 characters", (name) => {
+    expect(errorKeys(parseNewField({ label: "Price", type: "number", [name]: "x".repeat(21) }, taken))).toEqual([
+      `${name}:affix`,
+    ]);
+  });
+
+  it("accepts exactly 20 characters", () => {
+    expect(parseNewField({ label: "Size", type: "text", suffix: "x".repeat(20) }, taken).data?.suffix).toHaveLength(20);
+  });
+
+  it.each(["date", "checkbox", "url"])("ignores them on a %s field, even when too long", (type) => {
+    const result = parseNewField({ label: "Bought", type, prefix: "x".repeat(30), suffix: "cm" }, taken);
+    expect(result.data).toMatchObject({ prefix: null, suffix: null });
+  });
+
+  it("edits them on a field whose type allows them, and ignores them otherwise", () => {
+    const price = field({ id: 4, label: "Price", type: "number" });
+    const bought = field({ id: 5, label: "Bought", type: "date" });
+    expect(parseFieldEdit({ label: "Price", prefix: "€", suffix: "excl." }, price, taken).data).toMatchObject({
+      prefix: "€",
+      suffix: "excl.",
+    });
+    expect(parseFieldEdit({ label: "Bought", prefix: "€" }, bought, taken).data).toMatchObject({ prefix: null });
   });
 });

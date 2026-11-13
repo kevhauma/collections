@@ -167,6 +167,7 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - In CHECK constraints, wrap nullable columns in `coalesce`: CHECK only rejects FALSE, and a comparison with NULL is NULL.
 - **Schema changes are a new numbered migration. Never edit a shipped one.** Update the hand-written row types and
   `docs/technical-design.md § Data model` in the same change.
+  Test it on a DB left at the previous version: `atVersion(n)` in [src/db/migrate.test.ts](../../../src/db/migrate.test.ts).
 - File writes paired with DB writes (images): write new files first, commit the DB transaction, delete old files
   after the commit, and delete the new files if the transaction fails: `prepareImage` then `commitImage` from
   [src/features/images/change.ts](../../../src/features/images/change.ts). Files live under `dataDir()`
