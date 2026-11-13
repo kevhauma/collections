@@ -26,6 +26,13 @@ export const routes = () =>
           lazy: () => import("./routes/admin-layout"),
           children: [
             { id: "admin-home", index: true, lazy: () => import("./routes/admin-home") },
+            { id: "admin-collection-new", path: "collections/new", lazy: () => import("./routes/admin-collection-new") },
+            { id: "admin-collection", path: "c/:slug", lazy: () => import("./routes/admin-collection") },
+            {
+              id: "admin-collection-settings",
+              path: "c/:slug/settings",
+              lazy: () => import("./routes/admin-collection-settings"),
+            },
             { id: "admin-settings", path: "settings", lazy: () => import("./routes/admin-settings") },
             { id: "admin-logout", path: "logout", lazy: () => import("./routes/admin-logout") },
           ],

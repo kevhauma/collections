@@ -119,6 +119,15 @@ component receives the result as `actionData`, so they need no client code and w
 (e.g. `useActionState`, `useOptimistic`). Call actions from client code only
 where a form doesn't fit, and pair that with `useOptimistic` and a revert on failure.
 
+- **After a route `action`, React Router's RSC mode renders without rerunning loaders: `loaderData` is `null`.** A
+  page with a form reads its data in the component (from `params`), and its `loader` only guards (`requireAdmin()`,
+  404). Exemplar: [src/routes/admin-collection-settings.tsx](../../../src/routes/admin-collection-settings.tsx), with
+  `requireCollection(params.slug)` from `src/features/collections/require-collection.ts`.
+- Form validation lives in `src/features/<area>/validation.ts` as zod schemas whose issue messages are **keys**, so
+  vitest can test it (vitest has no Lingui plugin, so a module using `msg` can't be imported in a test). A sibling
+  `form.ts` maps the keys to `msg` ids and returns `{ errors, values }`, echoing what was typed so a no-JS reload keeps
+  it. Exemplar: [src/features/collections/](../../../src/features/collections/) (`parseCreate`, `rejected`).
+
 ## Data access (ADR 0003)
 
 - All SQL lives in `src/db/*.ts` repository modules. **No SQL in routes, components or actions.**
