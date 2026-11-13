@@ -2,7 +2,8 @@
 // `node src/server.ts --prod` to serve the `vite build` output.
 import express from "express";
 import { createRequestListener } from "@remix-run/node-fetch-server";
-import { parseTrustProxy } from "./lib/env.ts";
+import { join } from "node:path";
+import { dataDir, parseTrustProxy } from "./lib/env.ts";
 import { isCrossOriginWrite } from "./lib/origin.ts";
 
 type RscEntry = typeof import("./entry.rsc.tsx");
@@ -21,6 +22,9 @@ app.use((req, res, next) =>
     ? res.sendStatus(403)
     : next(),
 );
+
+// Item images are named by random UUIDs and never change, so browsers may keep them for good.
+app.use("/uploads", express.static(join(dataDir(), "uploads"), { immutable: true, maxAge: "1y", index: false }));
 
 const loadEntry = async (): Promise<() => Promise<RscEntry>> => {
   if (prod) {

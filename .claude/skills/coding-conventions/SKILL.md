@@ -161,7 +161,9 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - **Schema changes are a new numbered migration. Never edit a shipped one.** Update the hand-written row types and
   `docs/technical-design.md § Data model` in the same change.
 - File writes paired with DB writes (images): write new files first, commit the DB transaction, delete old files
-  after the commit, and delete the new files if the transaction fails.
+  after the commit, and delete the new files if the transaction fails: `prepareImage` then `commitImage` from
+  [src/features/images/change.ts](../../../src/features/images/change.ts). Files live under `dataDir()`
+  (`src/lib/env.ts`); image constants the browser needs too are in `src/features/images/shared.ts`.
 
 ## Public data and security
 

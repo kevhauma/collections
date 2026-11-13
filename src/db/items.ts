@@ -13,16 +13,19 @@ export type Item = {
   rank: number | null;
   // Keyed by field id as a string.
   values: Record<string, unknown>;
+  // The id of the item's image files in uploads/ (TICKET-ITM-04), or null.
+  image: string | null;
 };
 
-// What a save writes. Rank is never written by a caller: it follows from the status.
+// What a save writes. Rank is never written by a caller: it follows from the status. `image` undefined keeps it.
 export type ItemWrite = ({ status: "have"; quantity: number } | { status: "want" }) & {
   values: Record<string, unknown>;
+  image?: string | null;
 };
 
 type ItemRow = Omit<Item, "values"> & { valuesJson: string };
 
-const columns = "i.id, i.status, i.quantity, i.rank, i.values_json as valuesJson";
+const columns = "i.id, i.status, i.quantity, i.rank, i.values_json as valuesJson, i.image";
 
 const toItem = ({ valuesJson, ...row }: ItemRow): Item => ({ ...row, values: JSON.parse(valuesJson) as Item["values"] });
 
@@ -143,10 +146,16 @@ export const createItem = (collectionId: number, item: ItemWrite): number =>
     Number(
       db()
         .prepare(
-          `insert into items (collection_id, status, quantity, rank, values_json)
-           values (@collectionId, @status, @quantity, @rank, @values)`,
+          `insert into items (collection_id, status, quantity, rank, values_json, image)
+           values (@collectionId, @status, @quantity, @rank, @values, @image)`,
         )
-        .run({ collectionId, status: item.status, ...placement(collectionId, item), values: JSON.stringify(item.values) })
+        .run({
+          collectionId,
+          status: item.status,
+          ...placement(collectionId, item),
+          values: JSON.stringify(item.values),
+          image: item.image ?? null,
+        })
         .lastInsertRowid,
     ),
   )();
@@ -160,9 +169,16 @@ export const updateItem = (collectionId: number, itemId: number, item: ItemWrite
     db()
       .prepare(
         `update items set status = @status, quantity = @quantity, rank = @rank, values_json = @values,
-           updated_at = unixepoch() where id = @itemId`,
+           image = iif(@keepImage, image, @image), updated_at = unixepoch() where id = @itemId`,
       )
-      .run({ itemId, status: item.status, ...placement(collectionId, item, current), values: JSON.stringify(item.values) });
+      .run({
+        itemId,
+        status: item.status,
+        ...placement(collectionId, item, current),
+        values: JSON.stringify(item.values),
+        keepImage: item.image === undefined ? 1 : 0,
+        image: item.image ?? null,
+      });
     return true;
   })();
 

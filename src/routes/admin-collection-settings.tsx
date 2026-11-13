@@ -3,6 +3,7 @@ import { redirect, type LoaderFunctionArgs, type Params } from "react-router";
 import { requestContext } from "../context";
 import { deleteCollection, listSlugs, updateCollection } from "../db/collections";
 import { requireAdmin } from "../features/auth/guard";
+import { removeImage } from "../features/images/process";
 import { rejected, type Rejected } from "../features/collections/form";
 import { collectionAction, requireCollection } from "../features/collections/require-collection";
 import { parseSettings } from "../features/collections/validation";
@@ -24,9 +25,10 @@ export const loader = ({ params }: LoaderFunctionArgs) => {
 
 type ActionData = Rejected & { saved?: true };
 
-export const action = collectionAction((collection, form) => {
+export const action = collectionAction(async (collection, form) => {
   if (form.intent === "delete") {
-    deleteCollection(collection.id);
+    // Image files go after the rows are gone.
+    await Promise.all(deleteCollection(collection.id).map((image) => removeImage(image)));
     return redirect("/admin");
   }
   // A hand-edited slug is never auto-suffixed: taken (by another collection) or reserved is an error.

@@ -2,6 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import type { ReactNode } from "react";
 import type { Field, FieldType } from "../db/fields";
 import type { Item, ItemSort, ItemStatus } from "../db/items";
+import { thumbUrl } from "../features/images/shared";
 import { formatDate, formatNumber } from "../i18n";
 import { PostIt } from "../ui/post-it";
 import { Input } from "../ui/input";
@@ -64,15 +65,19 @@ const Title = ({ mode, slug, titleFieldId, item }: TitleProps) =>
 
 const postItColors = ["yellow", "pink", "blue", "green"] as const;
 
-// shortcut: always the blank post-it, until TICKET-ITM-04 puts the item's image (alt = title, loading="lazy") in it.
-const Thumbnail = ({ item, className, size }: { item: Item; className?: string; size: "sm" | "md" }) => (
+type ThumbnailProps = { item: Item; alt: string; className?: string; size: "sm" | "md" };
+
+// The item's image on a post-it, or the blank post-it when it has none. Colour, tilt and fastening vary by id.
+const Thumbnail = ({ item, alt, className, size }: ThumbnailProps) => (
   <PostIt
     size={size}
     color={postItColors[item.id % postItColors.length]}
     tilt={item.id % 2 ? "left" : "right"}
     fastening={item.id % 3 ? "pin" : "tape"}
     className={className}
-  />
+  >
+    {item.image && <img src={thumbUrl(item.image)} alt={alt} loading="lazy" className="size-full object-cover" />}
+  </PostIt>
 );
 
 // Type a new rank and press Enter: a plain form posting to the list route's action, so it works without JS.
@@ -162,7 +167,7 @@ const TableCells = ({ item, ...props }: ItemViewProps & { item: Item }) => (
       </Td>
     )}
     <Td className="w-18">
-      <Thumbnail item={item} size="sm" />
+      <Thumbnail item={item} alt={titleOf(item, props.titleFieldId)} size="sm" />
     </Td>
     {props.fields.map((field) => (
       <Td key={field.id}>
@@ -228,7 +233,12 @@ const Quantity = ({ quantity }: { quantity: number | null }) => {
 // A want's numeral sits on its post-it's corner; its rank input, while reordering, under the title.
 const GridCard = ({ item, shown, ...props }: ItemViewProps & { item: Item; shown: Field[] }) => (
   <div className="relative grid content-start gap-3">
-    <Thumbnail item={item} size="md" className="aspect-square size-auto w-full max-w-44" />
+    <Thumbnail
+      item={item}
+      alt={titleOf(item, props.titleFieldId)}
+      size="md"
+      className="aspect-square size-auto w-full max-w-44"
+    />
     <div className="grid gap-0.5">
       <strong>
         <Title mode={props.mode} slug={props.slug} titleFieldId={props.titleFieldId} item={item} />

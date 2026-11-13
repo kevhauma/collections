@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { itemStatusSchema } from "../features/items/schema";
-import { createCollection, getCollectionBySlug } from "./collections";
+import { createCollection, deleteCollection, getCollectionBySlug } from "./collections";
 import { createField, listFields, type FieldType } from "./fields";
 import { db } from "./connection";
 import {
@@ -39,7 +39,14 @@ describe("items repository", () => {
     const { id, values } = setup("books");
     const input = itemStatusSchema.parse({ status: "have" });
     const itemId = createItem(id, { ...input, values: values("Dune") });
-    expect(getItem(id, itemId)).toEqual({ id: itemId, status: "have", quantity: 1, rank: null, values: values("Dune") });
+    expect(getItem(id, itemId)).toEqual({
+      id: itemId,
+      status: "have",
+      quantity: 1,
+      rank: null,
+      values: values("Dune"),
+      image: null,
+    });
   });
 
   it("creates a want at the bottom (rank n+1)", () => {
@@ -256,5 +263,28 @@ describe("moveWant", () => {
       expect(ranks).toEqual(ranks.map((_, index) => index + 1));
     }
     expect(wantIds().length).toBeGreaterThan(3);
+  });
+});
+
+describe("item images", () => {
+  it("stores an image id, keeps it when a save leaves it out, and clears it with null", () => {
+    const { id, values } = setup("images");
+    const itemId = createItem(id, { status: "have", quantity: 1, values: values("A"), image: "first" });
+    expect(getItem(id, itemId)?.image).toBe("first");
+    updateItem(id, itemId, { status: "want", values: values("A") });
+    expect(getItem(id, itemId)?.image).toBe("first");
+    updateItem(id, itemId, { status: "want", values: values("A"), image: "second" });
+    expect(getItem(id, itemId)?.image).toBe("second");
+    updateItem(id, itemId, { status: "want", values: values("A"), image: null });
+    expect(getItem(id, itemId)?.image).toBeNull();
+  });
+
+  it("returns a deleted collection's image ids", () => {
+    const { id, values } = setup("doomed");
+    createItem(id, { status: "have", quantity: 1, values: values("A"), image: "a" });
+    createItem(id, { status: "want", values: values("B") });
+    createItem(id, { status: "want", values: values("C"), image: "c" });
+    expect(deleteCollection(id).sort()).toEqual(["a", "c"]);
+    expect(getCollectionBySlug("doomed")).toBeUndefined();
   });
 });

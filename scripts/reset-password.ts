@@ -4,6 +4,7 @@
 import { createInterface } from "node:readline/promises";
 import { Writable } from "node:stream";
 import { openDatabase } from "../src/db/connection.ts";
+import { dataDir } from "../src/lib/env.ts";
 import { resetPassword } from "../src/features/auth/reset-password.ts";
 
 // Readline echoes typed characters to its output; give it a silent one and write the prompts ourselves.
@@ -37,7 +38,7 @@ const readPassword = async (): Promise<string> => {
 
 try {
   const password = await readPassword();
-  const db = openDatabase(process.env.DATA_DIR ?? "./data");
+  const db = openDatabase(dataDir());
   await resetPassword(db, password);
   db.close();
   console.log("Admin password reset. Every session is logged out.");

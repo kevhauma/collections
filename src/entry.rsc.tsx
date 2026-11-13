@@ -18,6 +18,7 @@ import {
   renderToReadableStream,
 } from "@vitejs/plugin-rsc/rsc";
 import { unstable_matchRSCServerRequest as matchRSCServerRequest } from "react-router";
+import { declaresTooLarge, limitBody } from "./lib/body-limit";
 import { parseCookies, runWithContext } from "./context";
 import { db } from "./db/connection";
 import { getDefaultLocale } from "./db/settings";
@@ -42,7 +43,10 @@ const fetchServer = (request: Request) =>
       }),
   });
 
-export default async function handler(request: Request): Promise<Response> {
+export default async function handler(incoming: Request): Promise<Response> {
+  // Oversized bodies are refused before React Router buffers them (src/lib/body-limit.ts).
+  if (declaresTooLarge(incoming)) return new Response(null, { status: 413 });
+  const request = limitBody(incoming);
   // Locale and session are resolved once here; everything below, including actions and server components, reads
   // them and the request via src/context.ts.
   const cookies = parseCookies(request.headers.get("cookie"));

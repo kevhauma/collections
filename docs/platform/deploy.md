@@ -38,7 +38,10 @@ Everything the app stores lives in the `/data` volume:
 
 - `db.sqlite` (plus `db.sqlite-wal` / `db.sqlite-shm` while running): collections, fields, items, settings, the
   admin password hash and sessions
-- `uploads/`: item images (from TICKET-ITM-04)
+- `uploads/`: item images, two WebP files per image (`<uuid>.webp`, `<uuid>.thumb.webp`)
+
+Images can be JPEG, PNG, WebP, GIF, AVIF or TIFF. **HEIC photos aren't supported**: the prebuilt `sharp` decodes HEIF
+only as AVIF. iPhones usually convert to JPEG when a browser uploads a photo; otherwise export it as JPEG first.
 
 **That volume is the backup target.** For a consistent copy, stop the container first, or use the in-app export
 zip (TICKET-BAK-01):

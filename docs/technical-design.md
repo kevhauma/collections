@@ -128,6 +128,8 @@ Admin pages may use client components freely.
 - Served from `/uploads/`. Filenames are random UUIDs, so images of private collections are unlisted, not
   access-controlled. Accepted.
 - Replacing or deleting an item's image deletes the old files.
+- Request bodies over 16 MB are refused in `entry.rsc` before React Router buffers them (by Content-Length, and while
+  streaming for chunked bodies); the reverse proxy holds the real limit. HEIC isn't decoded by the prebuilt `sharp`.
 
 ## Export (backup)
 

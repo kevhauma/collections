@@ -8,6 +8,10 @@ import { createItem, deleteItem, getItem, updateItem, type Item, type ItemStatus
 import { requireAdmin } from "../features/auth/guard";
 import { collectionAction, requireCollection } from "../features/collections/require-collection";
 import type { FormInput } from "../features/collections/validation";
+import { commitImage, imageSource, prepareImage, sourceInput } from "../features/images/change";
+import { ImageError } from "../features/images/fetch";
+import { imageErrorText } from "../features/images/messages";
+import { thumbUrl } from "../features/images/shared";
 import { translateItemErrors } from "../features/items/messages";
 import { parseItemForm } from "../features/items/schema";
 import { Button } from "../ui/button";
@@ -17,6 +21,8 @@ import { Dialog } from "../ui/dialog";
 import { ErrorSummary } from "../ui/error-summary";
 import { FormField, type ControlProps } from "../ui/form-field";
 import { Input, Select } from "../ui/input";
+import { PostIt } from "../ui/post-it";
+import { ImageField } from "./image-field";
 import { listHref } from "./item-paths";
 
 // /admin/c/:slug/items/new and /admin/c/:slug/items/:id (TICKET-ITM-02): the item form, built from the collection's
@@ -37,14 +43,14 @@ export const loader = ({ params }: LoaderFunctionArgs) => {
   return null;
 };
 
-// Keyed by input name (`f.<fieldId>`, `status`, `quantity`).
+// Keyed by input name (`f.<fieldId>`, `status`, `quantity`, `image`, `imageUrl`).
 type FormValues = Record<string, string>;
 type Errors = Partial<Record<string, string>>;
 type Rejected = { errors: Errors; values: FormValues };
 
-// What was typed, so a no-JS reload keeps it.
+// What was typed, so a no-JS reload keeps it. A chosen file can't be put back into a file input.
 const typed = (form: FormInput): FormValues =>
-  Object.fromEntries(Object.entries(form).map(([name, value]) => [name, String(value)]));
+  Object.fromEntries(Object.entries(form).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
 
 // Returns the saved item's id.
 const write = (collectionId: number, item: Item | undefined, input: ItemWrite): number => {
@@ -53,19 +59,35 @@ const write = (collectionId: number, item: Item | undefined, input: ItemWrite): 
   return item.id;
 };
 
-type Intent = (collection: Collection, form: FormInput, item: Item | undefined) => Response | Rejected;
+type Intent = (collection: Collection, form: FormInput, item: Item | undefined) => Promise<Response | Rejected>;
 
-const save: Intent = (collection, form, item) => {
+// The new image's files are written before the DB (TICKET-ITM-04), or the error to show on the input it came from.
+const prepare = async (form: FormInput): Promise<{ image: string | null | undefined } | { errors: Errors }> => {
+  const source = imageSource(form);
+  try {
+    return { image: await prepareImage(source) };
+  } catch (error) {
+    if (!(error instanceof ImageError)) throw error;
+    return { errors: { [sourceInput(source)]: imageErrorText(error.reason) } };
+  }
+};
+
+// Values are checked before any image work, so a form with errors never leaves image files behind.
+const save: Intent = async (collection, form, item) => {
   const parsed = parseItemForm(form, listFields(collection.id));
   if (!parsed.success) return { errors: translateItemErrors(parsed.errors), values: typed(form) };
-  const id = write(collection.id, item, parsed.data);
+  const prepared = await prepare(form);
+  if ("errors" in prepared) return { errors: prepared.errors, values: typed(form) };
+  const { image } = prepared;
+  const id = await commitImage(image, item?.image, () => write(collection.id, item, { ...parsed.data, image }));
   // Back to the tab the item now lives on, scrolled to it.
   return redirect(`${listHref(collection.slug, parsed.data.status)}#item-${id}`);
 };
 
-const remove: Intent = (collection, _form, item) => {
+// Its image files go once the row is gone.
+const remove: Intent = async (collection, _form, item) => {
   if (!item) throw new Response(null, { status: 400 });
-  deleteItem(collection.id, item.id);
+  await commitImage(null, item.image, () => deleteItem(collection.id, item.id));
   return redirect(listHref(collection.slug, item.status));
 };
 
@@ -75,13 +97,14 @@ export const action = collectionAction((collection, form, params) =>
 
 const inputValue = (value: unknown): string => (value === true ? "on" : value === false ? "" : String(value ?? ""));
 
-type Shown = Pick<Item, "status" | "quantity" | "values">;
+type Shown = Pick<Item, "status" | "quantity" | "values" | "image">;
 
 // What the new-item form starts from; it preselects the tab you came from (?status=want).
 const blankItem = (): Shown => ({
   status: new URL(requestContext().request.url).searchParams.get("status") === "want" ? "want" : "have",
   quantity: 1,
   values: {},
+  image: null,
 });
 
 const valuesOf = (fields: Field[], item: Shown): FormValues => ({
@@ -177,6 +200,48 @@ const SaveButtons = ({ editing }: { editing: boolean }) => (
   </div>
 );
 
+type ImageSectionProps = {
+  image: string | null;
+  title: string;
+  url?: string;
+  errors: Errors;
+  labels: { image: string; imageUrl: string };
+};
+
+// The current image on a post-it with a "remove" box, then a file to upload or an address to download from.
+const ImageSection = ({ image, title, url, errors, labels }: ImageSectionProps) => {
+  const { t } = useLingui();
+  return (
+    <div className="grid gap-4">
+      {image && (
+        <div className="flex flex-wrap items-end gap-4">
+          <PostIt size="lg" tilt="left">
+            <img src={thumbUrl(image)} alt={title} className="size-full object-cover" />
+          </PostIt>
+          <Checkbox name="removeImage" label={t({ id: "items.image.remove", message: "Remove image" })} />
+        </div>
+      )}
+      <ImageField
+        label={labels.image}
+        error={errors.image}
+        tooLargeMessage={imageErrorText("tooLarge")}
+        previewAlt={title}
+      />
+      <FormField
+        id="item-image-url"
+        label={labels.imageUrl}
+        hint={t({
+          id: "items.image.urlHint",
+          message: "It's downloaded once and stored here. If you also choose a file, the file is used.",
+        })}
+        error={errors.imageUrl}
+      >
+        {(control) => <Input {...control} type="url" name="imageUrl" defaultValue={url} />}
+      </FormField>
+    </div>
+  );
+};
+
 type StatusFieldsProps = { values: FormValues; errors: Errors; labels: { status: string; quantity: string } };
 
 const StatusFields = ({ values, errors, labels }: StatusFieldsProps) => {
@@ -231,11 +296,15 @@ export default function AdminItem({ params, actionData }: { params: Params; acti
   const labels = {
     status: t({ id: "items.form.status", message: "Status" }),
     quantity: t({ id: "items.form.quantity", message: "How many" }),
+    image: t({ id: "items.image.file", message: "Photo" }),
+    imageUrl: t({ id: "items.image.url", message: "Or an image address" }),
   };
   const summary = errorLinks([
     ...rows.map((row) => ({ id: row.id, label: row.field.label, error: row.error })),
     { id: "item-status", label: labels.status, error: errors.status },
     { id: "item-quantity", label: labels.quantity, error: errors.quantity },
+    { id: "item-image", label: labels.image, error: errors.image },
+    { id: "item-image-url", label: labels.imageUrl, error: errors.imageUrl },
   ]);
   const editing = item !== undefined;
   const heading = editing ? title : t({ id: "items.new.heading", message: "New item" });
@@ -249,12 +318,13 @@ export default function AdminItem({ params, actionData }: { params: Params; acti
 
       <Card tone="ink">
         {/* noValidate: the server's translated messages and the summary replace the browser's own bubbles. */}
-        <form method="post" noValidate className="group grid gap-4">
+        <form method="post" encType="multipart/form-data" noValidate className="group grid gap-4">
           <ErrorSummary title={t({ id: "items.form.errors", message: "Check these fields:" })} errors={summary} />
           {rows.map((row) => (
             <div key={row.id}>{controls[row.field.type](row)}</div>
           ))}
           <StatusFields values={values} errors={errors} labels={labels} />
+          <ImageSection image={shown.image} title={title} url={values.imageUrl} errors={errors} labels={labels} />
           <SaveButtons editing={editing} />
         </form>
       </Card>

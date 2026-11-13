@@ -59,8 +59,14 @@ export const updateCollection = (id: number, settings: CollectionSettings): void
     .run({ ...settings, id });
 };
 
-// Fields and items go with it through ON DELETE CASCADE.
-// shortcut: item image files are not removed yet, TICKET-ITM-04 adds that.
-export const deleteCollection = (id: number): void => {
-  db().prepare("delete from collections where id = ?").run(id);
-};
+// Fields and items go with it through ON DELETE CASCADE. Returns the ids of its items' images, whose files the caller
+// deletes after this commits.
+export const deleteCollection = (id: number): string[] =>
+  db().transaction(() => {
+    const images = db()
+      .prepare("select image from items where collection_id = ? and image is not null")
+      .pluck()
+      .all(id) as string[];
+    db().prepare("delete from collections where id = ?").run(id);
+    return images;
+  })();
