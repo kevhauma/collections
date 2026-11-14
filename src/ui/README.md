@@ -46,6 +46,7 @@ Every component takes `className`, merged with `cn()`. Use it for layout only.
 | `Th` | `table.tsx` | `children`, `sort?: { href, direction: "ascending" \| "descending" \| "none" }`. A sortable header renders a plain link and sets `aria-sort`. |
 | `Td` | `table.tsx` | All `<td>` attributes. |
 | `TabLinks` | `tab-links.tsx` | `label` (the nav's accessible name), `tabs: {href, label, current?}[]`, `variant`: `tabs` (drawn, default; the current tab is filled with ink) · `nav` (plain links; the current one gets the highlighter). Tabs are links, and the current one gets `aria-current="page"`. |
+| `Fold` | `fold.tsx` | `title: ReactNode` (scrawled), `count: string` (formatted), `children`. A `<details open>` section with a drawn chevron that turns when open; folds without JS. The item list's groups (TICKET-ITM-06). |
 | `Dialog` | `dialog.tsx` | `id`, `title: ReactNode`, `closeLabel: string` (accessible name of the × button), `closedby?: "any"` (also closes on a backdrop click), `className?` (e.g. a wider width), `children`. Open it with `<Button commandfor={id} command="show-modal">`. |
 | `Popover` | `popover.tsx` | `id`, `children`. Open it with `<Button popoverTarget={id}>`. It sits under its button where CSS anchor positioning exists, and centred otherwise. Light dismiss and Escape come from the browser. |
 

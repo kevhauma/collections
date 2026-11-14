@@ -32,6 +32,8 @@ export type ItemViewProps = {
   titleLinkFieldId?: number;
   // The collection's default item image (TICKET-COL-08), for items without one.
   itemImage?: string | null;
+  // Makes row and dialog ids unique when an item shows in several groups (TICKET-ITM-06), e.g. "-g2".
+  idScope?: string;
   slug: string;
   sortLink: (sort: ItemSort) => SortLink;
   // Admin want tab sorted by rank (TICKET-ITM-03): rank inputs, plus drag handles when the rows shown are the whole
@@ -116,13 +118,22 @@ const Title = ({ mode, slug, titleFieldId, titleLinkFieldId, item }: TitleProps)
   );
 };
 
-type ThumbnailProps = { item: Item; alt: string; fallback?: string | null; className?: string; size: "sm" | "md" };
+type ThumbnailProps = {
+  item: Item;
+  alt: string;
+  fallback?: string | null;
+  idScope?: string;
+  className?: string;
+  size: "sm" | "md";
+};
 
 // The item's picture opens at display size in a native dialog (TICKET-UI-08): invoker commands and `closedby="any"`
 // (Escape, the × and a backdrop click), so it works without JS and on public pages.
-const Enlargeable = ({ item, image, title, children }: { item: Item; image: string; title: string; children: ReactNode }) => {
+type EnlargeableProps = { item: Item; image: string; title: string; idScope?: string; children: ReactNode };
+
+const Enlargeable = ({ item, image, title, idScope = "", children }: EnlargeableProps) => {
   const { t } = useLingui();
-  const dialog = `picture-${item.id}`;
+  const dialog = `picture${idScope}-${item.id}`;
   return (
     <>
       <button
@@ -151,14 +162,14 @@ const Enlargeable = ({ item, image, title, children }: { item: Item; image: stri
 // The item's image on a post-it, which opens it large; without one, the collection's default item image (decorative,
 // not a picture of this item, so no alt and nothing to enlarge, TICKET-COL-08) or the blank post-it. Pinned, taped or
 // clipped by a hash of the id (TICKET-UI-09).
-const Thumbnail = ({ item, alt, fallback, className, size }: ThumbnailProps) => {
+const Thumbnail = ({ item, alt, fallback, idScope, className, size }: ThumbnailProps) => {
   const postIt = (image: string | null | undefined, imageAlt: string) => (
     <PostIt size={size} {...postItLook(item.id)} className={className}>
       {image && <img src={thumbUrl(image)} alt={imageAlt} loading="lazy" className="size-full object-cover" />}
     </PostIt>
   );
   return item.image ? (
-    <Enlargeable item={item} image={item.image} title={alt}>
+    <Enlargeable item={item} image={item.image} title={alt} idScope={idScope}>
       {postIt(item.image, alt)}
     </Enlargeable>
   ) : (
@@ -199,8 +210,9 @@ const RankCell = ({ item, titleFieldId, ranking, className }: RankCellProps) =>
   );
 
 // One sortable list of rows, or a plain one. The handle and its failure message are the same for table and grid.
-const Rows = ({ items, ranking, layout, className, row }: {
+const Rows = ({ items, ranking, layout, className, idScope = "", row }: {
   items: Item[];
+  idScope?: string;
   ranking?: Ranking;
   layout: "table" | "list";
   className?: string;
@@ -211,18 +223,19 @@ const Rows = ({ items, ranking, layout, className, row }: {
     <SortableList
       layout={layout}
       className={className}
-      items={items.map((item) => ({ id: item.id, anchor: `item-${item.id}`, content: row(item) }))}
+      items={items.map((item) => ({ id: item.id, anchor: `item${idScope}-${item.id}`, content: row(item) }))}
       onMove={ranking.onMove}
       handleLabel={t({ id: "items.dragHandle", message: "Drag to reorder" })}
       failedMessage={t({ id: "order.moveFailed", message: "Couldn't save the new order. Try again." })}
     />
   ) : (
-    <PlainRows layout={layout} className={className} items={items} row={row} />
+    <PlainRows layout={layout} className={className} items={items} idScope={idScope} row={row} />
   );
 };
 
-const PlainRows = ({ layout, className, items, row }: {
+const PlainRows = ({ layout, className, items, idScope, row }: {
   layout: "table" | "list";
+  idScope: string;
   className?: string;
   items: Item[];
   row: (item: Item) => ReactNode;
@@ -230,7 +243,7 @@ const PlainRows = ({ layout, className, items, row }: {
   layout === "table" ? (
     <tbody className={className}>
       {items.map((item) => (
-        <tr key={item.id} id={`item-${item.id}`} className="scroll-mt-6">
+        <tr key={item.id} id={`item${idScope}-${item.id}`} className="scroll-mt-6">
           {row(item)}
         </tr>
       ))}
@@ -238,7 +251,7 @@ const PlainRows = ({ layout, className, items, row }: {
   ) : (
     <ul className={className}>
       {items.map((item) => (
-        <li key={item.id} id={`item-${item.id}`} className="scroll-mt-6">
+        <li key={item.id} id={`item${idScope}-${item.id}`} className="scroll-mt-6">
           {row(item)}
         </li>
       ))}
@@ -254,7 +267,7 @@ const TableCells = ({ item, ...props }: ItemViewProps & { item: Item }) => (
     )}
     {/* Four squares tall, so a row with a picture stays on the grid. */}
     <Td className="h-sq-4 w-18">
-      <Thumbnail item={item} alt={titleOf(item, props.titleFieldId)} fallback={props.itemImage} size="sm" />
+      <Thumbnail item={item} alt={titleOf(item, props.titleFieldId)} fallback={props.itemImage} idScope={props.idScope} size="sm" />
     </Td>
     {props.fields.map((field) => (
       <Td key={field.id}>
@@ -309,7 +322,13 @@ const TableHead = ({ status, fields, sortLink, ranking }: ItemViewProps) => {
 export const ItemTable = (props: ItemViewProps) => (
   <Table>
     <TableHead {...props} />
-    <Rows items={props.items} ranking={props.ranking} layout="table" row={(item) => <TableCells {...props} item={item} />} />
+    <Rows
+      items={props.items}
+      ranking={props.ranking}
+      layout="table"
+      idScope={props.idScope}
+      row={(item) => <TableCells {...props} item={item} />}
+    />
   </Table>
 );
 
@@ -326,6 +345,7 @@ const GridCard = ({ item, shown, titleField, ...props }: ItemViewProps & { item:
       item={item}
       alt={titleOf(item, props.titleFieldId)}
       fallback={props.itemImage}
+      idScope={props.idScope}
       size="md"
       // A whole number of squares wide (and so tall), at most 8.
       className="aspect-square size-auto w-[min(round(down,100%,var(--grid-square)),11rem)]"
@@ -363,6 +383,7 @@ export const ItemGrid = (props: ItemViewProps) => {
     <Rows
       items={props.items}
       ranking={props.ranking}
+      idScope={props.idScope}
       layout="list"
       className="grid grid-cols-2 gap-x-5 gap-y-sq-2 sm:grid-cols-3 lg:grid-cols-5"
       row={(item) => <GridCard {...props} item={item} shown={shown} titleField={titleField} />}

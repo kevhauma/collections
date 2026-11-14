@@ -1,7 +1,7 @@
 # TICKET-ITM-06: Group the item list by a field, in collapsible groups
 
 - **Area:** Items
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Type:** Feature
 - **Traceability:** [technical-design.md § Routes](../../technical-design.md#routes), extends [TICKET-ITM-05](./TICKET-ITM-05-collection-views.md) (search, sort, filter)
 
@@ -55,22 +55,40 @@ field. For a text field such as genre, a comma-separated value (`Jazz, Soul`) pu
 
 ## Acceptance criteria
 
-- [ ] On Vinyl, grouping by Genre with items "Jazz, Soul", "jazz" and "Rock" gives the groups Jazz (2), Rock (1) and
-      Soul (1). The first item shows under both Jazz and Soul.
-- [ ] Items with an empty genre appear in a last "No Genre" group.
-- [ ] Each group folds open and shut with JS off, on admin and public pages.
-- [ ] Grouping works with search, filters, sorting, both views and both tabs. The URL holds `group=<id>` and survives
-      a tab switch.
-- [ ] `group` with a private field id on a public page, another collection's field id, or junk shows the ungrouped
-      list and leaks nothing.
-- [ ] On a grouped want tab there are no drag handles. Rank inputs still reorder.
-- [ ] Public pages still ship no client components.
-- [ ] Unit tests cover `groupItems`: comma splitting and trimming, case-insensitive merging, an item in several groups,
+- [x] On Vinyl, grouping by Genre with items "Jazz, Soul", "jazz" and "Rock" gives the groups Jazz (2), Rock (1) and
+      Soul (1). The first item shows under both Jazz and Soul. (Scratch instance, 2026-11-14, a text field "Style"
+      with "Jazz, Soul", "jazz", "Rock", "", "Soul, Rock": `/vinyl?group=11` showed Jazz · 2 [Kind of Blue, A Love
+      Supreme], Rock · 2, Soul · 2 [Kind of Blue, Revolver], No Style · 1; Kind of Blue is in Jazz and Soul. Test
+      "merges values case-insensitively under the first spelling seen, and puts an item in each of its groups".)
+- [x] Items with an empty genre appear in a last "No Genre" group. (Pet Sounds, with no Style, in a last "No Style"
+      group; test "puts items without a value in a last group".)
+- [x] Each group folds open and shut with JS off, on admin and public pages. (`Fold` in `src/ui/fold.tsx` is a native
+      `<details open>`. Headless Chrome with scripts disabled, on `/vinyl?group=11` and the admin grid: clicking the
+      Rock heading shut it, clicking again opened it.)
+- [x] Grouping works with search, filters, sorting, both views and both tabs. The URL holds `group=<id>` and survives
+      a tab switch. (`/vinyl?group=11&q=blue` gave Jazz 1, Rock 1, Soul 1; table and grid, have and want, admin and
+      public all grouped; the tab links carried `?group=…`; Apply with Group by chosen and JS off loaded
+      `…&group=11…`. Test "stays in the URL and carries over to the other tab".)
+- [x] `group` with a private field id on a public page, another collection's field id, or junk shows the ungrouped
+      list and leaks nothing. (Style made private: `/vinyl?group=11` rendered no groups and none of its values;
+      `group=999` and `group=abc` ungrouped. Test "drops a private field on a public page, another collection's
+      field and junk".)
+- [x] On a grouped want tab there are no drag handles. Rank inputs still reorder. (`reorderable` turns `draggable`
+      off when `group` is set. Admin want tab grouped: 0 handles, 3 rank inputs; setting Rumours to 1 saved and the
+      page came back grouped. Test "turns dragging off on a grouped want tab, keeping the rank inputs".)
+- [x] Public pages still ship no client components. (Grouping and `Fold` are server-rendered; the grouped public page
+      has no module script.)
+- [x] Unit tests cover `groupItems`: comma splitting and trimming, case-insensitive merging, an item in several groups,
       the no-value group last, select option order, checkbox yes/no, and sort order kept inside a group. They also
-      cover `parseListParams` for valid, private, foreign and junk `group` values.
-- [ ] UI follows the design direction in `.impeccable/surfaces/src-ui.md`; live browser check of grouped table and grid,
-      admin and public, at 360 px and desktop, light and dark, JS on and off.
-- [ ] Verified with the fallow skill.
+      cover `parseListParams` for valid, private, foreign and junk `group` values. (`src/features/items/group.test.ts`,
+      6 cases; `list-params.test.ts` "group", 4 cases.)
+- [x] UI follows the design direction in `.impeccable/surfaces/src-ui.md`; live browser check of grouped table and grid,
+      admin and public, at 360 px and desktop, light and dark, JS on and off. (Orca: scrawled group headings with a
+      drawn chevron and faded-ink count, each group repeating its table headers, at 360 px light and 1440 px dark;
+      folds and headings start and end on grid lines. At 360 px the first build widened the page to 1029 px, fixed by
+      `min-w-0` on the fold so each table scrolls inside itself. An item in several groups gets scoped row and dialog
+      ids, so the page has no duplicate ids.)
+- [x] Verified with the fallow skill. (`npx fallow@3.43.0 audit --base HEAD`: no issues in 14 changed files.)
 
 ## Notes
 

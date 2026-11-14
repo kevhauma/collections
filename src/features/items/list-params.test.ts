@@ -85,6 +85,30 @@ describe("listQuery", () => {
   });
 });
 
+describe("group", () => {
+  it("takes one of the collection's own choice, yes/no or text fields, not the title", () => {
+    expect(parse("group=3").group).toBe(3);
+    expect(parse("group=4").group).toBe(4);
+    expect(parse("group=1").group).toBeUndefined();
+    expect(parse("group=2").group).toBeUndefined();
+  });
+
+  it("drops a private field on a public page, another collection's field and junk", () => {
+    expect(parse("group=5").group).toBe(5);
+    expect(parse("group=5", { ...have, publicOnly: true }).group).toBeUndefined();
+    for (const group of ["99", "", "3.0", "3 or 1=1", "rank"]) expect(parse(`group=${group}`).group).toBeUndefined();
+  });
+
+  it("stays in the URL and carries over to the other tab", () => {
+    expect(listQuery(parse("group=3&q=blue"), have)).toBe("?q=blue&group=3");
+    expect(listQuery(switchTab(parse("group=3"), have, want), want)).toBe("?group=3");
+  });
+
+  it("turns dragging off on a grouped want tab, keeping the rank inputs", () => {
+    expect(reorderable(parse("group=3", want), "want")).toEqual({ draggable: false });
+  });
+});
+
 describe("defaultSortOf", () => {
   it("keeps date added and a field the viewer may see, and falls back to the title otherwise", () => {
     expect(defaultSortOf("created", [...fields], 1)).toBe("created");

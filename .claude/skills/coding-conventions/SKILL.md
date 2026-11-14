@@ -217,7 +217,7 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 
 ## URL state
 
-- List view state (`view`, `q`, `sort`, `dir`, `f.<fieldId>`) lives in the query string, parsed once at the route
+- List view state (`view`, `q`, `sort`, `dir`, `f.<fieldId>`, `group`) lives in the query string, parsed once at the route
   with zod (`parseListParams`) and passed down as props. Children never read the URL themselves. Links are built with
   `listQuery` (defaults left out), `switchTab` and `sortToggle` from
   [src/features/items/list-params.ts](../../../src/features/items/list-params.ts). The views are `ItemTable` /

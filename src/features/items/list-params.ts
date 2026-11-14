@@ -2,8 +2,9 @@ import { z } from "zod";
 import type { Field } from "../../db/fields";
 import type { ItemFilter, ItemSort, ItemStatus } from "../../db/items";
 
-// The item list's state in the query string (TICKET-ITM-05): `view`, `q`, `sort`, `dir`, `f.<fieldId>`. Parsed once
-// at the route, shared by the admin list and the public pages. Invalid params are dropped, never an error.
+// The item list's state in the query string (TICKET-ITM-05): `view`, `q`, `sort`, `dir`, `f.<fieldId>`, and `group`
+// (TICKET-ITM-06). Parsed once at the route, shared by the admin list and the public pages. Invalid params are dropped,
+// never an error.
 
 export const views = ["table", "grid"] as const;
 type View = (typeof views)[number];
@@ -17,6 +18,8 @@ export type ListParams = {
   sort: ItemSort;
   dir: (typeof directions)[number];
   filters: ItemFilter[];
+  // The field the list is grouped by, if any.
+  group?: number;
 };
 
 // `defaultSort` / `defaultDir`: the have tab's default order (TICKET-COL-07), already checked by `defaultSortOf`;
@@ -60,6 +63,12 @@ const filterValues: Partial<Record<Field["type"], (value: string, field: ListFie
 export const filterableFields = <F extends ListField>(fields: F[]): F[] =>
   fields.filter((field) => filterValues[field.type]);
 
+const groupableTypes = new Set<Field["type"]>(["select", "checkbox", "text"]);
+
+// Choice, yes/no and text fields group the list, except the title.
+export const groupableFields = <F extends ListField>(fields: F[], titleFieldId: number): F[] =>
+  fields.filter((field) => groupableTypes.has(field.type) && field.id !== titleFieldId);
+
 const filterOf = (field: ListField, value: string | null): ItemFilter[] => {
   const parsed = value === null ? undefined : filterValues[field.type]?.(value, field);
   return parsed === undefined ? [] : [{ fieldId: field.id, value: parsed }];
@@ -76,6 +85,7 @@ export const parseListParams = (search: URLSearchParams, fields: ListField[], co
     sort: sortOf(search.get("sort"), usable, context.status) ?? defaults.sort,
     dir: oneOf(directions, search.get("dir"), defaults.dir),
     filters: filterableFields(usable).flatMap((field) => filterOf(field, search.get(`f.${field.id}`))),
+    group: groupableFields(usable, context.titleFieldId).find((field) => String(field.id) === search.get("group"))?.id,
   };
 };
 
@@ -96,16 +106,19 @@ export const listQuery = (params: ListParams, context: ListContext): string => {
     ["sort", params.sort !== defaults.sort && String(params.sort)],
     ["dir", params.dir !== defaults.dir && params.dir],
     ...params.filters.map((filter): [string, string] => [`f.${filter.fieldId}`, filterText(filter.value)]),
+    ["group", params.group !== undefined && String(params.group)],
   ];
   const query = new URLSearchParams(entries.filter((entry): entry is [string, string] => Boolean(entry[1])));
   return query.size > 0 ? `?${query}` : "";
 };
 
 // Wants can be reordered when the want tab is sorted by rank (rank inputs). Dragging also needs the rows shown to be
-// the whole rank order, ascending and unfiltered, so a row's position is its rank.
+// the whole rank order, ascending, unfiltered and ungrouped, so a row's position is its rank.
 export const reorderable = (params: ListParams, status: ItemStatus): { draggable: boolean } | undefined =>
   status === "want" && params.sort === "rank"
-    ? { draggable: params.dir === "asc" && params.q === "" && params.filters.length === 0 }
+    ? {
+        draggable: params.dir === "asc" && params.q === "" && params.filters.length === 0 && params.group === undefined,
+      }
     : undefined;
 
 type SortDirection = "ascending" | "descending" | "none";

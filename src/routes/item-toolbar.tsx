@@ -1,7 +1,14 @@
 import { useLingui } from "@lingui/react/macro";
 import type { Field } from "../db/fields";
 import type { ItemStatus } from "../db/items";
-import { filterableFields, filterInput, maxQueryLength, views, type ListParams } from "../features/items/list-params";
+import {
+  filterableFields,
+  filterInput,
+  groupableFields,
+  maxQueryLength,
+  views,
+  type ListParams,
+} from "../features/items/list-params";
 import { Button } from "../ui/button";
 import { FormField } from "../ui/form-field";
 import { Input, Select } from "../ui/input";
@@ -13,6 +20,7 @@ import { TabLinks } from "../ui/tab-links";
 
 type ItemToolbarProps = {
   params: ListParams;
+  titleFieldId: number;
   // The fields the viewer may see, in position order.
   fields: Field[];
   status: ItemStatus;
@@ -45,7 +53,26 @@ const FilterField = ({ field, value }: { field: Field; value: string }) => {
   );
 };
 
-export const ItemToolbar = ({ params, fields, status, resetHref, viewHref }: ItemToolbarProps) => {
+// Group by (TICKET-ITM-06): nothing, or one of the groupable fields.
+const GroupBy = ({ params, fields, titleFieldId }: Pick<ItemToolbarProps, "params" | "fields" | "titleFieldId">) => {
+  const { t } = useLingui();
+  return (
+    <FormField id="list-group" label={t({ id: "items.group", message: "Group by" })}>
+      {(control) => (
+        <Select {...control} name="group" defaultValue={String(params.group ?? "")}>
+          <option value="">{t({ id: "items.group.off", message: "No grouping" })}</option>
+          {groupableFields(fields, titleFieldId).map((field) => (
+            <option key={field.id} value={field.id}>
+              {field.label}
+            </option>
+          ))}
+        </Select>
+      )}
+    </FormField>
+  );
+};
+
+export const ItemToolbar = ({ params, fields, titleFieldId, status, resetHref, viewHref }: ItemToolbarProps) => {
   const { t } = useLingui();
   const sortOptions = [
     ...(status === "want" ? [{ value: "rank", label: t({ id: "items.sort.rank", message: "Rank" }) }] : []),
@@ -66,6 +93,7 @@ export const ItemToolbar = ({ params, fields, status, resetHref, viewHref }: Ite
         {filterableFields(fields).map((field) => (
           <FilterField key={field.id} field={field} value={filterInput(params, field.id)} />
         ))}
+        <GroupBy params={params} fields={fields} titleFieldId={titleFieldId} />
         <FormField id="list-sort" label={t({ id: "items.sort", message: "Sort by" })}>
           {(control) => (
             <Select {...control} name="sort" defaultValue={String(params.sort)}>

@@ -3,10 +3,14 @@ import type { ReactNode } from "react";
 import { data } from "react-router";
 import type { Collection } from "../db/collections";
 import type { ItemStatus } from "../db/items";
+import { requestContext } from "../context";
+import type { Field } from "../db/fields";
+import { groupItems, type ItemGroup } from "../features/items/group";
 import { listQuery, reorderable, sortToggle, switchTab, type ListParams } from "../features/items/list-params";
 import type { itemView } from "../features/items/view";
 import { formatNumber } from "../i18n";
 import { EmptyState } from "../ui/empty-state";
+import { Fold } from "../ui/fold";
 import { TabLinks } from "../ui/tab-links";
 import { tabUrl } from "./item-paths";
 import { ItemToolbar } from "./item-toolbar";
@@ -46,25 +50,46 @@ const rankingOf = (list: ListParams, status: ItemStatus, ranking: CollectionItem
 
 type ResultsProps = ItemViewProps & {
   view: ListParams["view"];
+  groupField?: Field;
   total: number;
   emptyTitle: string;
   addAction?: ReactNode;
   resetHref: string;
 };
 
-// The items, or why there are none: an empty tab, or a search that matched nothing.
-const Results = ({ view, total, emptyTitle, addAction, resetHref, ...props }: ResultsProps) => {
+// A group's heading: its value, Yes / No for a checkbox, or "No <field>" for the items without one.
+const GroupTitle = ({ group, field }: { group: ItemGroup; field: Field }) => {
   const { t } = useLingui();
+  const label = field.label;
+  if (group.value === null) return t({ id: "items.group.none", message: `No ${label}` });
+  if (typeof group.value === "boolean")
+    return group.value ? t({ id: "items.value.yes", message: "Yes" }) : t({ id: "items.value.no", message: "No" });
+  return group.value;
+};
+
+// One fold per group, each holding the current view (TICKET-ITM-06). An item in several groups gets scoped ids.
+const Groups = ({ view, field, ...props }: ItemViewProps & { view: ListParams["view"]; field: Field }) => {
   const View = views[view];
+  return groupItems(props.items, field, requestContext().locale).map((group, index) => (
+    <Fold key={String(group.value)} title={<GroupTitle group={group} field={field} />} count={formatNumber(group.items.length)}>
+      <View {...props} items={group.items} idScope={`-g${index}`} />
+    </Fold>
+  ));
+};
+
+// The items, or why there are none: an empty tab, or a search that matched nothing.
+const Results = ({ view, total, emptyTitle, addAction, resetHref, groupField, ...props }: ResultsProps) => {
+  const { t } = useLingui();
   if (total === 0) return <EmptyState title={emptyTitle} action={addAction} />;
-  return props.items.length > 0 ? (
-    <View {...props} />
-  ) : (
-    <EmptyState
-      title={t({ id: "items.empty.noMatch", message: "No items match your search" })}
-      action={<a href={resetHref}>{t({ id: "items.filter.reset", message: "Reset" })}</a>}
-    />
-  );
+  if (props.items.length === 0)
+    return (
+      <EmptyState
+        title={t({ id: "items.empty.noMatch", message: "No items match your search" })}
+        action={<a href={resetHref}>{t({ id: "items.filter.reset", message: "Reset" })}</a>}
+      />
+    );
+  const View = views[view];
+  return groupField ? <Groups {...props} view={view} field={groupField} /> : <View {...props} />;
 };
 
 export const CollectionItems = ({ collection, status, view, counts, base, addAction, ranking, ...props }: CollectionItemsProps) => {
@@ -94,6 +119,7 @@ export const CollectionItems = ({ collection, status, view, counts, base, addAct
       {counts[status] > 0 && (
         <ItemToolbar
           params={list}
+          titleFieldId={collection.titleFieldId}
           fields={fields}
           status={status}
           resetHref={tabUrl(base, status)}
@@ -115,6 +141,7 @@ export const CollectionItems = ({ collection, status, view, counts, base, addAct
         }}
         ranking={rankingOf(list, status, ranking)}
         view={list.view}
+        groupField={fields.find((field) => field.id === list.group)}
         total={counts[status]}
         addAction={addAction}
         resetHref={tabUrl(base, status)}

@@ -106,8 +106,13 @@ can also connect an AI agent through the MCP server at `/api/mcp`, which acts as
 | `POST /theme` | Sets the theme cookie (`system` / `light` / `dark`) and redirects back (works without JS). |
 
 - Private or unknown collections return **404**, not a login prompt.
-- View, search, sort and filter live in the query string and are handled on the server through GET forms:
-  `?view=grid&q=blue&sort=<fieldId>&dir=desc&f.<fieldId>=<value>`.
+- View, search, sort, filter and grouping live in the query string and are handled on the server through GET forms:
+  `?view=grid&q=blue&sort=<fieldId>&dir=desc&f.<fieldId>=<value>&group=<fieldId>`.
+- `group` (TICKET-ITM-06) takes a choice, yes/no or text field other than the title (public fields only on public
+  pages). `groupItems` splits the already filtered and sorted list in memory: a text value on its commas
+  (case-insensitive, first spelling names the group, groups sorted by the locale), a choice in option order, a
+  checkbox Yes then No, items without a value last. Each group is a `<details open>` holding the current view, so it
+  folds without JS. Want drag-and-drop is off while grouped; the rank inputs stay.
 - Public pages should ship essentially no client JS. Interactive primitives use native `<dialog>` and the
   Popover API.
 

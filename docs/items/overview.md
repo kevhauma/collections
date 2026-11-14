@@ -7,4 +7,4 @@ Prefix `ITM`. Item validation, CRUD, want ranking, images, list views. Design: [
 - [x] [TICKET-ITM-03](./tickets/TICKET-ITM-03-want-ranking.md): Reorder wants, drag or type a rank (§ Want ranking, ADR 0004). Needs TICKET-ITM-02 · v1
 - [x] [TICKET-ITM-04](./tickets/TICKET-ITM-04-item-images.md): Item images, upload or URL (§ Images). Needs TICKET-ITM-02 · v1
 - [x] [TICKET-ITM-05](./tickets/TICKET-ITM-05-collection-views.md): Collection views: table, grid, search, sort, filter (§ Routes, § Data model). Needs TICKET-ITM-02 · v1
-- [ ] [TICKET-ITM-06](./tickets/TICKET-ITM-06-group-by-field.md): Group the item list by a field, in collapsible groups (§ Routes, extends TICKET-ITM-05). Needs TICKET-ITM-05 (shipped), independent, can ship any time · _unreleased_
+- [x] [TICKET-ITM-06](./tickets/TICKET-ITM-06-group-by-field.md): Group the item list by a field, in collapsible groups (§ Routes, extends TICKET-ITM-05). Needs TICKET-ITM-05 (shipped), independent, can ship any time · v1
