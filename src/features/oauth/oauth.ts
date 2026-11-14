@@ -95,7 +95,8 @@ const internalRanges: [string, number, "ipv4" | "ipv6"][] = [
   ["192.168.0.0", 16, "ipv4"],
   ["::", 128, "ipv6"],
   ["::1", 128, "ipv6"],
-  ["::ffff:0:0", 96, "ipv6"], // IPv4-mapped: refused outright rather than rechecked as IPv4
+  // No ::ffff:0:0/96 rule: BlockList already checks IPv4-mapped addresses against the IPv4 ranges, and that rule
+  // would also match every plain IPv4 address.
   ["fc00::", 7, "ipv6"],
   ["fe80::", 10, "ipv6"],
 ];

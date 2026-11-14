@@ -1,7 +1,7 @@
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "../../db/connection";
 import { getClient, listApprovedClients, approveClient, revokeClient, saveClient } from "../../db/oauth";
 import { hashToken } from "../auth/session";
@@ -241,6 +241,18 @@ describe("client ID metadata documents", () => {
     async (internalUrl) => {
       await expect(publicFetch(internalUrl)).rejects.toThrow("Internal address");
       expect(await resolveClient(internalUrl)).toBeUndefined();
+    },
+  );
+
+  it.each(["https://8.8.8.8/client.json", "https://[::ffff:8.8.8.8]/client.json", "https://[2606:4700::1]/client.json"])(
+    "are fetched from a public address: %s",
+    async (publicUrl) => {
+      vi.stubGlobal("fetch", async () => new Response("ok"));
+      try {
+        expect((await publicFetch(publicUrl)).ok).toBe(true);
+      } finally {
+        vi.unstubAllGlobals();
+      }
     },
   );
 
