@@ -86,7 +86,7 @@ function Consent({ authorization }: { authorization: Authorization }) {
   const host = new URL(authorization.params.redirect_uri).host;
   return (
     <div className="mx-auto grid max-w-xl gap-6 py-6">
-      <title>{t({ id: "authorize.title", message: "Connect an app · Collections" })}</title>
+      <title>{t({ id: "authorize.title", message: "Connect an app · Hoardr" })}</title>
       <h1>
         <Trans id="authorize.heading">Connect {name}?</Trans>
       </h1>
@@ -120,7 +120,7 @@ function Invalid() {
   const { t } = useLingui();
   return (
     <div className="mx-auto grid max-w-xl gap-6 py-6">
-      <title>{t({ id: "authorize.title", message: "Connect an app · Collections" })}</title>
+      <title>{t({ id: "authorize.title", message: "Connect an app · Hoardr" })}</title>
       <EmptyState title={t({ id: "authorize.invalid", message: "This connection request doesn't work." })}>
         <Trans id="authorize.invalid.hint">
           It is incomplete, or the app isn't known here. Start connecting again from the app.

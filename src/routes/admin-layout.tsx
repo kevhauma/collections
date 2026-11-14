@@ -21,7 +21,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
       <div className="mx-auto flex min-h-dvh max-w-6xl flex-col px-4 sm:px-8">
         <header className="flex flex-wrap items-center gap-x-6 pt-sq">
           <a href="/admin" className="inline-flex min-h-11 items-center font-hand text-4xl leading-none text-ink no-underline">
-            <Trans id="app.name">Collections</Trans>
+            <Trans id="app.name">Hoardr</Trans>
           </a>
           {loggedIn && <AdminNav />}
           <div className="flex flex-wrap items-center gap-3 sm:ml-auto">

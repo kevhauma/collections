@@ -50,7 +50,7 @@ export const LoginForm = ({ error }: { error?: string }) => {
   const next = nextOf(requestContext().request.url);
   return (
     <div className="mx-auto grid max-w-md gap-6 py-6">
-      <title>{t({ id: "login.title", message: "Log in · Collections" })}</title>
+      <title>{t({ id: "login.title", message: "Log in · Hoardr" })}</title>
       <h1>
         <Trans id="login.heading">Log in</Trans>
       </h1>

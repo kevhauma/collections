@@ -1,6 +1,6 @@
 ---
 name: coding-conventions
-description: Coding conventions for this collections app (React Server Components via React Router on Vite, Express, better-sqlite3 plain SQL, zod, Lingui, Tailwind + own UI library). Use when writing or reviewing any code in src/, migrations/ or scripts/, and when a ticket asks to be "verified via the coding-conventions skill".
+description: Coding conventions for the Hoardr app (React Server Components via React Router on Vite, Express, better-sqlite3 plain SQL, zod, Lingui, Tailwind + own UI library). Use when writing or reviewing any code in src/, migrations/ or scripts/, and when a ticket asks to be "verified via the coding-conventions skill".
 paths: "**/*.ts,**/*.tsx,**/*.css,**/*.sql"
 ---
 

@@ -60,7 +60,7 @@ leave the server.
 
 ## Brand Commitments
 
-- App name: **Collections** (EN) / **Verzamelingen** (NL), a fixed translated string, not a setting.
+- App name: **Hoardr**, the same in every locale, not a setting.
 - Personal tool: no marketing, no onboarding aimed at strangers.
 
 ## Evidence on Hand

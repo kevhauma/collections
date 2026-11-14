@@ -12,7 +12,7 @@ export const Layout = ({ children }: { children: ReactNode }) => (
   <div className="mx-auto flex min-h-dvh max-w-3xl flex-col px-4 sm:px-8 xl:max-w-6xl">
     <header className="flex flex-wrap items-center justify-between gap-x-6 pt-sq">
       <a href="/" className="inline-flex min-h-11 items-center font-hand text-4xl leading-none text-ink no-underline">
-        <Trans id="app.name">Collections</Trans>
+        <Trans id="app.name">Hoardr</Trans>
       </a>
       <div className="flex flex-wrap items-center gap-3">
         <LocaleSwitcher />
@@ -24,7 +24,7 @@ export const Layout = ({ children }: { children: ReactNode }) => (
       {children}
     </main>
     <footer className="py-4 text-sm text-pencil">
-      <Trans id="app.name">Collections</Trans>
+      <Trans id="app.name">Hoardr</Trans>
     </footer>
   </div>
 );

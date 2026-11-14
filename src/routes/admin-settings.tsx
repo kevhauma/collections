@@ -48,7 +48,7 @@ export default function AdminSettings({ actionData }: { actionData?: Saved }) {
   const { t } = useLingui();
   return (
     <div className="grid max-w-xl gap-6">
-      <title>{t({ id: "settings.title", message: "Settings · Collections" })}</title>
+      <title>{t({ id: "settings.title", message: "Settings · Hoardr" })}</title>
       <h1>
         <Trans id="settings.heading">Settings</Trans>
       </h1>

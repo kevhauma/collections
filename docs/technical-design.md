@@ -178,7 +178,7 @@ session cookie.
 
 ## Export (backup)
 
-`GET /admin/export` streams `collections-export-<date>.zip`:
+`GET /admin/export` streams `hoardr-export-<date>.zip`:
 
 ```
 data.json            # full backup: settings, collections, fields, items. The format v2 restore reads.

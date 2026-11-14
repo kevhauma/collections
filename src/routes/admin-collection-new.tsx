@@ -30,7 +30,7 @@ export default function NewCollection({ actionData }: { actionData?: Rejected })
   const { errors, values } = actionData ?? blank;
   return (
     <div className="grid max-w-xl gap-6">
-      <title>{t({ id: "collections.new.title", message: "New collection · Collections" })}</title>
+      <title>{t({ id: "collections.new.title", message: "New collection · Hoardr" })}</title>
       <h1>
         <Trans id="collections.new.heading">New collection</Trans>
       </h1>

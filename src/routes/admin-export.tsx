@@ -14,7 +14,7 @@ export default function AdminExport() {
   const { t } = useLingui();
   return (
     <div className="grid max-w-2xl gap-8">
-      <title>{t({ id: "export.title", message: "Export · Collections" })}</title>
+      <title>{t({ id: "export.title", message: "Export · Hoardr" })}</title>
       <h1>
         <Trans id="export.heading">Export</Trans>
       </h1>

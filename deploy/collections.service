@@ -1,6 +1,6 @@
 # systemd unit: runs `npm start` in the checkout you git pull into. Install: docs/platform/deploy.md § Without Docker
 [Unit]
-Description=Collections
+Description=Hoardr
 After=network.target
 
 [Service]

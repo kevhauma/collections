@@ -53,7 +53,7 @@ export default function Setup({ actionData }: { actionData?: ActionData }) {
   const errors = actionData?.errors ?? {};
   return (
     <div className="mx-auto grid max-w-md gap-6 py-6">
-      <title>{t({ id: "setup.title", message: "Set up · Collections" })}</title>
+      <title>{t({ id: "setup.title", message: "Set up · Hoardr" })}</title>
       <h1>
         <Trans id="setup.heading">Welcome</Trans>
       </h1>

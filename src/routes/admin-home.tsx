@@ -24,10 +24,10 @@ function Dashboard() {
   const newHref = "/admin/collections/new";
   return (
     <div className="grid gap-8">
-      <title>{t({ id: "app.name", message: "Collections" })}</title>
+      <title>{t({ id: "app.name", message: "Hoardr" })}</title>
       <div className="flex flex-wrap items-end gap-4">
         <h1>
-          <Trans id="app.name">Collections</Trans>
+          <Trans id="admin.nav.collections">Collections</Trans>
         </h1>
         {collections.length > 0 && (
           <LinkButton href={newHref} variant="primary" className="sm:ml-auto">

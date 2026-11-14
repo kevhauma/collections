@@ -12,7 +12,7 @@ const version = 1;
 const imagePath = (id: string) => `images/${id}.webp`;
 const iso = (unixSeconds: number) => new Date(unixSeconds * 1000).toISOString();
 
-export const exportFilename = (now = new Date()): string => `collections-export-${now.toISOString().slice(0, 10)}.zip`;
+export const exportFilename = (now = new Date()): string => `hoardr-export-${now.toISOString().slice(0, 10)}.zip`;
 
 // A value as plain text: numbers as typed, checkbox true/false, dates ISO (as stored), nothing for a missing value.
 const plain = (value: unknown) => (value === undefined || value === null ? "" : String(value));

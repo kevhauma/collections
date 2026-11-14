@@ -1,4 +1,4 @@
-# Deploying Collections
+# Deploying Hoardr
 
 One Docker image, one data volume, behind your own TLS reverse proxy. Built from the repository's
 [Dockerfile](../../Dockerfile). Ticket: [TICKET-PLAT-04](tickets/TICKET-PLAT-04-docker-deployment.md).

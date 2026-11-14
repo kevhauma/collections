@@ -144,6 +144,6 @@ describe("buildExport", () => {
   });
 
   it("names the file after the day", () => {
-    expect(exportFilename(new Date("2026-11-13T23:30:00Z"))).toBe("collections-export-2026-11-13.zip");
+    expect(exportFilename(new Date("2026-11-13T23:30:00Z"))).toBe("hoardr-export-2026-11-13.zip");
   });
 });

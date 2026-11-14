@@ -1,5 +1,5 @@
 ---
-name: Collections
+name: Hoardr
 description: A collection kept on one notebook page, drawn in blue ballpoint on squared paper, with item photos as post-its.
 colors:
   paper: "#fdfdfb"
@@ -152,7 +152,7 @@ components:
     size: "176px"
 ---
 
-# Design System: Collections
+# Design System: Hoardr
 
 ## Overview
 

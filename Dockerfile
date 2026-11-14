@@ -1,4 +1,4 @@
-# Collections: one image, one /data volume. Deploy guide: docs/platform/deploy.md
+# Hoardr: one image, one /data volume. Deploy guide: docs/platform/deploy.md
 
 # Build: install everything, build the three Vite environments, then drop dev dependencies.
 FROM node:26-slim AS build

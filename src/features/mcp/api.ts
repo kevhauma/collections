@@ -32,7 +32,7 @@ const metadataOptions = (request: Request): AuthMetadataOptions => {
   const issuer = issuerOf(request);
   return {
     resourceServerUrl: new URL(resourceOf(request)),
-    resourceName: "Collections",
+    resourceName: "Hoardr",
     oauthMetadata: {
       issuer,
       authorization_endpoint: `${issuer}/admin/authorize`,

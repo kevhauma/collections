@@ -13,7 +13,7 @@ export default function Home() {
   const collections = listPublic();
   return (
     <div className="grid gap-8">
-      <title>{t({ id: "app.name", message: "Collections" })}</title>
+      <title>{t({ id: "app.name", message: "Hoardr" })}</title>
       <meta
         name="description"
         content={t({ id: "home.description", message: "Shared collections: what the owner has, and what they want." })}

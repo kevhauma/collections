@@ -22,7 +22,7 @@ export const RouteError = ({ error }: { error?: unknown }) => {
       };
   return (
     <div className="flex flex-wrap items-center gap-8 py-10">
-      <title>{`${page.title} · ${t({ id: "app.name", message: "Collections" })}`}</title>
+      <title>{`${page.title} · ${t({ id: "app.name", message: "Hoardr" })}`}</title>
       <PostIt size="lg" color="pink" tilt="right">
         <span className="font-hand text-7xl leading-none text-red-pen">{page.code}</span>
       </PostIt>
