@@ -20,7 +20,7 @@ import { CollectionNameFields } from "./collection-name-fields";
 import { ImageSection } from "./image-section";
 
 // /admin/c/:slug/settings (TICKET-COL-01): name, slug, visibility, default view, default sort (TICKET-COL-07), the
-// picture (TICKET-COL-06), and deletion.
+// title link (TICKET-COL-09), the picture (TICKET-COL-06), and deletion.
 
 // The page reads the collection itself: after a form post, React Router's RSC mode renders without rerunning
 // loaders (loaderData is null), so the loader only guards.
@@ -56,8 +56,12 @@ const save = async (collection: Collection, form: FormInput) => {
   // A hand-edited slug is never auto-suffixed: taken (by another collection) or reserved is an error.
   const taken = listSlugs();
   taken.delete(collection.slug);
-  const sortable = new Set(["created", ...listFields(collection.id).map((field) => String(field.id))]);
-  const parsed = parseSettings(form, taken, sortable);
+  const fields = listFields(collection.id);
+  const parsed = parseSettings(form, {
+    taken,
+    sortable: new Set(["created", ...fields.map((field) => String(field.id))]),
+    linkable: new Set(fields.filter((field) => field.type === "url").map((field) => String(field.id))),
+  });
   // Settings are checked before any image work, so a refused save never leaves picture files behind.
   if (!parsed.success) return rejected(parsed.error, form);
   const { name, slug } = parsed.data;
@@ -99,6 +103,36 @@ const DefaultSort = ({ collection, fields }: { collection: Collection; fields: F
         ]}
       />
     </>
+  );
+};
+
+// The url field the title links to, or nothing. A field that is no longer a url field isn't offered, so it shows
+// "Nothing" and saving clears it.
+const TitleLink = ({ collection, fields }: { collection: Collection; fields: Field[] }) => {
+  const { t } = useLingui();
+  const options = [
+    { value: "", label: t({ id: "collections.settings.titleLinkNone", message: "Nothing" }) },
+    ...fields.filter((field) => field.type === "url").map((field) => ({ value: String(field.id), label: field.label })),
+  ];
+  return (
+    <FormField
+      id="settings-title-link"
+      label={t({ id: "collections.settings.titleLink", message: "Title links to" })}
+      hint={t({
+        id: "collections.settings.titleLinkHint",
+        message: "A link field. On public pages the title opens it; in admin it's the ↗ next to the title.",
+      })}
+    >
+      {(control) => (
+        <Select {...control} name="titleLinkFieldId" defaultValue={String(collection.titleLinkFieldId ?? "")}>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
+      )}
+    </FormField>
   );
 };
 
@@ -147,6 +181,7 @@ export default function CollectionSettings({ params, actionData }: { params: Par
             ]}
           />
           <DefaultSort collection={collection} fields={listFields(collection.id)} />
+          <TitleLink collection={collection} fields={listFields(collection.id)} />
           <fieldset className="grid gap-4">
             <legend className="mb-1 font-bold">
               <Trans id="collections.settings.picture">Picture</Trans>

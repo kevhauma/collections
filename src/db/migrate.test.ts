@@ -182,3 +182,16 @@ describe("006-default-sort", () => {
     expect(() => db!.prepare("update collections set default_dir = 'up'").run()).toThrow(/CHECK/);
   });
 });
+
+describe("007-title-link", () => {
+  it("adds title_link_field_id (null), set to null when its field is deleted", () => {
+    db = atVersion(6);
+    db.prepare("insert into collections (id, slug, name) values (1, 'records', 'Records')").run();
+    expect(migrate(db)).toContain("007-title-link.sql");
+    expect(db.prepare("select title_link_field_id from collections").get()).toEqual({ title_link_field_id: null });
+    db.prepare("insert into fields (id, collection_id, label, type, position) values (9, 1, 'Shop', 'url', 1)").run();
+    db.prepare("update collections set title_link_field_id = 9").run();
+    db.prepare("delete from fields where id = 9").run();
+    expect(db.prepare("select title_link_field_id from collections").get()).toEqual({ title_link_field_id: null });
+  });
+});

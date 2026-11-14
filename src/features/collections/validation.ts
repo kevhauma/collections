@@ -29,9 +29,19 @@ export const parseCreate = (form: FormInput, taken: ReadonlySet<string>) =>
     slug: form.slug || uniqueSlug(slugify(String(form.name ?? "")), taken),
   });
 
-// `sortable`: what the default sort may be, besides "" for the title: "created" and the collection's own field ids.
-// Anything else (a forged id) has no message key, so the form just doesn't save.
-export const parseSettings = (form: FormInput, taken: ReadonlySet<string>, sortable: ReadonlySet<string>) =>
+// The collection's own choices, as the form posts them. `taken`: other collections' slugs. `sortable`: what the default
+// sort may be besides "" for the title ("created" and the field ids, TICKET-COL-07). `linkable`: its url field ids
+// (TICKET-COL-09). A value outside them (forged) has no message key, so the form just doesn't save.
+type SettingsChoices = { taken: ReadonlySet<string>; sortable: ReadonlySet<string>; linkable: ReadonlySet<string> };
+
+// "" is none (null); anything else must be one of `allowed`.
+const optionalChoice = (allowed: ReadonlySet<string>) =>
+  z
+    .string()
+    .refine((value) => value === "" || allowed.has(value))
+    .transform((value) => value || null);
+
+export const parseSettings = (form: FormInput, { taken, sortable, linkable }: SettingsChoices) =>
   z
     .object({
       ...fields(taken),
@@ -41,10 +51,8 @@ export const parseSettings = (form: FormInput, taken: ReadonlySet<string>, sorta
         .optional()
         .transform((on) => (on ? 1 : 0) as 0 | 1),
       defaultView: z.enum(defaultViews),
-      defaultSort: z
-        .string()
-        .refine((sort) => sort === "" || sortable.has(sort))
-        .transform((sort) => sort || null),
+      defaultSort: optionalChoice(sortable),
       defaultDir: z.enum(sortDirections),
+      titleLinkFieldId: optionalChoice(linkable).transform((id) => (id === null ? null : Number(id))),
     })
     .safeParse(form);

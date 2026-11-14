@@ -33,6 +33,9 @@ can also connect an AI agent through the MCP server at `/api/mcp`, which acts as
 - `default_sort` / `default_dir` (TICKET-COL-07): the have tab's order when the URL has no `sort`, stored as the `sort`
   param takes it (`created` or a field id; null = the title). Checked on read: a deleted field, or a private one on a
   public page, falls back to the title. The want tab always opens by rank.
+- `title_link_field_id` (TICKET-COL-09): a `url` field the title links to, `ON DELETE SET NULL`. On public pages the
+  title opens the item's value there; in admin the title stays the edit link and a "↗" opens the source. Used only
+  while the field is still a `url` field the viewer may see, and only for an http(s) value.
 
 ### Field
 
@@ -188,7 +191,8 @@ collections(id INTEGER PRIMARY KEY, slug TEXT UNIQUE NOT NULL, name TEXT NOT NUL
             is_public INTEGER NOT NULL DEFAULT 0, default_view TEXT NOT NULL DEFAULT 'table',
             title_field_id INTEGER, created_at INTEGER, updated_at INTEGER,
             image TEXT,  -- 004
-            default_sort TEXT, default_dir TEXT NOT NULL DEFAULT 'asc')  -- 006
+            default_sort TEXT, default_dir TEXT NOT NULL DEFAULT 'asc',  -- 006
+            title_link_field_id INTEGER REFERENCES fields ON DELETE SET NULL)  -- 007
 fields(id INTEGER PRIMARY KEY, collection_id INTEGER NOT NULL REFERENCES collections ON DELETE CASCADE,
        label TEXT NOT NULL, type TEXT NOT NULL, options_json TEXT, required INTEGER NOT NULL DEFAULT 0,
        is_public INTEGER NOT NULL DEFAULT 1, position INTEGER NOT NULL,

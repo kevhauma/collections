@@ -11,6 +11,7 @@ import {
   listSlugs,
   updateCollection,
 } from "./collections";
+import { createField, deleteField, listFields } from "./fields";
 import { createItem } from "./items";
 import { db } from "./connection";
 
@@ -57,7 +58,8 @@ describe("collections repository", () => {
   it("updates name, slug, visibility, default view and default sort", () => {
     const { id } = getCollectionBySlug("vinyl")!;
     expect(getCollectionBySlug("vinyl")).toMatchObject({ defaultSort: null, defaultDir: "asc" });
-    updateCollection(id, { name: "Records", slug: "records", isPublic: 1, defaultView: "grid", defaultSort: "created", defaultDir: "desc" });
+    const settings = { name: "Records", slug: "records", isPublic: 1, defaultView: "grid", defaultSort: "created", defaultDir: "desc" } as const;
+    updateCollection(id, { ...settings, titleLinkFieldId: null });
     expect(getCollectionBySlug("vinyl")).toBeUndefined();
     expect(getCollectionBySlug("records")).toMatchObject({
       id,
@@ -67,6 +69,21 @@ describe("collections repository", () => {
       defaultSort: "created",
       defaultDir: "desc",
     });
+  });
+
+  it("sets and clears the title link, and clears it when its field is deleted (TICKET-COL-09)", () => {
+    createCollection("Comics", "comics", "Title");
+    const comics = getCollectionBySlug("comics")!;
+    expect(comics.titleLinkFieldId).toBeNull();
+    createField(comics.id, { label: "Shop", type: "url", options: null, required: 0, isPublic: 1, prefix: null, suffix: null });
+    const shop = listFields(comics.id).find((field) => field.label === "Shop")!;
+    updateCollection(comics.id, { ...comics, titleLinkFieldId: shop.id });
+    expect(getCollectionBySlug("comics")!.titleLinkFieldId).toBe(shop.id);
+    updateCollection(comics.id, { ...comics, titleLinkFieldId: null });
+    expect(getCollectionBySlug("comics")!.titleLinkFieldId).toBeNull();
+    updateCollection(comics.id, { ...comics, titleLinkFieldId: shop.id });
+    deleteField(comics.id, shop.id);
+    expect(getCollectionBySlug("comics")!.titleLinkFieldId).toBeNull();
   });
 
   it("sets, keeps and clears the picture (TICKET-COL-06)", () => {

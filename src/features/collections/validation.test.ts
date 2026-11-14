@@ -35,13 +35,13 @@ describe("parseCreate", () => {
 });
 
 describe("parseSettings", () => {
-  const base = { name: "Vinyl", slug: "vinyl", defaultView: "grid", defaultSort: "", defaultDir: "asc" };
-  // The collection's own fields 6 and 7, plus date added (TICKET-COL-07).
-  const sortable = new Set(["created", "6", "7"]);
-  const settings = (form: Record<string, string>, slugs = new Set<string>()) => parseSettings(form, slugs, sortable);
+  const base = { name: "Vinyl", slug: "vinyl", defaultView: "grid", defaultSort: "", defaultDir: "asc", titleLinkFieldId: "" };
+  // The collection's own fields 6 and 7 (7 a url field), plus date added (TICKET-COL-07, TICKET-COL-09).
+  const choices = { sortable: new Set(["created", "6", "7"]), linkable: new Set(["7"]) };
+  const settings = (form: Record<string, string>, taken = new Set<string>()) => parseSettings(form, { ...choices, taken });
 
   it("reads the public checkbox as 1 when ticked and 0 when absent", () => {
-    expect(settings({ ...base, isPublic: "on" }).data).toEqual({ ...base, defaultSort: null, isPublic: 1 });
+    expect(settings({ ...base, isPublic: "on" }).data).toEqual({ ...base, defaultSort: null, titleLinkFieldId: null, isPublic: 1 });
     expect(settings(base).data?.isPublic).toBe(0);
   });
 
@@ -59,5 +59,14 @@ describe("parseSettings", () => {
   it("refuses a forged default sort: another collection's field, rank, junk, or an unknown direction", () => {
     for (const defaultSort of ["99", "rank", "title", "6 or 1=1"]) expect(settings({ ...base, defaultSort }).success).toBe(false);
     expect(settings({ ...base, defaultDir: "up" }).success).toBe(false);
+  });
+
+  it("reads the title link: nothing, or one of the collection's url fields (TICKET-COL-09)", () => {
+    expect(settings(base).data?.titleLinkFieldId).toBeNull();
+    expect(settings({ ...base, titleLinkFieldId: "7" }).data?.titleLinkFieldId).toBe(7);
+  });
+
+  it("refuses a title link to a non-url field, another collection's field or junk", () => {
+    for (const titleLinkFieldId of ["6", "99", "created", "7 "]) expect(settings({ ...base, titleLinkFieldId }).success).toBe(false);
   });
 });

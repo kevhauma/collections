@@ -1,7 +1,7 @@
 # TICKET-COL-09: Link the title to a URL field (source link)
 
 - **Area:** Collections
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Type:** Feature
 - **Traceability:** [technical-design.md § Collection](../../technical-design.md#collection) (extends it, next to `title_field_id`), [TICKET-ITM-05](../../items/tickets/TICKET-ITM-05-collection-views.md) (the views it changes)
 
@@ -48,19 +48,37 @@ there, its title becomes a link to it on the public pages. In admin it gets a sm
 
 ## Acceptance criteria
 
-- [ ] With "Title links to: Shop link" set on a collection, a want with a shop link has a clickable title on its
-      public page that opens that URL. A want without one shows plain text.
-- [ ] In admin, clicking the title still opens the edit page, and the "↗" next to it opens the source.
-- [ ] Making the link field private removes the links from public pages. Its URLs appear nowhere in public HTML.
-- [ ] Deleting the link field, or changing its type away from `url`, turns the titles back into plain text without
-      an error.
-- [ ] A forged `titleLinkFieldId` (a non-URL field, another collection's field) is rejected.
-- [ ] Persistence goes through `src/db/collections.ts`. The action calls `requireAdmin()` and validates with zod.
-- [ ] Unit tests cover: the migration on a version-4 DB, setting/clearing the link field, `ON DELETE SET NULL` when the
-      field is deleted, and the validation rejecting non-URL and foreign fields.
-- [ ] UI follows the design direction in `.impeccable/surfaces/src-ui.md`; live browser check of the have and want
-      tabs (table and grid), admin and public, at 360 px and desktop, JS on and off.
-- [ ] Verified with the fallow skill.
+- [x] With "Title links to: Shop link" set on a collection, a want with a shop link has a clickable title on its
+      public page that opens that URL. A want without one shows plain text. (Scratch instance, 2026-11-14, "Title
+      links to: Discogs" saved in settings: on `/vinyl/want` in table and grid, What's Going On and Blue link to their
+      discogs.com URLs with `rel="noreferrer"`; Rumours, without a value, is plain text. `Title` / `sourceOf` in
+      `src/routes/item-views.tsx`.)
+- [x] In admin, clicking the title still opens the edit page, and the "↗" next to it opens the source. (Same list in
+      admin, table and grid: title → `/admin/c/vinyl/items/<id>`, then a "↗" labelled "Source of <title>" → the
+      URL; 24×24 px at 360 px.)
+- [x] Making the link field private removes the links from public pages. Its URLs appear nowhere in public HTML.
+      (Discogs made private: `discogs` occurs 0 times in the public want table, want grid and have HTML; admin keeps
+      its 2 "↗" links. The link field is resolved from the viewer's own fields, and `publicOnly` strips the values.)
+- [x] Deleting the link field, or changing its type away from `url`, turns the titles back into plain text without
+      an error. (Discogs changed to text: no title links to it on public or admin pages; deleted:
+      `title_link_field_id` went to null and the pages rendered with plain titles.)
+- [x] A forged `titleLinkFieldId` (a non-URL field, another collection's field) is rejected. (`parseSettings` takes
+      only "" or the collection's url field ids; tests "refuses a title link to a non-url field, another
+      collection's field or junk". Live: the form posted with the text Title field's id saved nothing.)
+- [x] Persistence goes through `src/db/collections.ts`. The action calls `requireAdmin()` and validates with zod.
+      (`updateCollection` writes `title_link_field_id`; the settings action is `collectionAction` with
+      `requireAdmin()` and the zod `parseSettings`.)
+- [x] Unit tests cover: the migration on a version-4 DB, setting/clearing the link field, `ON DELETE SET NULL` when the
+      field is deleted, and the validation rejecting non-URL and foreign fields. (`migrate.test.ts` "007-title-link"
+      on a version-6 DB, since 005 and 006 shipped meanwhile; `collections.test.ts` "sets and clears the title link,
+      and clears it when its field is deleted"; `validation.test.ts` "reads the title link" and "refuses a title link
+      …".)
+- [x] UI follows the design direction in `.impeccable/surfaces/src-ui.md`; live browser check of the have and want
+      tabs (table and grid), admin and public, at 360 px and desktop, JS on and off. (Orca at 1440 px and 360 px:
+      public titles carry the ink underline, the admin "↗" sits on the title line without one. Headless Chrome with
+      scripts disabled: choosing Discogs and saving said "Saved.", and the public want titles linked out. DESIGN.md
+      tables section and technical-design § Collection describe it.)
+- [x] Verified with the fallow skill. (`npx fallow@3.43.0 audit --base HEAD`: no issues in 14 changed files.)
 
 ## Notes
 

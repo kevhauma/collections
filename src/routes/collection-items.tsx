@@ -24,7 +24,7 @@ export const statusOf = (tab: string | undefined): ItemStatus => {
 
 type CollectionItemsProps = {
   mode: ItemViewProps["mode"];
-  collection: Pick<Collection, "slug" | "defaultView" | "titleFieldId">;
+  collection: Pick<Collection, "slug" | "defaultView" | "titleFieldId" | "titleLinkFieldId">;
   status: ItemStatus;
   view: ReturnType<typeof itemView>;
   counts: Record<ItemStatus, number>;
@@ -107,6 +107,7 @@ export const CollectionItems = ({ collection, status, view, counts, base, addAct
         items={items}
         fields={fields}
         titleFieldId={collection.titleFieldId}
+        titleLinkFieldId={fields.find((field) => field.id === collection.titleLinkFieldId && field.type === "url")?.id}
         sortLink={(sort) => {
           const { next, direction } = sortToggle(list, sort);
           return { href: hrefFor(next), direction };

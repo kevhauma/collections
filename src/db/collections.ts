@@ -16,6 +16,8 @@ export type Collection = {
   defaultSort: string | null;
   defaultDir: (typeof sortDirections)[number];
   titleFieldId: number;
+  // A url field the title links to (TICKET-COL-09), cleared when the field is deleted.
+  titleLinkFieldId: number | null;
   // The collection's picture (TICKET-COL-06): an image id, files as for item images.
   image: string | null;
 };
@@ -25,10 +27,13 @@ type CollectionSummary = Pick<Collection, "id" | "slug" | "name" | "isPublic" | 
   wantCount: number;
 };
 
-export type CollectionSettings = Pick<Collection, "name" | "slug" | "isPublic" | "defaultView" | "defaultSort" | "defaultDir">;
+export type CollectionSettings = Pick<
+  Collection,
+  "name" | "slug" | "isPublic" | "defaultView" | "defaultSort" | "defaultDir" | "titleLinkFieldId"
+>;
 
 export const columns = `id, slug, name, is_public as isPublic, default_view as defaultView, default_sort as defaultSort,
-  default_dir as defaultDir, title_field_id as titleFieldId, image`;
+  default_dir as defaultDir, title_field_id as titleFieldId, title_link_field_id as titleLinkFieldId, image`;
 
 const summaries = (publicOnly: boolean): CollectionSummary[] =>
   db()
@@ -68,7 +73,7 @@ export const updateCollection = (id: number, settings: CollectionSettings, image
   db()
     .prepare(
       `update collections set name = @name, slug = @slug, is_public = @isPublic, default_view = @defaultView,
-         default_sort = @defaultSort, default_dir = @defaultDir,
+         default_sort = @defaultSort, default_dir = @defaultDir, title_link_field_id = @titleLinkFieldId,
          image = iif(@keepImage, image, @image), updated_at = unixepoch() where id = @id`,
     )
     .run({ ...settings, id, image: image ?? null, keepImage: image === undefined ? 1 : 0 });

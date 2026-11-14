@@ -4,6 +4,7 @@ import type { Field, FieldType } from "../db/fields";
 import type { Item, ItemSort, ItemStatus } from "../db/items";
 import { affixes, isBlank } from "../features/collections/affixes";
 import { postItLook } from "../features/items/post-it-look";
+import { isHttpUrl } from "../features/items/schema";
 import { imageUrl, thumbUrl } from "../features/images/shared";
 import { formatDate, formatNumber } from "../i18n";
 import { Dialog } from "../ui/dialog";
@@ -27,6 +28,8 @@ export type ItemViewProps = {
   // The fields to show, in position order.
   fields: Field[];
   titleFieldId: number;
+  // The url field the title links to (TICKET-COL-09), only when it's one of `fields` and still a url field.
+  titleLinkFieldId?: number;
   slug: string;
   sortLink: (sort: ItemSort) => SortLink;
   // Admin want tab sorted by rank (TICKET-ITM-03): rank inputs, plus drag handles when the rows shown are the whole
@@ -78,15 +81,38 @@ const FieldValue = ({ field, value, children }: { field: Field; value: unknown; 
 
 const titleOf = (item: Item, titleFieldId: number) => String(item.values[titleFieldId] ?? "");
 
-type TitleProps = Pick<ItemViewProps, "mode" | "slug" | "titleFieldId"> & { item: Item };
+type TitleProps = Pick<ItemViewProps, "mode" | "slug" | "titleFieldId" | "titleLinkFieldId"> & { item: Item };
 
-// The admin edits an item from its title; visitors only read it.
-const Title = ({ mode, slug, titleFieldId, item }: TitleProps) =>
-  mode === "admin" ? (
-    <a href={`/admin/c/${slug}/items/${item.id}`}>{titleOf(item, titleFieldId)}</a>
-  ) : (
-    titleOf(item, titleFieldId)
+// The item's source link (TICKET-COL-09): its value in the title link field, if it's an http(s) address.
+const sourceOf = (item: Item, titleLinkFieldId?: number) => {
+  const value = titleLinkFieldId === undefined ? undefined : item.values[titleLinkFieldId];
+  return typeof value === "string" && isHttpUrl(value) ? value : undefined;
+};
+
+// The admin edits an item from its title, with a small ↗ to its source; for visitors the title opens the source.
+const Title = ({ mode, slug, titleFieldId, titleLinkFieldId, item }: TitleProps) => {
+  const { t } = useLingui();
+  const title = titleOf(item, titleFieldId);
+  const source = sourceOf(item, titleLinkFieldId);
+  if (mode === "public") return source ? <a href={source} rel="noreferrer">{title}</a> : title;
+  const label = t({ id: "items.title.source", message: `Source of ${title}` });
+  return (
+    <>
+      <a href={`/admin/c/${slug}/items/${item.id}`}>{title}</a>
+      {source && (
+        <a
+          href={source}
+          rel="noreferrer"
+          aria-label={label}
+          title={label}
+          className="ml-1 inline-flex min-h-6 min-w-6 items-center justify-center no-underline"
+        >
+          ↗
+        </a>
+      )}
+    </>
   );
+};
 
 type ThumbnailProps = { item: Item; alt: string; className?: string; size: "sm" | "md" };
 
@@ -232,7 +258,7 @@ const TableCells = ({ item, ...props }: ItemViewProps & { item: Item }) => (
         {field.id === props.titleFieldId ? (
           <strong>
             <FieldValue field={field} value={item.values[field.id]}>
-              <Title mode={props.mode} slug={props.slug} titleFieldId={props.titleFieldId} item={item} />
+              <Title {...props} item={item} />
             </FieldValue>
           </strong>
         ) : (
@@ -303,7 +329,7 @@ const GridCard = ({ item, shown, titleField, ...props }: ItemViewProps & { item:
     <div className="grid">
       <strong>
         <FieldValue field={titleField} value={item.values[titleField.id]}>
-          <Title mode={props.mode} slug={props.slug} titleFieldId={props.titleFieldId} item={item} />
+          <Title {...props} item={item} />
         </FieldValue>
         {props.status === "have" && <Quantity quantity={item.quantity} />}
       </strong>
