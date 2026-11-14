@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **25 / 26 done**
+Progress: **25 / 27 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -38,6 +38,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 24 ‖ | [COL-05](../../collections/tickets/TICKET-COL-05-rating-field.md) | Rating field | M7 After the first cut | COL-03 | ✅ |
 | 25 ‖ | [UI-03](../../ui/tickets/TICKET-UI-03-dark-mode.md) | Dark mode | M7 After the first cut | UI-02, I18N-02 | ✅ |
 | 26 ‖ | [COL-06](../../collections/tickets/TICKET-COL-06-collection-picture.md) | Collection picture | M7 After the first cut | COL-01, ITM-04, BAK-01 (built) | ✅ |
+| 27 ‖ | [MCP-01](../../mcp/tickets/TICKET-MCP-01-admin-mcp-server.md) | MCP server for admin edits by an AI agent | M7 After the first cut | AUTH-02, ITM-02, COL-03 | 🔄 |
 
 ## Why this order
 

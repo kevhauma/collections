@@ -4,12 +4,12 @@ import { data, redirect, type LoaderFunctionArgs, type Params } from "react-rout
 import { requestContext } from "../context";
 import type { Collection } from "../db/collections";
 import { listFields, type Field, type FieldType } from "../db/fields";
-import { createItem, deleteItem, getItem, updateItem, type Item, type ItemStatus, type ItemWrite } from "../db/items";
+import { getItem, type Item, type ItemStatus } from "../db/items";
 import { requireAdmin } from "../features/auth/guard";
 import { collectionAction, requireCollection } from "../features/collections/require-collection";
 import type { FormInput } from "../features/collections/validation";
-import { commitImage } from "../features/images/change";
 import { prepareFormImage } from "../features/images/form";
+import { removeItem, saveItem } from "../features/items/item-changes";
 import { translateItemErrors } from "../features/items/messages";
 import { parseItemForm } from "../features/items/schema";
 import { Button } from "../ui/button";
@@ -50,13 +50,6 @@ type Rejected = { errors: Errors; values: FormValues };
 const typed = (form: FormInput): FormValues =>
   Object.fromEntries(Object.entries(form).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
 
-// Returns the saved item's id.
-const write = (collectionId: number, item: Item | undefined, input: ItemWrite): number => {
-  if (!item) return createItem(collectionId, input);
-  updateItem(collectionId, item.id, input);
-  return item.id;
-};
-
 type Intent = (collection: Collection, form: FormInput, item: Item | undefined) => Promise<Response | Rejected>;
 
 // Values are checked before any image work, so a form with errors never leaves image files behind.
@@ -65,16 +58,14 @@ const save: Intent = async (collection, form, item) => {
   if (!parsed.success) return { errors: translateItemErrors(parsed.errors), values: typed(form) };
   const prepared = await prepareFormImage(form);
   if ("errors" in prepared) return { errors: prepared.errors, values: typed(form) };
-  const { image } = prepared;
-  const id = await commitImage(image, item?.image, () => write(collection.id, item, { ...parsed.data, image }));
+  const id = await saveItem(collection.id, item, { ...parsed.data, image: prepared.image });
   // Back to the tab the item now lives on, scrolled to it.
   return redirect(`${listHref(collection.slug, parsed.data.status)}#item-${id}`);
 };
 
-// Its image files go once the row is gone.
 const remove: Intent = async (collection, _form, item) => {
   if (!item) throw new Response(null, { status: 400 });
-  await commitImage(null, item.image, () => deleteItem(collection.id, item.id));
+  await removeItem(collection.id, item);
   return redirect(listHref(collection.slug, item.status));
 };
 

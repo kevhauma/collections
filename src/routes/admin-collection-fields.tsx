@@ -2,10 +2,11 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { redirect, type LoaderFunctionArgs, type Params } from "react-router";
 import { z } from "zod";
 import type { Collection } from "../db/collections";
-import { countRatedAbove, createField, deleteField, listFields, moveField, renameOption, updateField } from "../db/fields";
+import { deleteField, listFields, moveField, renameOption } from "../db/fields";
 import { requireAdmin } from "../features/auth/guard";
-import { labelsOf, parseFieldEdit, parseNewField, parseOptionRename } from "../features/collections/field-schema";
-import { fieldRejected, ratedAboveRejected, type FieldRejected } from "../features/collections/form";
+import { addField, editField } from "../features/collections/field-changes";
+import { parseOptionRename } from "../features/collections/field-schema";
+import { fieldRejected, type FieldRejected } from "../features/collections/form";
 import { collectionAction, requireCollection } from "../features/collections/require-collection";
 import type { FormInput } from "../features/collections/validation";
 import { Card } from "../ui/card";
@@ -48,20 +49,10 @@ const back = (collection: Collection, id?: number) =>
 type Intent = (collection: Collection, form: FormInput) => Response | FieldRejected;
 
 const intents: Record<string, Intent> = {
-  add: (collection, form) => {
-    const parsed = parseNewField(form, labelsOf(listFields(collection.id)));
-    if (!parsed.success) return fieldRejected(parsed.error, form, "new");
-    createField(collection.id, parsed.data);
-    return back(collection);
-  },
+  add: (collection, form) => addField(collection, form) ?? back(collection),
   edit: (collection, form) => {
     const field = fieldOf(collection, form);
-    const parsed = parseFieldEdit(form, field, labelsOf(listFields(collection.id), field.id));
-    if (!parsed.success) return fieldRejected(parsed.error, form, field.id);
-    if (updateField(collection.id, field.id, parsed.data)) return back(collection, field.id);
-    // The one refusal for an existing field: a rating's maximum below what some items hold.
-    const max = parsed.data.ratingMax ?? 0;
-    return ratedAboveRejected(countRatedAbove(collection.id, field.id, max), max, form, field.id);
+    return editField(collection, field, form) ?? back(collection, field.id);
   },
   // renameOption refuses an unknown option; an unchanged name just goes back.
   renameOption: (collection, form) => {

@@ -34,7 +34,7 @@ npm run reset-password # admin password recovery; --stdin for scripted use (scri
 ```
 src/
   entry.rsc.tsx  entry.ssr.tsx  entry.browser.tsx  # RSC entries: the learning surface, keep readable and commented
-  server.ts        # Express: static assets, /uploads, /healthz, /locale, Origin check, RSC handler
+  server.ts        # Express: static assets, /uploads, /healthz, Origin check, /api (entry.rsc `api`), RSC handler
   routes.ts        # React Router route config
   context.ts       # AsyncLocalStorage request context: request, locale, session
   routes/          # route modules: server components + their 'use server' actions
@@ -51,6 +51,10 @@ scripts/           # CLI scripts, run with plain `node` (native TS type strippin
   and sets `NODE_ENV=production` before loading it). Anything it needs from the app (e.g. `healthz`) is a named export
   of [src/entry.rsc.tsx](../../../src/entry.rsc.tsx), so app code stays inside the Vite bundle. Its own relative
   imports need the `.ts` extension.
+- `/api/*` and `/.well-known/oauth-*` (`isApiPath`, [src/lib/origin.ts](../../../src/lib/origin.ts)) bypass React
+  Router: `server.ts` hands them to the `api` export of `entry.rsc.tsx`, which dispatches in
+  [src/features/mcp/api.ts](../../../src/features/mcp/api.ts). They skip the cookie-based cross-origin check, never read
+  the session cookie, and authorize by Bearer token only (TICKET-MCP-01, ADR 0006).
 - Env: `PORT` (3000), `DATA_DIR` (`./data`, holds `db.sqlite`), `TRUST_PROXY` (parsed by `src/lib/env.ts`).
 - The [Dockerfile](../../../Dockerfile) runtime stage copies `dist/`, all of `src/` and `scripts/`, `migrations/` and
   the pruned `node_modules`. Deploy guide: `docs/platform/deploy.md`.
@@ -132,12 +136,21 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   and dispatches through a lookup object; successful posts redirect back (to `#<anchor>` of the changed row). Exemplar:
   [src/routes/admin-collection-fields.tsx](../../../src/routes/admin-collection-fields.tsx).
 - Form validation lives in `src/features/<area>/validation.ts` as zod schemas whose issue messages are **keys**, so
-  vitest can test it (vitest has no Lingui plugin, so a module using `msg` can't be imported in a test). A sibling
+  the rules stay pure and testable. (Since TICKET-MCP-01 vitest runs the Lingui plugin, so modules using `msg` can be
+  tested too; run them inside `runWithContext` with a locale.) A sibling
   `form.ts` maps the keys to `msg` ids and returns `{ errors, values }`, echoing what was typed so a no-JS reload keeps
   it. Exemplar: [src/features/collections/](../../../src/features/collections/) (`parseCreate`, `rejected`).
 - Config only some field types have (prefix/suffix, a rating's max/symbol) is listed in `typeInputs` in
   [field-schema.ts](../../../src/features/collections/field-schema.ts): other types ignore those inputs, so the no-JS
   form can render them for every type and hide them with `:has()`.
+
+- A write that both a route action and an MCP tool perform lives once in `src/features/<area>/`, taking the posted
+  inputs and returning the translated rejection or undefined: `addField` / `editField` in
+  [field-changes.ts](../../../src/features/collections/field-changes.ts), `saveItem` / `removeItem` (with their image
+  files) in [item-changes.ts](../../../src/features/items/item-changes.ts). An MCP tool
+  ([src/features/mcp/tools.ts](../../../src/features/mcp/tools.ts)) builds the same inputs the form posts (every field,
+  checkboxes as `"on"`) and throws the messages, which the SDK returns as a tool error.
+- Without a session, `requireAdmin()` sends a GET to `/admin?next=<path>`, and the login returns there.
 
 ## Data access (ADR 0003)
 
