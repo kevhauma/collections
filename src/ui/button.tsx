@@ -1,6 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes } from "react";
 import { cn } from "./cn";
+import { HoverMark, type Mark } from "./hover-mark";
 
 const button = cva(
   "ink-outline inline-flex cursor-pointer items-center justify-center gap-1.5 font-bold whitespace-nowrap no-underline transition-colors disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:highlighted",
@@ -23,12 +24,34 @@ const button = cva(
   },
 );
 
-type ButtonVariants = VariantProps<typeof button>;
+// `mark="cross"` for a control that deletes: hovering scribbles an X over it instead of circling it. It's set per
+// control, not by `danger`, because not every danger action deletes (revoking an app doesn't).
+type ButtonVariants = VariantProps<typeof button> & { mark?: Mark };
 
-export const Button = ({ variant, size, className, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & ButtonVariants) => (
-  <button className={cn(button({ variant, size }), className)} {...props} />
+export const Button = ({
+  variant,
+  size,
+  mark,
+  className,
+  children,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & ButtonVariants) => (
+  <button className={cn(button({ variant, size }), className)} {...props}>
+    {children}
+    <HoverMark mark={mark} />
+  </button>
 );
 
-export const LinkButton = ({ variant, size, className, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & ButtonVariants) => (
-  <a className={cn(button({ variant, size }), className)} {...props} />
+export const LinkButton = ({
+  variant,
+  size,
+  mark,
+  className,
+  children,
+  ...props
+}: AnchorHTMLAttributes<HTMLAnchorElement> & ButtonVariants) => (
+  <a className={cn(button({ variant, size }), className)} {...props}>
+    {children}
+    <HoverMark mark={mark} />
+  </a>
 );

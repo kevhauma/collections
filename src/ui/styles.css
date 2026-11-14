@@ -169,6 +169,66 @@
   }
 }
 
+/* The red pen on hover (TICKET-UI-05): HoverMark's loop or X, just past the control's edges, drawn in one quick
+   stroke while a pointer rests on it and gone at once when it leaves. Each stroke has pathLength 1, so a dash of
+   --stroke and an offset sliding from --stroke to 0 draws it from its start. Touch and reduced motion keep the colour
+   hover only. */
+@utility hover-mark {
+  position: absolute;
+  top: -10px;
+  left: -14px;
+  width: calc(100% + 28px);
+  height: calc(100% + 20px);
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+  stroke: var(--color-red-pen);
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  visibility: hidden;
+  & > g > * {
+    --stroke: 1;
+    stroke-dasharray: var(--stroke) 2;
+  }
+  & ellipse {
+    rotate: 180deg;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  /* A finer, lighter X, so the label under it stays readable. */
+  & line {
+    stroke-width: 1.1px;
+    stroke-opacity: 0.8;
+  }
+  /* The loop's run-on past its start: an eighth of the wider pass. */
+  & ellipse + ellipse {
+    --stroke: 0.12;
+  }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    :hover:not(:disabled) > & {
+      visibility: visible;
+    }
+    :hover > & > g > * {
+      animation: pen-stroke 300ms ease-out both;
+    }
+    :hover > & ellipse + ellipse {
+      animation: pen-stroke 60ms 280ms linear both;
+    }
+    :hover > & line + line {
+      animation-delay: 300ms;
+    }
+  }
+}
+
+@keyframes pen-stroke {
+  from {
+    stroke-dashoffset: var(--stroke);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* Drawn checkbox and radio: the control itself wobbles, like a box ticked by hand. */
 @utility ink-check {
   appearance: none;

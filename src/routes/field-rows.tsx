@@ -245,6 +245,7 @@ const OptionList = ({ field, slug, failed }: { field: Field; slug: string; faile
               <LinkButton
                 size="sm"
                 variant="danger"
+                mark="cross"
                 href={`/admin/c/${slug}/fields/${field.id}/remove-option?option=${encodeURIComponent(option)}`}
                 aria-label={t({ id: "fields.options.removeLabel", message: `Remove option ${option}` })}
               >
@@ -323,7 +324,7 @@ const DeleteDialog = ({ field }: { field: Field }) => {
           />
         </p>
         <div className="flex flex-wrap gap-2">
-          <Button variant="danger" type="submit">
+          <Button variant="danger" mark="cross" type="submit">
             <Trans id="collections.delete.confirm">Delete for good</Trans>
           </Button>
           <Button type="button" commandfor={`delete-field-${field.id}`} command="close">
@@ -394,6 +395,7 @@ export const FieldRow = ({ field, slug, last, failed }: FieldRowProps) => {
           </LinkButton>
           <Button
             variant="danger"
+            mark="cross"
             size="sm"
             commandfor={`delete-field-${field.id}`}
             command="show-modal"

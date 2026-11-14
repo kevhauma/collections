@@ -11,7 +11,7 @@ Import each component from its own file (`../ui/button`). There is no barrel.
 
 | File | What |
 |---|---|
-| `styles.css` | Tailwind `@theme` tokens (the only colours that exist), the squared-paper base, and the utilities `ink-outline`, `highlighted`, `day-colours` (day token values whatever the theme: post-its, flags), `postit-corner`, `ink-check`, `popover-anchored`. Self-hosts Kalam and Reenie Beanie; `routes/root.tsx` preloads the same three woff2 files (TICKET-UI-07), so a new face there needs a preload too. |
+| `styles.css` | Tailwind `@theme` tokens (the only colours that exist), the squared-paper base, and the utilities `ink-outline`, `hover-mark`, `highlighted`, `day-colours` (day token values whatever the theme: post-its, flags), `postit-corner`, `ink-check`, `popover-anchored`. Self-hosts Kalam and Reenie Beanie; `routes/root.tsx` preloads the same three woff2 files (TICKET-UI-07), so a new face there needs a preload too. |
 | `ink-defs.tsx` | `InkDefs`: the SVG `#ink-wobble` filter the drawn checkbox, radio and `InkIcon` reference (outlines are vector masks, see `ink-outline`). Render it **once** per document, in the root shell. |
 | `cn.ts` | `cn(...classes)`: `twMerge` over the truthy class strings, so a caller's `className` wins over conflicting defaults. |
 | `invoker-commands.d.ts` | Adds `commandfor` / `command` to React's button types. |
@@ -25,8 +25,9 @@ Every component takes `className`, merged with `cn()`. Use it for layout only.
 
 | Component | File | Props |
 |---|---|---|
-| `Button` | `button.tsx` | All `<button>` attributes, plus `variant`: `primary` (filled ink) · `secondary` (drawn, default) · `ghost` (underlined, no outline) · `danger` (red pen). `size`: `sm` (min 40 px) · `md` (min 44 px, default) · `icon` (44 px square; give it an `aria-label` and `title`). Also opens dialogs (`commandfor="id" command="show-modal"`) and popovers (`popoverTarget="id"`). As a toggle, `aria-pressed` gives it the highlighter. |
-| `LinkButton` | `button.tsx` | All `<a>` attributes, plus the same `variant` / `size` as `Button`. |
+| `Button` | `button.tsx` | All `<button>` attributes, plus `variant`: `primary` (filled ink) · `secondary` (drawn, default) · `ghost` (underlined, no outline) · `danger` (red pen). `size`: `sm` (min 40 px) · `md` (min 44 px, default) · `icon` (44 px square; give it an `aria-label` and `title`). Also opens dialogs (`commandfor="id" command="show-modal"`) and popovers (`popoverTarget="id"`). As a toggle, `aria-pressed` gives it the highlighter. Hovering draws a red-pen loop round it; `mark="cross"` scribbles an X instead, for a control that deletes. |
+| `LinkButton` | `button.tsx` | All `<a>` attributes, plus the same `variant` / `size` / `mark` as `Button`. |
+| `HoverMark` | `hover-mark.tsx` | `mark?`: `circle` (default) · `cross`. The red-pen hover mark; `Button`, `LinkButton`, `TabLinks` and table sort links render it as their last child (the parent must be positioned). |
 | `Input` | `input.tsx` | All `<input>` attributes. `className` goes to the drawn box and the rest to the input. Set `aria-invalid` and the box turns red. |
 | `Textarea` | `input.tsx` | All `<textarea>` attributes, same split as `Input`. |
 | `Select` | `input.tsx` | All `<select>` attributes, same split as `Input`. Children are `<option>`s. |

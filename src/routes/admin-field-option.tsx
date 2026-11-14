@@ -104,7 +104,7 @@ export default function RemoveOption({ params }: { params: Params }) {
               <input type="hidden" name="option" value={option} />
               <ExportHint count={count} />
               <div className="flex flex-wrap gap-2">
-                <Button variant="danger" type="submit">
+                <Button variant="danger" mark="cross" type="submit">
                   <Trans id="fields.removeOption.confirm">Remove option</Trans>
                 </Button>
                 <LinkButton href={fieldsPage(collection, field)}>

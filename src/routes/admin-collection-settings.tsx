@@ -146,7 +146,7 @@ export default function CollectionSettings({ params, actionData }: { params: Par
               want it back.
             </Trans>
           </p>
-          <Button variant="danger" commandfor="delete-collection" command="show-modal">
+          <Button variant="danger" mark="cross" commandfor="delete-collection" command="show-modal">
             <Trans id="collections.delete.open">Delete collection…</Trans>
           </Button>
         </div>
@@ -164,7 +164,7 @@ export default function CollectionSettings({ params, actionData }: { params: Par
             </Trans>
           </p>
           <div className="flex flex-wrap gap-2">
-            <Button variant="danger" type="submit" name="intent" value="delete">
+            <Button variant="danger" mark="cross" type="submit" name="intent" value="delete">
               <Trans id="collections.delete.confirm">Delete for good</Trans>
             </Button>
             <Button type="button" commandfor="delete-collection" command="close">

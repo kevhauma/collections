@@ -252,7 +252,7 @@ Hand-drawn boxes that read as ink, not chrome.
 - **Secondary (default):** drawn outline, ink text, transparent fill.
 - **Ghost:** no box at all, an underlined ink word.
 - **Danger:** outline and text in red pen, the correction mark.
-- **Hover / Focus:** primary fades to faded ink; secondary and ghost fill with grid blue; danger takes a 10% red wash. Focus is a 2px dashed ink outline 3px out. Disabled drops to 50% opacity with a not-allowed cursor.
+- **Hover / Focus:** primary fades to faded ink; secondary and ghost fill with grid blue; danger takes a 10% red wash. On a device with a pointer, the red pen also marks the hovered control (see Hover marks). Focus is a 2px dashed ink outline 3px out. Disabled drops to 50% opacity with a not-allowed cursor.
 - **Sizes:** md (44px min height, 16px sides), sm (40px, 12px sides, 0.875rem), icon (a 44px square for a drawn icon; its name is the aria-label and title).
 
 ### Icons
@@ -288,8 +288,13 @@ The frame for item images and notes: a square post-it in one of four pad colours
 ### Dialog and Popover
 Both are drawn boxes on paper. The dialog is a native modal (max 32rem, 24px padding) with a scrawled title and a ghost close button. The popover anchors under its trigger where the browser supports it, centred otherwise, and carries the post-it shadow.
 
+### Hover marks
+The red pen marks what the pointer rests on, like a notebook being corrected (TICKET-UI-05). Buttons, link buttons, tabs, nav links and table sort links get a loose red loop drawn round them: one stroke from about 9 o'clock, clockwise and a little past its start, 14px beyond the sides and 10px beyond top and bottom (a wide oval round a text button, nearly a circle round a 44px icon). A control that deletes gets a red X scribbled over it instead: two finer, lighter strokes (1.1px at 80%), the second after the first, so the label stays readable. Which one is set per control (`mark="cross"` on `Button` / `LinkButton`), never by the danger colour, since a danger action that doesn't delete (revoke) gets the loop. Red pen only, 1.5px, through `#ink-wobble`, inline SVG on top of the control that takes no pointer events and no layout space. Hover only: keyboard focus keeps its dashed outline, touch shows nothing, and reduced motion keeps just the colour hover. Defined in `src/ui/hover-mark.tsx` and the `hover-mark` utility.
+
+- **Pen stroke** (motion): each stroke is drawn by sliding `stroke-dashoffset` to 0, 300ms ease-out; the loop's run-on follows in 60ms, the X's second stroke starts at 300ms. Leaving the control removes the mark at once, with no reverse.
+
 ### Not shipped yet
-Planned in the direction but not built, so no tokens exist for them: the post-it settle motion (rotate-and-drop on add, removed under reduced motion), the "got it!" strike-through on a bought want, real item photos inside post-its, the admin module mosaic and the public shells. Nothing in the system animates today beyond colour transitions on hover.
+Planned in the direction but not built, so no tokens exist for them: the post-it settle motion (rotate-and-drop on add, removed under reduced motion), the "got it!" strike-through on a bought want, real item photos inside post-its, the admin module mosaic and the public shells. Nothing in the system animates today beyond colour transitions and the pen stroke of the hover marks.
 
 ## Do's and Don'ts
 

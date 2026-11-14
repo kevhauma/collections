@@ -1,5 +1,6 @@
 import type { ReactNode, TdHTMLAttributes } from "react";
 import { cn } from "./cn";
+import { HoverMark } from "./hover-mark";
 
 // Rows ruled with dashed pencil lines; numerals stay tabular so columns of numbers line up.
 export const Table = ({ className, children }: { className?: string; children: ReactNode }) => (
@@ -26,11 +27,12 @@ export const Th = ({ className, children, sort }: ThProps) => (
     className={cn("border-b-2 border-ink px-2 py-2 align-bottom font-bold", className)}
   >
     {sort ? (
-      <a href={sort.href} className="inline-flex min-h-10 items-center gap-1 text-ink no-underline hover:underline">
+      <a href={sort.href} className="relative inline-flex min-h-10 items-center gap-1 text-ink no-underline hover:underline">
         {children}
         <svg aria-hidden="true" viewBox="0 0 16 16" className="size-4 shrink-0">
           <path d={arrows[sort.direction]} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
+        <HoverMark />
       </a>
     ) : (
       <span className="inline-flex min-h-10 items-center">{children}</span>

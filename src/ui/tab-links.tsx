@@ -1,5 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ReactNode } from "react";
+import { HoverMark } from "./hover-mark";
 
 const link = cva("inline-flex min-h-10 items-center font-bold text-ink no-underline", {
   variants: {
@@ -7,7 +8,7 @@ const link = cva("inline-flex min-h-10 items-center font-bold text-ink no-underl
       // Drawn tabs; the current one is filled in with ink (Have / Want).
       tabs: "ink-outline px-3.5 hover:bg-grid aria-[current=page]:bg-ink aria-[current=page]:text-paper aria-[current=page]:[--ink-echo:none]",
       // Plain links; the current one is run over with the highlighter (app sections, collections).
-      nav: "px-3 hover:underline aria-[current=page]:highlighted",
+      nav: "relative px-3 hover:underline aria-[current=page]:highlighted",
     },
   },
   defaultVariants: { variant: "tabs" },
@@ -25,6 +26,7 @@ export const TabLinks = ({ label, tabs, variant, className }: TabLinksProps) => 
         <li key={tab.href}>
           <a href={tab.href} aria-current={tab.current ? "page" : undefined} className={link({ variant })}>
             {tab.label}
+            <HoverMark />
           </a>
         </li>
       ))}

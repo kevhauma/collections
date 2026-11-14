@@ -1,7 +1,7 @@
 # TICKET-UI-05: Red-pen circle on hover, red-pen cross on delete
 
 - **Area:** UI
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Type:** Feature
 - **Traceability:** [technical-design.md § Stack](../../technical-design.md#stack) (UI library), [DESIGN.md](../../../DESIGN.md) (drawn shapes, motion), extends [TICKET-UI-04](./TICKET-UI-04-pen-drawn-switcher-icons.md)
 
@@ -43,6 +43,11 @@ reduced motion and on touch.
   On un-hover it disappears (no reverse animation needed).
 - **Cross:** hovering a delete control draws a red-pen "X" over it instead of the circle: two strokes, the second
   starting after the first finishes, same timing family.
+- ~~One stroke … revealed by animating `stroke-dashoffset`~~ on a path stretched over the control: built as unstretched
+  SVG shapes in percentages (two ellipses for the loop: the full loop plus a short wider run-on past its start; two
+  lines for the X), because Chrome lays a `pathLength` dash out in screen space under `non-scaling-stroke`, which cut
+  the stretched loop short. The loop starts at 9 o'clock rather than 10 (an ellipse's start point, turned half a
+  turn). Still drawn by animating `stroke-dashoffset`.
 - "Delete control" is explicit, not inferred from colour: `danger` gets the cross only where the action deletes. The
   revoke button (and any future non-delete `danger`) gets the circle. Pick the smallest switch that does this (e.g.
   a `mark="cross"` prop or a `data-mark` attribute on `Button`).
@@ -66,21 +71,48 @@ reduced motion and on touch.
 
 ## Acceptance criteria
 
-- [ ] Hovering a `primary`, `secondary` or `ghost` Button / LinkButton, a TabLinks tab or nav link, or a table sort
-      link draws a red-pen circle around it in one animated stroke; leaving removes it.
-- [ ] Hovering a delete control (delete item, delete collection, delete field, delete option) draws a red-pen "X" in
-      two sequential strokes instead of a circle; the revoke button gets the circle, not the cross.
-- [ ] Marks use only the red-pen token and `#ink-wobble`; no `.tsx` gains a hex or `rgb()` value; no new dependency,
-      image asset or client component; `pointer-events: none`; no layout shift on hover.
-- [ ] With `prefers-reduced-motion: reduce` nothing is drawn and the colour hover still works; on a touch device
-      (`hover: none`) no mark appears or sticks after a tap.
-- [ ] Marks are not clipped inside tables, dialogs or the header, and don't hide a control's label.
-- [ ] Dark mode: marks switch to the night red pen through the token and keep 3:1 against the paper.
-- [ ] `.impeccable/surfaces/src-ui.md` and `DESIGN.md` describe the hover marks and their motion before the code lands.
-- [ ] Unit tests: none needed (CSS and markup only). Existing tests still pass.
-- [ ] UI follows the design direction in `.impeccable/surfaces/src-ui.md` / `DESIGN.md`; live browser check at 360 px
-      and desktop, light and dark, including a reduced-motion check.
-- [ ] Verified with the fallow skill.
+- [x] Hovering a `primary`, `secondary` or `ghost` Button / LinkButton, a TabLinks tab or nav link, or a table sort
+      link draws a red-pen circle around it in one animated stroke; leaving removes it. (`HoverMark` in
+      `src/ui/hover-mark.tsx`, rendered by `Button`, `LinkButton`, `TabLinks` and `Th`'s sort link; `hover-mark`
+      utility in `styles.css`. Orca browser on the production build: primary "+ Add item", Have / Want tabs, admin nav,
+      header icon buttons, ghost "Log out", "Fields" / "Settings" and the "Title" sort link all draw the loop; paused at
+      140 ms the loop is drawn from 9 o'clock over the top and down the right side (`stroke-dashoffset` 0.35); after
+      leaving, the mark's `visibility` is `hidden` and no animation remains.)
+- [x] Hovering a delete control (delete item, delete collection, delete field, delete option) draws a red-pen "X" in
+      two sequential strokes instead of a circle; the revoke button gets the circle, not the cross. (`mark="cross"` on
+      the eight delete controls: `admin-item.tsx` (Delete, Delete for good), `admin-collection-settings.tsx` (Delete
+      collection…, Delete for good), `field-rows.tsx` (remove option link, delete field, Delete for good),
+      `admin-field-option.tsx` (Remove option). The revoke buttons in `admin-settings.tsx` keep the default loop.
+      Live: hovering the item's Delete runs two `pen-stroke` animations, the second delayed 300 ms, and draws the X;
+      same in the delete dialog. Revoke not opened live: no connected app in the scratch DB; it renders the default.)
+- [x] Marks use only the red-pen token and `#ink-wobble`; no `.tsx` gains a hex or `rgb()` value; no new dependency,
+      image asset or client component; `pointer-events: none`; no layout shift on hover. (`stroke:
+      var(--color-red-pen)`, `<g filter="url(#ink-wobble)">`, `pointer-events: none`, absolutely positioned and
+      toggled by `visibility` only. `hover-mark.tsx` is a server component with no colour values; `package.json`
+      unchanged. Live: every nav link and button keeps its position and width with the pointer on two different
+      controls.)
+- [x] With `prefers-reduced-motion: reduce` nothing is drawn and the colour hover still works; on a touch device
+      (`hover: none`) no mark appears or sticks after a tap. (Emulated reduced motion: the hovered Delete has its 10 %
+      red wash, its mark is `hidden`, no animations run; turning it off draws the X. Mobile emulation (`hover: none`,
+      `pointer: coarse`): after tapping Delete the button stays `:hover`, and 0 marks are visible.)
+- [x] Marks are not clipped inside tables, dialogs or the header, and don't hide a control's label. (Screenshots: the
+      sort link's loop is whole inside the table's `overflow-x-auto` wrapper (the `th` padding holds it), the dialog's
+      Delete for good and the header icon buttons show whole marks. Loops pass outside the label; the X is finer and
+      lighter (1.1px at 80 %) so "Delete for good" stays readable under it.)
+- [x] Dark mode: marks switch to the night red pen through the token and keep 3:1 against the paper. (Dark
+      screenshots draw #f05a4f via `--color-red-pen`: 5.5:1 on the night paper; by day #d6312b is 4.76:1.)
+- [x] `.impeccable/surfaces/src-ui.md` and `DESIGN.md` describe the hover marks and their motion before the code lands.
+      (Same commit: DESIGN.md › Components › Hover marks with the "Pen stroke" motion entry, the button hover line
+      and "Not shipped yet"; src-ui.md motion line and "Hover marks addendum".)
+- [x] Unit tests: none needed (CSS and markup only). Existing tests still pass. (`npm test`: 37 files, 917 tests
+      passed.)
+- [x] UI follows the design direction in `.impeccable/surfaces/src-ui.md` / `DESIGN.md`; live browser check at 360 px
+      and desktop, light and dark, including a reduced-motion check. (Orca browser 2026-11-14: admin collection
+      list, item form and delete dialog dark at 1280 px; public have page light at 360 px with the Dutch flag and the
+      Want tab hovered; reduced motion and touch as above. The impeccable skill's detector was not run.)
+- [x] Verified with the fallow skill. (`npx fallow@3.43.0 audit --base HEAD`: 0 dead code, 0 complexity,
+      0 duplication; one advisory `css-dead-surface` on the `pen-stroke` keyframes, a false positive: the
+      `hover-mark` utility's `animation` uses it.)
 
 ## Notes
 

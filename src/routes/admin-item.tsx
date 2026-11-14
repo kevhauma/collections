@@ -208,7 +208,7 @@ const DeleteDialog = ({ title, editing }: { title: string; editing: boolean }) =
             <Trans id="items.delete.confirmText">This item will be gone. This can't be undone.</Trans>
           </p>
           <div className="flex flex-wrap gap-2">
-            <Button variant="danger" type="submit" name="intent" value="delete">
+            <Button variant="danger" mark="cross" type="submit" name="intent" value="delete">
               <Trans id="collections.delete.confirm">Delete for good</Trans>
             </Button>
             <Button type="button" commandfor="delete-item" command="close">
@@ -228,7 +228,7 @@ const SaveButtons = ({ editing }: { editing: boolean }) => (
       {editing ? <Trans id="items.form.save">Save item</Trans> : <Trans id="items.form.create">Add item</Trans>}
     </Button>
     {editing && (
-      <Button variant="danger" type="button" commandfor="delete-item" command="show-modal" className="ml-auto">
+      <Button variant="danger" mark="cross" type="button" commandfor="delete-item" command="show-modal" className="ml-auto">
         <Trans id="collections.delete.card">Delete</Trans>
       </Button>
     )}

@@ -21,7 +21,7 @@ FIRST VIEWPORT: Admin: top line of scrawled app name, collection links (active h
 
 FORM: User-steered: Ballpoint Notes (re-roll 1 steer) → Crammed Page, bolder register (re-roll 2, fused with japanese-high-density-web) → hand-drawn outlines + post-it images (re-roll 3 steer). Seed key d9a418d7.
 
-Signature interaction: a want reranks in place and keeps its highlighter until noticed; a bought want is struck through with "got it!" before it leaves for Have. Motion: post-its settle with a small rotate-and-drop when added; nothing else animates; reduced motion removes it.
+Signature interaction: a want reranks in place and keeps its highlighter until noticed; a bought want is struck through with "got it!" before it leaves for Have. Motion: post-its settle with a small rotate-and-drop when added, and the red pen marks what the pointer rests on (hover-marks addendum); nothing else animates; reduced motion removes both.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
@@ -32,6 +32,10 @@ NIGHT: The same notebook page at night, not a new world. Dark blue-black paper (
 ## Drawn icons addendum (TICKET-UI-04)
 
 ICONS: Where a control is an icon, the icon is drawn in the same ballpoint: a small sketch on a 24px grid in one ink stroke, red pen and paper only where the subject has them, fills hatched or scribbled, wobbled by `#ink-wobble`. Never an icon library, emoji or a clean geometric glyph. The header switches are icons only (flags for languages, half-hatched circle / sun / crescent for System / Light / Dark), each a 44px target named by its word (aria-label + title); the pressed one keeps the highlighter. Flags keep their day colours at night (light field, day blue, day red), like a sticker on the dark page; the notebook icons follow the theme (TICKET-UI-06).
+
+## Hover marks addendum (TICKET-UI-05)
+
+HOVER: The page reacts like a notebook being marked up. On a device with a pointer, the red pen draws a loose loop round the control under it (buttons, link buttons, tabs, nav links, table sort links) in one quick stroke from about 9 o'clock that runs a little past its start; a control that deletes gets a red X scribbled over it instead, two finer strokes one after the other. Red pen only, wobbled by `#ink-wobble`, never shifting layout or hiding the label. Gone the moment the pointer leaves. Touch and reduced motion get the colour hover only; keyboard focus keeps the dashed outline.
 
 ## Unresolved
 
