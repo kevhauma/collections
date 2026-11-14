@@ -26,6 +26,7 @@ Tickets are named `TICKET-<PREFIX>-<NN>-<slug>.md`. A prefix maps to exactly one
 | `BAK` | [backup](backup/overview.md) | Export zip, restore (v2) |
 | `IMP` | [import](import/overview.md) | CSV import (v2), catalog lookups (v2) |
 | `MCP` | [mcp](mcp/overview.md) | MCP server for admin edits by an AI agent, OAuth for agents |
+| `WSH` | [wishlist](wishlist/overview.md) | The general wishlist: loose ranked wants, collection reminders |
 
 ## Build plan
 

@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **37 / 39 done**
+Progress: **37 / 46 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -51,6 +51,13 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 37 ‖ | [COL-08](../../collections/tickets/TICKET-COL-08-default-item-image.md) | Default image for items without one | M7 After the first cut | COL-06 | ✅ |
 | 38 ‖ | [ITM-06](../../items/tickets/TICKET-ITM-06-group-by-field.md) | Group the item list by a field | M7 After the first cut | ITM-05 | ✅ |
 | 39 ‖ | [UI-10](../../ui/tickets/TICKET-UI-10-page-load-and-page-turn-motion.md) | Pen-test page load, page turn and handwritten title | M7 After the first cut | UI-05, UI-07 | 🔄 |
+| 40 | [WSH-01](../../wishlist/tickets/TICKET-WSH-01-wishlist-data.md) | Wishlist table and repository, with dense ranks | M8 Wishlist | ITM-03 | ⬜ |
+| 41 | [WSH-02](../../wishlist/tickets/TICKET-WSH-02-wishlist-in-export.md) | Wishlist items and images in the export zip | M8 Wishlist | WSH-01, BAK-01 (built) | ⬜ |
+| 42 ‖ | [WSH-03](../../wishlist/tickets/TICKET-WSH-03-admin-wishlist.md) | Admin wishlist page | M8 Wishlist | WSH-01, ITM-04 | ⬜ |
+| 43 | [WSH-04](../../wishlist/tickets/TICKET-WSH-04-public-wishlist-page.md) | Public `/wishlist` page | M8 Wishlist | WSH-01, WSH-03, PUB-02 | ⬜ |
+| 44 | [WSH-05](../../wishlist/tickets/TICKET-WSH-05-wishlist-on-home.md) | Wishlist card at the top of the public home page | M8 Wishlist | WSH-04, PUB-01 | ⬜ |
+| 45 ‖ | [WSH-06](../../wishlist/tickets/TICKET-WSH-06-collection-reminders.md) | Collection want-list reminders, with opt-out | M8 Wishlist | WSH-04, COL-01 | ⬜ |
+| 46 | [WSH-07](../../wishlist/tickets/TICKET-WSH-07-wishlist-mcp-tools.md) | MCP tools for the wishlist | M8 Wishlist | WSH-01, MCP-02 | ⬜ |
 
 ## Why this order
 
@@ -59,6 +66,8 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 - **ITM-05 before ITM-03.** The reorder controls live inside the want-tab list that ITM-05 builds.
 - **PUB-01 can start any time after COL-01.** It's listed late only because PUB-02 needs the items work first.
 - **BAK-01 last.** Its round-trip test needs images to exist.
+- **WSH-02 right after WSH-01.** No build should hold wishlist data that the export misses.
+- **WSH-07 last in M8.** MCP comes after the owner-facing pages, by decision. It only needs WSH-01, so it can move up.
 
 ## Milestones
 
@@ -72,6 +81,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | M5 Sharing | Public index and have/want pages, with private fields never leaked |
 | M6 Backup | Full zip export |
 | M7 After the first cut | Field units, ratings, dark mode and collection pictures: independent tickets added after M6 |
+| M8 Wishlist | A public, ranked general wishlist with collection reminders, backed up and editable by MCP |
 
 ## Dependency graph
 
@@ -128,6 +138,17 @@ graph LR
   ITM05 --> ITM06[ITM-06 group by field]
   UI05 --> UI10[UI-10 page motion]
   UI07 --> UI10
+  ITM03 --> WSH01[WSH-01 wishlist data]
+  WSH01 --> WSH02[WSH-02 wishlist export]
+  BAK01 --> WSH02
+  WSH01 --> WSH03[WSH-03 admin wishlist]
+  ITM04 --> WSH03
+  WSH03 --> WSH04[WSH-04 public wishlist]
+  PUB02 --> WSH04
+  WSH04 --> WSH05[WSH-05 home card]
+  WSH04 --> WSH06[WSH-06 collection reminders]
+  WSH01 --> WSH07[WSH-07 wishlist MCP]
+  MCP02 --> WSH07
 ```
 
 ## Not in v1
