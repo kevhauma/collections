@@ -39,13 +39,14 @@ const fastenings = {
       className="absolute -top-2 left-1/2 z-10 h-3.5 w-11 -translate-x-1/2 rotate-4 border border-ink/15 bg-paper/60"
     />
   ),
-  // Pictures (TICKET-UI-08): a clip over the top edge in ink, wobbled like the drawn icons. The wider paper-coloured
+  // A clip over the top edge in ink, right of centre so a want's rank numeral on the left corner stays clear (TICKET-UI-08,
+  // UI-09), wobbled like the drawn icons. The wider paper-coloured
   // pass under it keeps the part above the post-it legible on dark paper at night.
   paperclip: (
     <svg
       aria-hidden="true"
       viewBox="0 0 12 36"
-      className="absolute -top-3 left-2 z-10 h-8 w-auto overflow-visible fill-none stroke-ink"
+      className="absolute -top-3 right-3 z-10 h-8 w-auto overflow-visible fill-none stroke-ink"
       strokeLinecap="round"
     >
       <g filter="url(#ink-wobble)">

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { Field, FieldType } from "../db/fields";
 import type { Item, ItemSort, ItemStatus } from "../db/items";
 import { affixes, isBlank } from "../features/collections/affixes";
+import { postItLook } from "../features/items/post-it-look";
 import { imageUrl, thumbUrl } from "../features/images/shared";
 import { formatDate, formatNumber } from "../i18n";
 import { Dialog } from "../ui/dialog";
@@ -87,8 +88,6 @@ const Title = ({ mode, slug, titleFieldId, item }: TitleProps) =>
     titleOf(item, titleFieldId)
   );
 
-const postItColors = ["yellow", "pink", "blue", "green"] as const;
-
 type ThumbnailProps = { item: Item; alt: string; className?: string; size: "sm" | "md" };
 
 // The item's picture opens at display size in a native dialog (TICKET-UI-08): invoker commands and `closedby="any"`
@@ -121,17 +120,11 @@ const Enlargeable = ({ item, image, title, children }: { item: Item; image: stri
   );
 };
 
-// Colour and tilt vary by id; a picture is clipped on, a blank post-it pinned or taped (also by id).
-const postItLook = (item: Item) => ({
-  color: postItColors[item.id % postItColors.length],
-  tilt: item.id % 2 ? "left" : "right",
-  fastening: item.image ? "paperclip" : item.id % 3 ? "pin" : "tape",
-} as const);
-
-// The item's image on a post-it, which opens it large, or the blank post-it when it has none.
+// The item's image on a post-it, which opens it large, or the blank post-it when it has none. Pinned, taped or
+// clipped by a hash of the id (TICKET-UI-09).
 const Thumbnail = ({ item, alt, className, size }: ThumbnailProps) => {
   const postIt = (
-    <PostIt size={size} {...postItLook(item)} className={className}>
+    <PostIt size={size} {...postItLook(item.id)} className={className}>
       {item.image && <img src={thumbUrl(item.image)} alt={alt} loading="lazy" className="size-full object-cover" />}
     </PostIt>
   );

@@ -39,7 +39,7 @@ HOVER: The page reacts like a notebook being marked up. On a device with a point
 
 ## Notebook polish addendum (TICKET-UI-08)
 
-POLISH: The page is written on the squares. One square is one line of set text (22px), and the shells and list pages step in whole squares from the page top, so each word sits in the middle of its squares and every drawn box and rule runs along a grid line. Every line on the page is drawn: table rules are the outline's own ballpoint strands (two under the header row, a faint dotted pencil rule between rows and above the footer), and links carry a drawn pen stroke under their words that follows them onto a second line. Photos are clipped onto their post-its with an ink paperclip (blank notes keep the pin and the tape); tapping an item's photo opens it large in a drawn dialog, also without JS. The public sheet widens on big screens so a many-field table fits.
+POLISH: The page is written on the squares. One square is one line of set text (22px), and the shells and list pages step in whole squares from the page top, so each word sits in the middle of its squares and every drawn box and rule runs along a grid line. Every line on the page is drawn: table rules are the outline's own ballpoint strands (two under the header row, a faint dotted pencil rule between rows and above the footer), and links carry a drawn pen stroke under their words that follows them onto a second line. Post-its are held on by a pin, tape or an ink paperclip, mixed per item with no visible pattern (TICKET-UI-09); tapping an item's photo opens it large in a drawn dialog, also without JS. The public sheet widens on big screens so a many-field table fits.
 
 ## Unresolved
 

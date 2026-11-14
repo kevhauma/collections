@@ -158,7 +158,7 @@ components:
 
 **Creative North Star: "The Crammed Notebook Page"**
 
-The whole collection lives on one page of a squared-paper notebook, written and boxed in blue ballpoint. Every container, button, tab, input and chip is a box someone drew by hand: a light, searching sketch of several ballpoint strands that cross and run past the corners, gone over a second time more faintly. Item photos are post-its clipped onto the page with a paperclip (blank notes take a red pin or a strip of tape), each turned a few degrees. The page is dense on purpose; the owner should see everything about a collection at once, and a relative on a phone should see the same paper and ink in one calm column.
+The whole collection lives on one page of a squared-paper notebook, written and boxed in blue ballpoint. Every container, button, tab, input and chip is a box someone drew by hand: a light, searching sketch of several ballpoint strands that cross and run past the corners, gone over a second time more faintly. Item photos are post-its held on by a red pin, a strip of tape or a paperclip, mixed with no visible pattern, each turned a few degrees. The page is dense on purpose; the owner should see everything about a collection at once, and a relative on a phone should see the same paper and ink in one calm column.
 
 The handwriting carries the voice. Titles are scrawled large and loose; everything you read for information is written in a neater, steadier hand that stays legible down to 360 px table data. Colour is a pen case, not a palette: blue ink for nearly everything, a red pen for marks that demand attention, a highlighter for the one thing that matters most.
 
@@ -168,7 +168,7 @@ The world refuses the grey database app: a neutral sidebar, hairline tables, a s
 - Squared paper background (22px grid, one square per line of text) under everything.
 - Sketched pen outline, smooth vector strands overshooting square corners, on every drawn box; content inside stays crisp.
 - Blue ballpoint for text and outlines, red pen for ranks, module tabs and corrections, highlighter for the top item.
-- Post-its, clipped (photos) or pinned and taped (blank notes) and tilted, as the frame for item images.
+- Post-its, pinned, taped or clipped and tilted, as the frame for item images.
 - Two handwriting faces: scrawled display, neat set text.
 
 ## Colors
@@ -284,7 +284,7 @@ Drawn, never picked from an icon set: small pen sketches on a 24px grid, one 1.5
 Ruled like a notebook, with drawn rules (TICKET-UI-08): two ballpoint strands under the header row and a faint dotted pencil rule (rule blue) between rows, both the outline's own edge strokes stretched along the row. Every rule lies on a grid line; cells start a square below it and a row with a picture is four squares tall, so cell text sits in the middle of its squares. Sortable headers are plain links with a small drawn arrow.
 
 ### Post-it (Signature Component)
-The frame for item images and notes: a square post-it in one of four pad colours, tilted left or right, fastened with a paperclip (a photo: item thumbnails, the collection picture, the item form's image) or a red pin or strip of translucent tape (a blank note), with a lifting corner and the post-it shadow. An item photo is a button that opens the display-size image in a dialog. Sizes 56px, 80px and 176px; 6px padding (16px on the large size) keeps the paper visible around a photo. The empty state is a blank taped post-it beside a scrawled title and one action.
+The frame for item images and notes: a square post-it in one of four pad colours, tilted left or right, fastened with a red pin, a strip of translucent tape or an ink paperclip. In item lists each item's colour, tilt and fastening come from a hash of its id (TICKET-UI-09): they look random, with no cycle, but an item always looks the same. Single post-its keep a fixed one: the collection picture and the item form's image are clipped, the image preview and the empty state taped. The clip sits right of centre, so a want's rank numeral on the left corner stays clear, with a lifting corner and the post-it shadow. An item photo is a button that opens the display-size image in a dialog. Sizes 56px, 80px and 176px; 6px padding (16px on the large size) keeps the paper visible around a photo. The empty state is a blank taped post-it beside a scrawled title and one action.
 
 ### Dialog and Popover
 Both are drawn boxes on paper. The dialog is a native modal (max 32rem, 24px padding; 48rem for an item picture) with a scrawled title and a ghost close button. Opened by invoker commands, so it works without JavaScript; a picture dialog also closes on a backdrop click (`closedby="any"`). The popover anchors under its trigger where the browser supports it, centred otherwise, and carries the post-it shadow.
@@ -302,7 +302,7 @@ Planned in the direction but not built, so no tokens exist for them: the post-it
 ### Do:
 - **Do** draw every box, button, tab, input and chip with the sketched double-pass outline; recolour it for danger and errors rather than inventing a new border.
 - **Do** keep text and outlines in ballpoint blue on paper; use faded ink for secondary text and pencil grey only for placeholders and provisional states.
-- **Do** frame item images in a post-it, tilted and clipped, with paper showing around the photo.
+- **Do** frame item images in a post-it, tilted and pinned, taped or clipped, with paper showing around the photo.
 - **Do** use red pen only for ranks, module heading tabs and corrections (danger, errors), at bold or large sizes.
 - **Do** use the dashed ink focus ring (2px, 3px offset) on every focusable element.
 - **Do** keep controls at least 40px tall, and layouts working from 360px.

@@ -1,7 +1,7 @@
 # TICKET-UI-09: Pin, tape or paperclip, picked at random per item
 
 - **Area:** UI
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Type:** Feature
 - **Traceability:** [technical-design.md § Stack](../../technical-design.md#stack) (UI library), [.impeccable/surfaces/src-ui.md](../../../.impeccable/surfaces/src-ui.md) (post-it treatment), changes the fastening rule of [TICKET-UI-08](./TICKET-UI-08-notebook-polish.md)
 
@@ -41,17 +41,28 @@ The pick stays the same for an item across reloads, sorts and pages.
 
 ## Acceptance criteria
 
-- [ ] In a collection of 30+ items, pictures and blank post-its both show all three fastenings mixed, with no
-      repeating cycle in id order.
-- [ ] An item has the same fastening, colour and tilt on every reload, in table and grid, admin and public.
-- [ ] The collection picture, the item form's image, the image field preview and the empty state keep their fixed
-      fastenings.
-- [ ] Clicking a thumbnail to enlarge it (UI-08) still works with every fastening.
-- [ ] Public pages still ship no client components (the pick happens on the server).
-- [ ] Unit tests cover: the pick is deterministic for an id, and ids 1–300 give each fastening between 25% and 42%.
-- [ ] UI follows the design direction in `.impeccable/surfaces/src-ui.md`; live browser check of the grid and table
-      at 360 px and desktop, light and dark.
-- [ ] Verified with the fallow skill.
+- [x] In a collection of 30+ items, pictures and blank post-its both show all three fastenings mixed, with no
+      repeating cycle in id order. (Dev vinyl have tab, 30 items in id order: clip* clip* clip* tape* clip clip* tape*
+      pin* pin* tape* tape* pin* tape clip* tape* pin clip* clip pin* tape clip* tape tape* clip clip* pin clip* clip
+      pin* tape, where * has a picture. Pictures and blanks both get all three.)
+- [x] An item has the same fastening, colour and tilt on every reload, in table and grid, admin and public.
+      (`postItLook(item.id)` in `src/features/items/post-it-look.ts` is a pure hash of the id, used by the one
+      `Thumbnail` that both views and both modes render; test "is the same for an id every time".)
+- [x] The collection picture, the item form's image, the image field preview and the empty state keep their fixed
+      fastenings. (`collection-picture.tsx` and `image-section.tsx` pass `fastening="paperclip"`, `image-field.tsx`
+      and `empty-state.tsx` pass `fastening="tape"`; unchanged.)
+- [x] Clicking a thumbnail to enlarge it (UI-08) still works with every fastening. (Orca on the dev vinyl table: a
+      pinned, a taped and a clipped thumbnail each opened its dialog.)
+- [x] Public pages still ship no client components (the pick happens on the server). (`postItLook` runs in the server
+      component; the public vinyl HTML has no module script.)
+- [x] Unit tests cover: the pick is deterministic for an id, and ids 1–300 give each fastening between 25% and 42%.
+      (`src/features/items/post-it-look.test.ts`: "is the same for an id every time", "gives each fastening between
+      25% and 42% of ids 1-300", plus "follows no short cycle in id order".)
+- [x] UI follows the design direction in `.impeccable/surfaces/src-ui.md`; live browser check of the grid and table
+      at 360 px and desktop, light and dark. (Orca 2026-11-14: have grid at 1440 px dark, want grid at 360 px light,
+      table at 1440 px. The paperclip moved right of centre so a want's rank numeral on the left corner stays clear.
+      DESIGN.md and src-ui.md describe the mixed fastenings.)
+- [x] Verified with the fallow skill. (`npx fallow@3.43.0 audit --base HEAD`: no issues in 7 changed files.)
 
 ## Notes
 
