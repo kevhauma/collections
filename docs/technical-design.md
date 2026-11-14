@@ -147,6 +147,9 @@ session cookie.
 - Agents (TICKET-MCP-01, [ADR 0006](adr/0006-mcp-with-oauth.md)): OAuth 2.1 with this app as the authorization
   server. Opaque tokens stored as SHA-256 hashes (access 1 h, refresh 30 days with rotation and reuse detection, codes
   60 s), bound to `<origin>/api/mcp`. Admin pages send `frame-ancestors 'none'` so the consent page can't be framed.
+  An agent's image URL (TICKET-MCP-02) may not reach an internal address, since content the agent reads can steer
+  it: the download refuses hosts that resolve to loopback, private, link-local or CGNAT ranges, and doesn't follow
+  redirects. The admin UI's own URL field keeps the plain download (the owner's choice).
 
 ## Images
 

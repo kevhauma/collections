@@ -34,8 +34,8 @@ const refusalOf = (response: Response): ImageErrorReason | undefined => {
   return Number(response.headers.get("content-length")) > maxImageBytes ? "tooLarge" : undefined;
 };
 
-// Only http(s), 15 s, an image/* content type, at most 15 MB. Admin-only, so pointing it at an internal address is an
-// accepted risk (see the ticket). `fetcher` is swappable for tests.
+// Only http(s), 15 s, an image/* content type, at most 15 MB. From the admin UI, pointing it at an internal address is
+// an accepted risk (TICKET-ITM-04); the MCP tools pass a fetcher that refuses them (TICKET-MCP-02). Tests swap it too.
 export const downloadImage = async (url: string, fetcher: typeof fetch = fetch): Promise<Buffer> => {
   const target = URL.parse(url.trim());
   if (!isHttp(target)) throw new ImageError("download");

@@ -1,11 +1,13 @@
-import { mkdtempSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { beforeAll, describe, expect, it } from "vitest";
+import sharp from "sharp";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { runWithContext } from "../../context";
-import { createCollection, getCollectionBySlug, updateCollection } from "../../db/collections";
+import { createCollection, getCollectionBySlug, listCollections, updateCollection } from "../../db/collections";
 import { createField, listFields } from "../../db/fields";
 import { countItems, createItem, getItem, listItems } from "../../db/items";
+import { uploadsDir } from "../images/process";
 import { tools } from "./tools";
 
 beforeAll(() => {
@@ -88,6 +90,7 @@ describe("get_item", () => {
       status: "have",
       quantity: 2,
       rank: null,
+      image: null,
       values: [
         { fieldId: title, label: "Title", value: "Blue Train" },
         { fieldId: price, label: "Price", value: 30 },
@@ -225,5 +228,137 @@ describe("update_field", () => {
     await expect(call("update_field", { collection: slug, id: format, addOptions: ["LP"] })).rejects.toThrow(
       "options: Each option can appear only once.",
     );
+  });
+});
+
+describe("create_collection", () => {
+  it("creates a private collection with its title field and returns it like get_collection", async () => {
+    const created = await call("create_collection", { name: "Comics", slug: "comics" });
+    expect(created).toMatchObject({ slug: "comics", name: "Comics", public: false, defaultView: "table" });
+    expect((created as { fields: unknown[] }).fields).toEqual([expect.objectContaining({ label: "Title", title: true, required: true })]);
+    expect(listCollections().map((collection) => collection.slug)).toContain("comics");
+  });
+
+  it("derives a free slug from the name when none is given", async () => {
+    await call("create_collection", { name: "Board Games" });
+    expect(await call("create_collection", { name: "Board Games" })).toMatchObject({ slug: "board-games-2" });
+  });
+
+  it("refuses a blank name and a malformed, reserved or taken slug with the form's messages", async () => {
+    const count = () => listCollections().length;
+    const before = count();
+    await expect(call("create_collection", { name: " " })).rejects.toThrow("name: Enter a name of up to 100 characters.");
+    await expect(call("create_collection", { name: "X", slug: "Bad Slug" })).rejects.toThrow(
+      "slug: Use up to 60 lowercase letters, digits and single dashes.",
+    );
+    await expect(call("create_collection", { name: "X", slug: "admin" })).rejects.toThrow(
+      "slug: This address is used by the app itself.",
+    );
+    const { slug } = setup();
+    await expect(call("create_collection", { name: "X", slug })).rejects.toThrow(
+      "slug: Another collection already uses this address.",
+    );
+    expect(count()).toBe(before + 1);
+  });
+});
+
+describe("item images", () => {
+  // Public IP literals, so publicFetch's lookup needs no DNS; fetch itself is stubbed.
+  const png = sharp({ create: { width: 8, height: 8, channels: 3, background: "#d6312b" } }).png().toBuffer();
+  const image = (body: BodyInit, type = "image/png", headers: Record<string, string> = {}) =>
+    new Response(body, { headers: { "content-type": type, ...headers } });
+  const stubFetch = (respond: (url: string, init?: RequestInit) => Response | Promise<Response>) =>
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => respond(String(input), init));
+  const uploads = () => (existsSync(uploadsDir()) ? readdirSync(uploadsDir()).sort() : []);
+  // The two files behind an image path "/uploads/<id>.webp".
+  const files = (path: string) => {
+    const id = path.slice("/uploads/".length, -".webp".length);
+    return [`${id}.webp`, `${id}.thumb.webp`];
+  };
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("create_item downloads imageUrl and returns its path", async () => {
+    stubFetch(async () => image(await png));
+    const { slug, collection, title } = setup();
+    const created = (await call("create_item", {
+      collection: slug,
+      values: { [title]: "Blue Train" },
+      imageUrl: "https://93.184.215.14/cover.png",
+    })) as { id: number; image: string };
+    expect(created.image).toMatch(/^\/uploads\/[0-9a-f-]+\.webp$/);
+    expect(uploads()).toEqual(expect.arrayContaining(files(created.image)));
+    expect(getItem(collection.id, created.id)?.image).toBe(created.image.slice("/uploads/".length, -".webp".length));
+    expect(((await call("list_items", { collection: slug })) as Array<{ image: string }>)[0]!.image).toBe(created.image);
+  });
+
+  it("update_item replaces, keeps and removes the image, and refuses imageUrl with removeImage", async () => {
+    stubFetch(async () => image(await png));
+    const { slug, title } = setup();
+    const url = "https://93.184.215.14/a.png";
+    const { id, image: first } = (await call("create_item", { collection: slug, values: { [title]: "A" }, imageUrl: url })) as {
+      id: number;
+      image: string;
+    };
+    const { image: second } = (await call("update_item", { collection: slug, id, imageUrl: url })) as { image: string };
+    expect(second).not.toBe(first);
+    expect(uploads()).not.toEqual(expect.arrayContaining([files(first)[0]]));
+    expect(uploads()).toEqual(expect.arrayContaining(files(second)));
+    expect(await call("update_item", { collection: slug, id, values: { [title]: "B" } })).toMatchObject({ image: second });
+    await expect(call("update_item", { collection: slug, id, imageUrl: url, removeImage: true })).rejects.toThrow(
+      "Give imageUrl or removeImage, not both.",
+    );
+    expect(await call("update_item", { collection: slug, id, removeImage: true })).toMatchObject({ image: null });
+    expect(uploads()).not.toEqual(expect.arrayContaining([files(second)[0]]));
+  });
+
+  it("refuses a bad or internal image, writing no item and leaving no files", async () => {
+    const fetched = stubFetch((url, init) => {
+      if (url.endsWith("/page")) return image("<html>", "text/html");
+      if (url.endsWith("/huge.png")) return image("x", "image/png", { "content-length": String(16 * 1024 * 1024) });
+      // What fetch does when the 15 s signal fires.
+      if (url.endsWith("/slow.png")) throw new DOMException("The operation timed out.", "TimeoutError");
+      // What fetch does with redirect: "error" when the server answers with a redirect.
+      if (url.endsWith("/moved.png")) {
+        if (init?.redirect === "error") throw new TypeError("fetch failed: redirect");
+        return Response.redirect("http://127.0.0.1/secret.png", 302);
+      }
+      throw new Error(`unexpected ${url}`);
+    });
+    const { slug, collection, title } = setup();
+    const before = uploads();
+    const attempt = (imageUrl: string) => call("create_item", { collection: slug, values: { [title]: "X" }, imageUrl });
+    await expect(attempt("https://93.184.215.14/page")).rejects.toThrow("imageUrl: This isn't an image that can be read.");
+    await expect(attempt("https://93.184.215.14/huge.png")).rejects.toThrow("imageUrl: This image is too large (max 15 MB).");
+    await expect(attempt("https://93.184.215.14/slow.png")).rejects.toThrow("imageUrl: Couldn't download an image");
+    await expect(attempt("https://93.184.215.14/moved.png")).rejects.toThrow("imageUrl: Couldn't download an image");
+    await expect(attempt("ftp://93.184.215.14/a.png")).rejects.toThrow("imageUrl: Couldn't download an image");
+    const internal = ["http://127.0.0.1/a.png", "http://10.0.0.5/a.png", "http://192.168.1.2/a.png", "http://169.254.169.254/a.png", "http://localhost/a.png"];
+    for (const url of internal) await expect(attempt(url)).rejects.toThrow("imageUrl: Couldn't download an image");
+    const urls = fetched.mock.calls.map(([input]) => String(input));
+    expect(urls).not.toEqual(expect.arrayContaining([expect.stringMatching(/127\.0\.0\.1|10\.0\.0\.5|192\.168|169\.254|localhost/)]));
+    // The redirect was never followed: fetch was told to fail on one.
+    expect(fetched.mock.calls.find(([input]) => String(input).endsWith("/moved.png"))?.[1]?.redirect).toBe("error");
+    expect(countItems(collection.id).have).toBe(0);
+    expect(uploads()).toEqual(before);
+  });
+
+  it("leaves an existing item and its image alone when the new image is refused", async () => {
+    stubFetch(async (url) => (url.endsWith("/ok.png") ? image(await png) : image("<html>", "text/html")));
+    const { slug, collection, title } = setup();
+    const { id, image: kept } = (await call("create_item", {
+      collection: slug,
+      values: { [title]: "Kept" },
+      imageUrl: "https://93.184.215.14/ok.png",
+    })) as { id: number; image: string };
+    const before = uploads();
+    await expect(
+      call("update_item", { collection: slug, id, values: { [title]: "Changed" }, imageUrl: "https://93.184.215.14/page" }),
+    ).rejects.toThrow("imageUrl:");
+    expect(getItem(collection.id, id)).toMatchObject({ values: { [title]: "Kept" } });
+    expect(await call("get_item", { collection: slug, id })).toMatchObject({ image: kept });
+    expect(uploads()).toEqual(before);
   });
 });

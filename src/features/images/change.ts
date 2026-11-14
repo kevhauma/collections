@@ -25,10 +25,11 @@ const fileBytes = async (file: File): Promise<Buffer> => {
 };
 
 // The new image's id once its files are written, null to remove the image, undefined to keep it. Throws ImageError.
-export const prepareImage = async (source: ImageSource): Promise<string | null | undefined> => {
+// `fetcher` downloads a URL (the MCP tools pass one that refuses internal addresses).
+export const prepareImage = async (source: ImageSource, fetcher?: typeof fetch): Promise<string | null | undefined> => {
   if (source === "remove") return null;
   if (source === undefined) return undefined;
-  return processImage("file" in source ? await fileBytes(source.file) : await downloadImage(source.url));
+  return processImage("file" in source ? await fileBytes(source.file) : await downloadImage(source.url, fetcher));
 };
 
 // Runs the DB write for a prepared image: the old files are deleted only after the write succeeded, and the new ones

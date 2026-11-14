@@ -1,12 +1,9 @@
-import { msg } from "@lingui/core/macro";
 import { Trans, useLingui } from "@lingui/react/macro";
 import { redirect, type ActionFunctionArgs } from "react-router";
 import { requestContext } from "../context";
-import { createCollection, listSlugs } from "../db/collections";
 import { requireAdmin } from "../features/auth/guard";
-import { rejected, type Rejected } from "../features/collections/form";
-import { parseCreate } from "../features/collections/validation";
-import { actionI18n } from "../i18n";
+import { addCollection } from "../features/collections/collection-changes";
+import type { Rejected } from "../features/collections/form";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { CollectionNameFields } from "./collection-name-fields";
@@ -22,12 +19,8 @@ export const loader = () => {
 export const action = async ({ request }: ActionFunctionArgs) => {
   requireAdmin();
   const form = Object.fromEntries(await request.formData());
-  const parsed = parseCreate(form, listSlugs());
-  if (!parsed.success) return rejected(parsed.error, form);
-  // The title field's label is user content from here on, so it's stored in the admin's current language.
-  const titleLabel = actionI18n()._(msg({ id: "collections.titleField", message: "Title" }));
-  createCollection(parsed.data.name, parsed.data.slug, titleLabel);
-  return redirect(`/admin/c/${parsed.data.slug}`);
+  const created = addCollection(form);
+  return "errors" in created ? created : redirect(`/admin/c/${created.slug}`);
 };
 
 const blank: Rejected = { errors: {}, values: { name: "", slug: "" } };

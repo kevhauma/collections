@@ -3,13 +3,16 @@ import { z } from "zod";
 import { getCollectionBySlug, listCollections, type Collection } from "../../db/collections";
 import { fieldTypes, listFields, type Field } from "../../db/fields";
 import { getItem, moveWant, type Item } from "../../db/items";
+import { addCollection } from "../collections/collection-changes";
 import { addField, editField } from "../collections/field-changes";
-import type { FieldRejected } from "../collections/form";
 import type { FormInput } from "../collections/validation";
+import { prepareFormImage } from "../images/form";
+import { imageUrl } from "../images/shared";
 import { removeItem, saveItem } from "../items/item-changes";
 import { translateItemErrors } from "../items/messages";
 import { parseItemForm } from "../items/schema";
 import { itemView } from "../items/view";
+import { publicFetch } from "../oauth/oauth";
 
 // The MCP tools (TICKET-MCP-01): what the admin can do in the UI, through the same repositories and parsers, so an
 // agent's input passes the same validation and gets the same (English) messages. A tool throws to report a problem;
@@ -50,6 +53,7 @@ const itemOut = (fields: Field[]) => (item: Item) => ({
   status: item.status,
   quantity: item.quantity,
   rank: item.rank,
+  image: item.image ? imageUrl(item.image) : null,
   values: fields
     .filter((field) => item.values[field.id] !== undefined)
     .map((field) => ({ fieldId: field.id, label: field.label, value: item.values[field.id] })),
@@ -61,8 +65,30 @@ const refuseItem = (fields: Field[], errors: Partial<Record<string, string>>): n
   return refuse(Object.entries(errors).map(([input, message]) => `${nameOf(input)}: ${message}`).join("\n"));
 };
 
-const refuseField = (rejected: FieldRejected): never =>
-  refuse(Object.entries(rejected.errors).map(([input, message]) => `${input}: ${message}`).join("\n"));
+// A form's errors (collection, field or image), one per line, named by input.
+const refuseErrors = (errors: Partial<Record<string, string>>): never =>
+  refuse(Object.entries(errors).map(([input, message]) => `${input}: ${message}`).join("\n"));
+
+// An agent can be steered by what it reads, so its image URLs may not reach internal addresses. publicFetch checks
+// only the host it's given, so redirects aren't followed.
+// shortcut: an image URL that redirects is refused; re-check each hop if agents keep hitting that.
+const agentFetch: typeof fetch = (input, init) => publicFetch(input, { ...init, redirect: "error" });
+
+// The image an item write saves, downloaded before the write (see commitImage): a new id, null to remove, undefined
+// to keep. Called once the values have passed, so a refused item leaves no files.
+const agentImage = async (url: string | undefined, remove = false) => {
+  if (url !== undefined && remove) refuse("Give imageUrl or removeImage, not both.");
+  const prepared = await prepareFormImage({ imageUrl: url, removeImage: remove ? "on" : undefined }, agentFetch);
+  return "errors" in prepared ? refuseErrors(prepared.errors) : prepared.image;
+};
+
+const collectionView = (collection: Collection) => ({
+  slug: collection.slug,
+  name: collection.name,
+  public: collection.isPublic === 1,
+  defaultView: collection.defaultView,
+  fields: listFields(collection.id).map(fieldView),
+});
 
 type ItemArgs = { status?: "have" | "want"; quantity?: number; values: Record<string, unknown> };
 
@@ -98,6 +124,10 @@ const values = z
   .record(z.string(), z.unknown())
   .describe("Values keyed by field id (get_collection lists them). null or \"\" clears a value.");
 const affix = z.string().describe("Display-only text before or after the value, like € or cm; \"\" for none.");
+const imageUrlArg = z
+  .string()
+  .optional()
+  .describe("An http(s) address of an image (JPEG, PNG, WebP, GIF or AVIF, up to 15 MB), stored as the item's picture.");
 
 type Tool<S extends z.ZodObject> = {
   description: string;
@@ -129,15 +159,22 @@ export const tools = {
     description: "A collection's settings and its fields in order. Item values are keyed by these field ids.",
     annotations: read,
     input: z.object({ collection: slug }),
-    run: ({ collection }) => {
-      const found = collectionOf(collection);
-      return {
-        slug: found.slug,
-        name: found.name,
-        public: found.isPublic === 1,
-        defaultView: found.defaultView,
-        fields: listFields(found.id).map(fieldView),
-      };
+    run: ({ collection }) => collectionView(collectionOf(collection)),
+  }),
+  create_collection: tool({
+    description:
+      "Creates a private collection with a required Title field, validated like the new-collection form. Returns it " +
+      "like get_collection, so fields can be added next.",
+    input: z.object({
+      name: z.string(),
+      slug: z
+        .string()
+        .optional()
+        .describe("Its address: lowercase letters, digits and single dashes. Left out, it's made from the name."),
+    }),
+    run: ({ name, slug: wanted }) => {
+      const created = addCollection(fieldForm({ name, slug: wanted }));
+      return "errors" in created ? refuseErrors(created.errors) : collectionView(collectionOf(created.slug));
     },
   }),
   list_items: tool({
@@ -175,23 +212,26 @@ export const tools = {
   create_item: tool({
     description:
       "Adds an item, validated like the item form. A have gets quantity (default 1); a want goes to the bottom of the " +
-      "ranking, or to `rank`.",
+      "ranking, or to `rank`. `imageUrl` gives it a picture.",
     input: z.object({
       collection: slug,
       status: status.default("have"),
       quantity: z.number().int().optional(),
       rank: z.number().int().optional(),
       values,
+      imageUrl: imageUrlArg,
     }),
-    run: async ({ collection, rank, ...args }) => {
+    run: async ({ collection, rank, imageUrl: url, ...args }) => {
       const found = collectionOf(collection);
-      return placeWant(found, await saveItem(found.id, undefined, parseItem(found, args)), rank);
+      const parsed = parseItem(found, args);
+      return placeWant(found, await saveItem(found.id, undefined, { ...parsed, image: await agentImage(url) }), rank);
     },
   }),
   update_item: tool({
     description:
       "Changes an item, validated like the item form. Only the values given change; status and quantity keep theirs " +
-      "unless given. `rank` moves a want.",
+      "unless given. `rank` moves a want. `imageUrl` replaces the picture and `removeImage` clears it; without either " +
+      "it stays.",
     input: z.object({
       collection: slug,
       id: itemId,
@@ -199,8 +239,10 @@ export const tools = {
       quantity: z.number().int().optional(),
       rank: z.number().int().optional(),
       values: values.default({}),
+      imageUrl: imageUrlArg,
+      removeImage: z.boolean().default(false).describe("true removes the item's picture."),
     }),
-    run: async ({ collection, id, rank, ...args }) => {
+    run: async ({ collection, id, rank, imageUrl: url, removeImage, ...args }) => {
       const found = collectionOf(collection);
       const item = itemOf(found, id);
       const parsed = parseItem(found, {
@@ -208,7 +250,7 @@ export const tools = {
         quantity: args.quantity ?? item.quantity ?? undefined,
         values: { ...item.values, ...args.values },
       });
-      await saveItem(found.id, item, parsed);
+      await saveItem(found.id, item, { ...parsed, image: await agentImage(url, removeImage) });
       return placeWant(found, id, rank);
     },
   }),
@@ -248,7 +290,7 @@ export const tools = {
     run: ({ collection, public: isPublic, ...inputs }) => {
       const found = collectionOf(collection);
       const rejected = addField(found, fieldForm({ ...inputs, isPublic }));
-      if (rejected) refuseField(rejected);
+      if (rejected) refuseErrors(rejected.errors);
       return listFields(found.id).map(fieldView).at(-1);
     },
   }),
@@ -285,7 +327,7 @@ export const tools = {
           ratingSymbol: change.ratingSymbol ?? field.ratingSymbol,
         }),
       );
-      if (rejected) refuseField(rejected);
+      if (rejected) refuseErrors(rejected.errors);
       return fieldView(fieldOf(found, id));
     },
   }),
