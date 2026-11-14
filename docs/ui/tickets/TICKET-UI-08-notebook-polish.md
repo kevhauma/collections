@@ -67,7 +67,8 @@ the paper's squares.
   stays crisp. The underline still shows without hover, so links remain recognisable (WCAG 1.4.1).
 - Body line height becomes one grid square (or the grid becomes one line), and the vertical rhythm (padding, gaps,
   row heights) snaps to whole squares, so set text in the main column sits on the grid lines. The grid background
-  starts where the text does, so both line up.
+  starts where the text does, so both line up. ~~Text on the lines~~ Changed on 2026-11-14 at the owner's request:
+  each line of text sits in the middle of its row of squares, and every box edge and rule falls on a grid line.
 
 ## UI requirements
 
@@ -115,12 +116,13 @@ the paper's squares.
       error summary's red underline 4.76:1 / 5.5:1.)
 - [x] Body text lines in the main column sit on the grid: line height equals `--grid-square` (or a whole multiple),
       checked by overlaying a page screenshot on the grid at 360px and desktop. Headline sizes keep their look.
-      (`--grid-square: 1.375rem` = the body line height and every `--text-*--line-height`; the grid rows start at the
-      baseline, `calc(var(--grid-square) / 2 + 0.25rem)`; shells, list page, toolbar and table step in `sq` tokens. On
-      the public list at 360px and 1440px, label, table header and cell text all have their glyph box at the same
-      offset to the grid rows (measured with Range rects), and a zoomed screenshot shows the words on the lines.
-      Labels inside 44px drawn boxes (tabs, buttons, inputs) are centred in the box, half a square off, by choice: the
-      boxes stay on the squares. The h1 keeps its size, its line height rounded to whole squares.)
+      (`--grid-square: 1.375rem` = the body line height and every `--text-*--line-height`; the grid starts at the page
+      top and shells, list page, toolbar and table step in `sq` tokens, so each line of set text fills one row of
+      squares, centred in it, and box edges and rules lie on grid lines (owner's call, 2026-11-14, replacing text on
+      the lines). Measured on the public vinyl list at 1440px and 360px: header, tabs, toolbar boxes, table header and
+      every row start and end at 0 mod 22px; label, table header and cell text centres at 10.5 of 22. Labels inside
+      44px drawn boxes (tabs, buttons) are centred in their two-square box, so they sit across its middle grid line.
+      The h1 keeps its size, its line height rounded to whole squares.)
 - [x] Dark mode still meets the TICKET-UI-03 contrast rules for the clip, the dividers and the dialog. (Clip: day ink
       on post-its 8:1+, the paper pass on night paper 18:1; header rule in night ink 13.5:1; row rules keep the `rule`
       token the dashed borders used; the dialog is unchanged paper and ink. Orca dark screenshots of table, grid and

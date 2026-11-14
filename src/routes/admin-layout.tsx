@@ -19,7 +19,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
   return (
     <ClientI18nProvider locale={locale} messages={messages}>
       <div className="mx-auto flex min-h-dvh max-w-6xl flex-col px-4 sm:px-8">
-        <header className="flex flex-wrap items-center gap-x-6 py-sq-half">
+        <header className="flex flex-wrap items-center gap-x-6 pt-sq">
           <a href="/admin" className="inline-flex min-h-11 items-center font-hand text-4xl leading-none text-ink no-underline">
             <Trans id="app.name">Collections</Trans>
           </a>

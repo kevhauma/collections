@@ -98,12 +98,11 @@
     caret-color: var(--color-ink);
     accent-color: var(--color-ink);
     scrollbar-color: var(--color-rule) var(--color-paper);
-    /* The rows of squares start at the baseline of the first line (half a square of leading, plus Kalam's ascent
-       over its descent), so set text sits on the grid lines (TICKET-UI-08). */
+    /* Each line of text fills one row of squares, centred in it, and every box edge and rule falls on a grid line,
+       because the page steps in whole squares from the top (TICKET-UI-08). */
     background:
       linear-gradient(90deg, var(--color-grid) 1px, transparent 1px) 0 0 / var(--grid-square) var(--grid-square),
-      linear-gradient(var(--color-grid) 1px, transparent 1px) 0 calc(var(--grid-square) / 2 + 0.25rem) / var(--grid-square)
-        var(--grid-square),
+      linear-gradient(var(--color-grid) 1px, transparent 1px) 0 0 / var(--grid-square) var(--grid-square),
       var(--color-paper);
   }
   body {

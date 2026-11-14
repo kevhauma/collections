@@ -10,7 +10,7 @@ import { RouteError } from "./route-error";
 // widens on large screens, so a table with many fields fits (TICKET-UI-08).
 export const Layout = ({ children }: { children: ReactNode }) => (
   <div className="mx-auto flex min-h-dvh max-w-3xl flex-col px-4 sm:px-8 xl:max-w-6xl">
-    <header className="flex flex-wrap items-center justify-between gap-x-6 py-sq-half">
+    <header className="flex flex-wrap items-center justify-between gap-x-6 pt-sq">
       <a href="/" className="inline-flex min-h-11 items-center font-hand text-4xl leading-none text-ink no-underline">
         <Trans id="app.name">Collections</Trans>
       </a>
