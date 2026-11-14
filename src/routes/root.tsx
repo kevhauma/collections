@@ -8,6 +8,14 @@ import { InkDefs } from "../ui/ink-defs";
 import { LinkButton } from "../ui/button";
 import { RouteError } from "./route-error";
 import "../ui/styles.css";
+import kalam400 from "@fontsource/kalam/files/kalam-latin-400-normal.woff2?url";
+import kalam700 from "@fontsource/kalam/files/kalam-latin-700-normal.woff2?url";
+import reenieBeanie400 from "@fontsource/reenie-beanie/files/reenie-beanie-latin-400-normal.woff2?url";
+
+// Every page sets text in all three faces. Without a preload the browser asks for them only once body text is laid
+// out, so a page whose fonts aren't in memory paints a fallback frame first and jumps (TICKET-UI-07). These are the
+// same files styles.css references, so the hashed URLs match.
+const fonts = [kalam400, kalam700, reenieBeanie400];
 
 // The document. It renders no client components: public pages stay JS-free, and the admin layout adds the
 // client i18n provider itself. Pages render their own <title>; React hoists it into <head>. A forced theme is on
@@ -19,6 +27,9 @@ export const Layout = ({ children }: { children: ReactNode }) => {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {fonts.map((href) => (
+          <link key={href} rel="preload" href={href} as="font" type="font/woff2" crossOrigin="" />
+        ))}
       </head>
       <body>
         {/* First focusable element: off-screen until it gets keyboard focus. */}

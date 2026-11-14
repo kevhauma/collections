@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **27 / 29 done**
+Progress: **28 / 30 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -41,6 +41,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 27 ‖ | [MCP-01](../../mcp/tickets/TICKET-MCP-01-admin-mcp-server.md) | MCP server for admin edits by an AI agent | M7 After the first cut | AUTH-02, ITM-02, COL-03 | 🔄 |
 | 28 ‖ | [UI-04](../../ui/tickets/TICKET-UI-04-pen-drawn-switcher-icons.md) | Pen-drawn switcher icons | M7 After the first cut | UI-03, I18N-02 | ✅ |
 | 29 ‖ | [UI-06](../../ui/tickets/TICKET-UI-06-flags-keep-day-colours.md) | Flags keep their colours in dark mode | M7 After the first cut | UI-03, UI-04 | ✅ |
+| 30 ‖ | [UI-07](../../ui/tickets/TICKET-UI-07-no-font-flash-on-navigation.md) | No font jump when switching pages | M7 After the first cut | UI-01 | ✅ |
 
 ## Why this order
 
@@ -106,6 +107,7 @@ graph LR
   UI03 --> UI04[UI-04 switcher icons]
   I18N02 --> UI04
   UI04 --> UI06[UI-06 flag colours]
+  UI01 --> UI07[UI-07 font preload]
 ```
 
 ## Not in v1
