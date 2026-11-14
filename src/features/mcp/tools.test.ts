@@ -29,7 +29,7 @@ const setup = () => {
   const slug = `records-${++collections}`;
   createCollection(`Records ${collections}`, slug, "Title");
   const collection = getCollectionBySlug(slug)!;
-  updateCollection(collection.id, { name: collection.name, slug, isPublic: 1, defaultView: "table" });
+  updateCollection(collection.id, { ...collection, isPublic: 1 });
   const base = { options: null, required: 0 as const, prefix: null, suffix: null };
   createField(collection.id, { ...base, label: "Price", type: "number", isPublic: 0, prefix: "€" });
   createField(collection.id, { ...base, label: "Format", type: "select", options: ["LP", "CD"], isPublic: 1 });

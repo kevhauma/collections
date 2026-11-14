@@ -19,16 +19,24 @@ export type ListParams = {
   filters: ItemFilter[];
 };
 
-export type ListContext = { status: ItemStatus; defaultView: View; titleFieldId: number; publicOnly?: boolean };
+// `defaultSort` / `defaultDir`: the have tab's default order (TICKET-COL-07), already checked by `defaultSortOf`;
+// title, ascending when left out.
+export type ListContext = {
+  status: ItemStatus;
+  defaultView: View;
+  titleFieldId: number;
+  defaultSort?: ItemSort;
+  defaultDir?: ListParams["dir"];
+  publicOnly?: boolean;
+};
 
 type ListField = Pick<Field, "id" | "type" | "options" | "isPublic">;
 
-// Wants follow their rank; haves read alphabetically by title.
-const defaultsOf = (context: ListContext): Pick<ListParams, "view" | "sort" | "dir"> => ({
-  view: context.defaultView,
-  sort: context.status === "want" ? "rank" : context.titleFieldId,
-  dir: "asc",
-});
+// Wants follow their rank; haves the collection's default order, or alphabetically by title.
+const defaultsOf = (context: ListContext): Pick<ListParams, "view" | "sort" | "dir"> =>
+  context.status === "want"
+    ? { view: context.defaultView, sort: "rank", dir: "asc" }
+    : { view: context.defaultView, sort: context.defaultSort ?? context.titleFieldId, dir: context.defaultDir ?? "asc" };
 
 const oneOf = <T extends string>(options: readonly [T, ...T[]], value: string | null, fallback: T): T =>
   z.enum(options).catch(fallback).parse(value);
@@ -37,6 +45,11 @@ const sortOf = (value: string | null, fields: ListField[], status: ItemStatus): 
   if (value === "created" || (value === "rank" && status === "want")) return value;
   return fields.find((field) => String(field.id) === value)?.id;
 };
+
+// A collection's stored default sort, if it still names "created" or one of `fields` (the ones the viewer may see);
+// otherwise the title, so a deleted or private field never breaks the list.
+export const defaultSortOf = (stored: string | null, fields: ListField[], titleFieldId: number): ItemSort =>
+  sortOf(stored, fields, "have") ?? titleFieldId;
 
 // Only choice and yes/no fields filter: an option of the field, or yes / no.
 const filterValues: Partial<Record<Field["type"], (value: string, field: ListField) => ItemFilter["value"] | undefined>> = {
@@ -108,7 +121,10 @@ export const sortToggle = (params: ListParams, sort: ItemSort): { next: ListPara
   };
 };
 
-// Search, filters, view and a chosen sort carry over to the other tab; the default sort (title or rank) becomes the
-// other tab's default.
-export const switchTab = (params: ListParams, from: ListContext, to: ListContext): ListParams =>
-  params.sort === defaultsOf(from).sort ? { ...params, sort: defaultsOf(to).sort } : params;
+// Search, filters, view and a chosen sort carry over to the other tab. The tab's default sort (the collection's, or
+// rank) becomes the other tab's, and so does its default direction; a direction the viewer flipped stays.
+export const switchTab = (params: ListParams, from: ListContext, to: ListContext): ListParams => {
+  const [source, target] = [defaultsOf(from), defaultsOf(to)];
+  if (params.sort !== source.sort) return params;
+  return { ...params, sort: target.sort, dir: params.dir === source.dir ? target.dir : params.dir };
+};

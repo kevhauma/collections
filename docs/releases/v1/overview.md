@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **33 / 38 done**
+Progress: **34 / 38 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -46,7 +46,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 32 ‖ | [MCP-02](../../mcp/tickets/TICKET-MCP-02-create-collections-and-item-images.md) | MCP tools to create collections and set item images | M7 After the first cut | MCP-01 (built) | ✅ |
 | 33 ‖ | [UI-08](../../ui/tickets/TICKET-UI-08-notebook-polish.md) | Notebook polish | M7 After the first cut | ITM-04, ITM-05 | ✅ |
 | 34 ‖ | [UI-09](../../ui/tickets/TICKET-UI-09-random-fastening.md) | Pin, tape or paperclip at random per item | M7 After the first cut | UI-08 | ✅ |
-| 35 ‖ | [COL-07](../../collections/tickets/TICKET-COL-07-default-sort.md) | Default sort per collection | M7 After the first cut | ITM-05 | ⬜ |
+| 35 ‖ | [COL-07](../../collections/tickets/TICKET-COL-07-default-sort.md) | Default sort per collection | M7 After the first cut | ITM-05 | ✅ |
 | 36 ‖ | [COL-09](../../collections/tickets/TICKET-COL-09-title-source-link.md) | Link the title to a URL field | M7 After the first cut | ITM-05 | ⬜ |
 | 37 ‖ | [COL-08](../../collections/tickets/TICKET-COL-08-default-item-image.md) | Default image for items without one | M7 After the first cut | COL-06 | ⬜ |
 | 38 ‖ | [ITM-06](../../items/tickets/TICKET-ITM-06-group-by-field.md) | Group the item list by a field | M7 After the first cut | ITM-05 | ⬜ |

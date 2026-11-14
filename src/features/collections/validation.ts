@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { defaultViews } from "../../db/collections";
+import { defaultViews, sortDirections } from "../../db/collections";
 import { maxSlugLength, reservedSlugs, slugify, slugPattern, uniqueSlug } from "./slug";
 
 // Validation shared by the create and settings actions. Issue messages are keys that form.ts translates.
@@ -29,7 +29,9 @@ export const parseCreate = (form: FormInput, taken: ReadonlySet<string>) =>
     slug: form.slug || uniqueSlug(slugify(String(form.name ?? "")), taken),
   });
 
-export const parseSettings = (form: FormInput, taken: ReadonlySet<string>) =>
+// `sortable`: what the default sort may be, besides "" for the title: "created" and the collection's own field ids.
+// Anything else (a forged id) has no message key, so the form just doesn't save.
+export const parseSettings = (form: FormInput, taken: ReadonlySet<string>, sortable: ReadonlySet<string>) =>
   z
     .object({
       ...fields(taken),
@@ -39,5 +41,10 @@ export const parseSettings = (form: FormInput, taken: ReadonlySet<string>) =>
         .optional()
         .transform((on) => (on ? 1 : 0) as 0 | 1),
       defaultView: z.enum(defaultViews),
+      defaultSort: z
+        .string()
+        .refine((sort) => sort === "" || sortable.has(sort))
+        .transform((sort) => sort || null),
+      defaultDir: z.enum(sortDirections),
     })
     .safeParse(form);

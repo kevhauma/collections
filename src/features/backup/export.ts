@@ -24,6 +24,8 @@ const exportCollection = (collection: SnapshotCollection, imageOf: (id: string |
   name: collection.name,
   isPublic: collection.isPublic === 1,
   defaultView: collection.defaultView,
+  defaultSort: collection.defaultSort,
+  defaultDir: collection.defaultDir,
   titleFieldId: collection.titleFieldId,
   image: imageOf(collection.image),
   fields: collection.fields.map((field) => ({ ...field, required: field.required === 1, isPublic: field.isPublic === 1 })),

@@ -30,6 +30,9 @@ can also connect an AI agent through the MCP server at `/api/mcp`, which acts as
 - Has `name`, `slug`, `is_public` (default **off**), `default_view` (`table` | `grid`), a `title_field_id`, and an
   optional `image`: one picture of the whole collection, stored and served like an item image, shown on its cards, above
   its items and as the public link preview (TICKET-COL-06).
+- `default_sort` / `default_dir` (TICKET-COL-07): the have tab's order when the URL has no `sort`, stored as the `sort`
+  param takes it (`created` or a field id; null = the title). Checked on read: a deleted field, or a private one on a
+  public page, falls back to the title. The want tab always opens by rank.
 
 ### Field
 
@@ -184,7 +187,8 @@ settings(id INTEGER PRIMARY KEY CHECK (id = 1), default_locale TEXT NOT NULL DEF
 collections(id INTEGER PRIMARY KEY, slug TEXT UNIQUE NOT NULL, name TEXT NOT NULL,
             is_public INTEGER NOT NULL DEFAULT 0, default_view TEXT NOT NULL DEFAULT 'table',
             title_field_id INTEGER, created_at INTEGER, updated_at INTEGER,
-            image TEXT)  -- 004
+            image TEXT,  -- 004
+            default_sort TEXT, default_dir TEXT NOT NULL DEFAULT 'asc')  -- 006
 fields(id INTEGER PRIMARY KEY, collection_id INTEGER NOT NULL REFERENCES collections ON DELETE CASCADE,
        label TEXT NOT NULL, type TEXT NOT NULL, options_json TEXT, required INTEGER NOT NULL DEFAULT 0,
        is_public INTEGER NOT NULL DEFAULT 1, position INTEGER NOT NULL,

@@ -222,6 +222,8 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   `listQuery` (defaults left out), `switchTab` and `sortToggle` from
   [src/features/items/list-params.ts](../../../src/features/items/list-params.ts). The views are `ItemTable` /
   `ItemGrid` / `ItemToolbar` in `src/routes/item-views.tsx` and `item-toolbar.tsx`, with `mode: "admin" | "public"`.
+- A tab's defaults (left out of URLs) come from the `ListContext`: the want tab's rank, the have tab's collection
+  default sort (TICKET-COL-07), resolved once by `defaultSortOf` against the fields the viewer may see.
 - Invalid params are dropped, not turned into errors. Toolbars are GET forms, so every state is shareable and works
   without JS. `data-submit-once` on one drops repeated and unchanged submits; that's the only inline script, from
   [src/lib/submit-once.ts](../../../src/lib/submit-once.ts) (functions serialized by `toString`, so they may only use

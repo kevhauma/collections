@@ -159,7 +159,7 @@ describe("005-oauth", () => {
   it("adds the OAuth tables; a client's codes and tokens go with it", () => {
     const oauth = atVersion(4);
     db = oauth;
-    expect(migrate(oauth)).toEqual(["005-oauth.sql"]);
+    expect(migrate(oauth)).toContain("005-oauth.sql");
     oauth.prepare("insert into oauth_clients (id, name, redirect_uris_json) values ('c', 'Agent', '[]')").run();
     oauth.prepare(
       "insert into oauth_codes (code_hash, client_id, redirect_uri, code_challenge, resource, expires_at) values ('h', 'c', 'u', 'x', 'r', 1)",
@@ -170,5 +170,15 @@ describe("005-oauth", () => {
     ).toThrow(/CHECK/);
     oauth.prepare("delete from oauth_clients").run();
     expect(oauth.prepare("select (select count(*) from oauth_codes) + (select count(*) from oauth_tokens)").pluck().get()).toBe(0);
+  });
+});
+
+describe("006-default-sort", () => {
+  it("adds default_sort (null, the title) and default_dir (asc) to collections that already exist", () => {
+    db = atVersion(5);
+    db.prepare("insert into collections (id, slug, name) values (1, 'records', 'Records')").run();
+    expect(migrate(db)).toContain("006-default-sort.sql");
+    expect(db.prepare("select default_sort, default_dir from collections").get()).toEqual({ default_sort: null, default_dir: "asc" });
+    expect(() => db!.prepare("update collections set default_dir = 'up'").run()).toThrow(/CHECK/);
   });
 });

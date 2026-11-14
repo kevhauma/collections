@@ -35,15 +35,29 @@ describe("parseCreate", () => {
 });
 
 describe("parseSettings", () => {
-  const base = { name: "Vinyl", slug: "vinyl", defaultView: "grid" };
+  const base = { name: "Vinyl", slug: "vinyl", defaultView: "grid", defaultSort: "", defaultDir: "asc" };
+  // The collection's own fields 6 and 7, plus date added (TICKET-COL-07).
+  const sortable = new Set(["created", "6", "7"]);
+  const settings = (form: Record<string, string>, slugs = new Set<string>()) => parseSettings(form, slugs, sortable);
 
   it("reads the public checkbox as 1 when ticked and 0 when absent", () => {
-    expect(parseSettings({ ...base, isPublic: "on" }, new Set()).data).toEqual({ ...base, isPublic: 1 });
-    expect(parseSettings(base, new Set()).data?.isPublic).toBe(0);
+    expect(settings({ ...base, isPublic: "on" }).data).toEqual({ ...base, defaultSort: null, isPublic: 1 });
+    expect(settings(base).data?.isPublic).toBe(0);
   });
 
   it("refuses another collection's slug and an unknown view", () => {
-    expect(errorKeys(parseSettings(base, taken))).toEqual(["slug:taken"]);
-    expect(parseSettings({ ...base, defaultView: "list" }, new Set()).success).toBe(false);
+    expect(errorKeys(settings(base, taken))).toEqual(["slug:taken"]);
+    expect(settings({ ...base, defaultView: "list" }).success).toBe(false);
+  });
+
+  it("reads the default sort: empty is the title, else date added or one of the collection's fields", () => {
+    expect(settings(base).data).toMatchObject({ defaultSort: null, defaultDir: "asc" });
+    expect(settings({ ...base, defaultSort: "7", defaultDir: "desc" }).data).toMatchObject({ defaultSort: "7", defaultDir: "desc" });
+    expect(settings({ ...base, defaultSort: "created" }).data?.defaultSort).toBe("created");
+  });
+
+  it("refuses a forged default sort: another collection's field, rank, junk, or an unknown direction", () => {
+    for (const defaultSort of ["99", "rank", "title", "6 or 1=1"]) expect(settings({ ...base, defaultSort }).success).toBe(false);
+    expect(settings({ ...base, defaultDir: "up" }).success).toBe(false);
   });
 });

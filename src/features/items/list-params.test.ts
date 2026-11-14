@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  defaultSortOf,
   filterInput,
   listQuery,
   parseListParams,
@@ -74,6 +75,26 @@ describe("listQuery", () => {
     expect(listQuery(parse("", want), want)).toBe("");
   });
 
+  it("uses the collection's default sort on the have tab (TICKET-COL-07): left out of the URL, any other sort kept", () => {
+    const byYear: ListContext = { ...have, defaultSort: 2, defaultDir: "desc" };
+    expect(parse("", byYear)).toMatchObject({ sort: 2, dir: "desc" });
+    expect(listQuery(parse("", byYear), byYear)).toBe("");
+    expect(listQuery(parse("sort=1&dir=asc", byYear), byYear)).toBe("?sort=1&dir=asc");
+    expect(listQuery(parse("sort=2&dir=asc", byYear), byYear)).toBe("?dir=asc");
+    expect(parse("", { ...want, defaultSort: 2, defaultDir: "desc" })).toMatchObject({ sort: "rank", dir: "asc" });
+  });
+});
+
+describe("defaultSortOf", () => {
+  it("keeps date added and a field the viewer may see, and falls back to the title otherwise", () => {
+    expect(defaultSortOf("created", [...fields], 1)).toBe("created");
+    expect(defaultSortOf("2", [...fields], 1)).toBe(2);
+    expect(defaultSortOf(null, [...fields], 1)).toBe(1);
+    // Deleted (not among the fields), or private on a public page (left out of the fields before the call).
+    expect(defaultSortOf("99", [...fields], 1)).toBe(1);
+    expect(defaultSortOf("5", fields.filter((field) => field.isPublic), 1)).toBe(1);
+    expect(defaultSortOf("rank", [...fields], 1)).toBe(1);
+  });
 });
 
 describe("switchTab", () => {
@@ -83,6 +104,14 @@ describe("switchTab", () => {
     expect(listQuery(switchTab(parse("q=blue"), have, want), want)).toBe("?q=blue");
     const byYear = parse("sort=2&dir=desc");
     expect(listQuery(switchTab(byYear, have, want), want)).toBe("?sort=2&dir=desc");
+  });
+
+  it("swaps a custom default order for rank and back (TICKET-COL-07)", () => {
+    const custom: ListContext = { ...have, defaultSort: 2, defaultDir: "desc" };
+    expect(listQuery(switchTab(parse("q=blue", custom), custom, want), want)).toBe("?q=blue");
+    expect(listQuery(switchTab(parse("q=blue", want), want, custom), custom)).toBe("?q=blue");
+    expect(listQuery(switchTab(parse("sort=3&dir=asc", custom), custom, want), want)).toBe("?sort=3");
+    expect(listQuery(switchTab(parse("dir=asc", custom), custom, want), want)).toBe("");
   });
 });
 

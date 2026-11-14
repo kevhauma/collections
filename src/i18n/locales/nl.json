@@ -68,6 +68,8 @@
   "fields.type.date": "Datum",
   "items.sort.created": "Datum toegevoegd",
   "settings.defaultLocale": "Standaardtaal",
+  "collections.settings.defaultDir": "Standaardvolgorde",
+  "collections.settings.defaultSort": "Standaard sorteren op",
   "collections.settings.defaultView": "Standaardweergave",
   "collections.delete.card": "Verwijderen",
   "fields.delete.title": "“{label}” verwijderen?",

@@ -4,6 +4,7 @@ import { db } from "./connection";
 
 export const defaultViews = ["table", "grid"] as const;
 type DefaultView = (typeof defaultViews)[number];
+export const sortDirections = ["asc", "desc"] as const;
 
 export type Collection = {
   id: number;
@@ -11,6 +12,9 @@ export type Collection = {
   name: string;
   isPublic: 0 | 1;
   defaultView: DefaultView;
+  // The have tab's default order (TICKET-COL-07): "created" or a field id as text, null for the title.
+  defaultSort: string | null;
+  defaultDir: (typeof sortDirections)[number];
   titleFieldId: number;
   // The collection's picture (TICKET-COL-06): an image id, files as for item images.
   image: string | null;
@@ -21,10 +25,10 @@ type CollectionSummary = Pick<Collection, "id" | "slug" | "name" | "isPublic" | 
   wantCount: number;
 };
 
-export type CollectionSettings = Pick<Collection, "name" | "slug" | "isPublic" | "defaultView">;
+export type CollectionSettings = Pick<Collection, "name" | "slug" | "isPublic" | "defaultView" | "defaultSort" | "defaultDir">;
 
-export const columns = `id, slug, name, is_public as isPublic, default_view as defaultView, title_field_id as titleFieldId,
-  image`;
+export const columns = `id, slug, name, is_public as isPublic, default_view as defaultView, default_sort as defaultSort,
+  default_dir as defaultDir, title_field_id as titleFieldId, image`;
 
 const summaries = (publicOnly: boolean): CollectionSummary[] =>
   db()
@@ -64,6 +68,7 @@ export const updateCollection = (id: number, settings: CollectionSettings, image
   db()
     .prepare(
       `update collections set name = @name, slug = @slug, is_public = @isPublic, default_view = @defaultView,
+         default_sort = @defaultSort, default_dir = @defaultDir,
          image = iif(@keepImage, image, @image), updated_at = unixepoch() where id = @id`,
     )
     .run({ ...settings, id, image: image ?? null, keepImage: image === undefined ? 1 : 0 });

@@ -2,6 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import { redirect, type LoaderFunctionArgs, type Params } from "react-router";
 import { requestContext } from "../context";
 import { deleteCollection, listSlugs, updateCollection, type Collection } from "../db/collections";
+import { listFields, type Field } from "../db/fields";
 import { requireAdmin } from "../features/auth/guard";
 import { commitImage } from "../features/images/change";
 import { prepareFormImage } from "../features/images/form";
@@ -13,11 +14,13 @@ import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Checkbox, RadioGroup } from "../ui/choice";
 import { Dialog } from "../ui/dialog";
+import { FormField } from "../ui/form-field";
+import { Select } from "../ui/input";
 import { CollectionNameFields } from "./collection-name-fields";
 import { ImageSection } from "./image-section";
 
-// /admin/c/:slug/settings (TICKET-COL-01): name, slug, visibility, default view, the picture (TICKET-COL-06), and
-// deletion.
+// /admin/c/:slug/settings (TICKET-COL-01): name, slug, visibility, default view, default sort (TICKET-COL-07), the
+// picture (TICKET-COL-06), and deletion.
 
 // The page reads the collection itself: after a form post, React Router's RSC mode renders without rerunning
 // loaders (loaderData is null), so the loader only guards.
@@ -53,7 +56,8 @@ const save = async (collection: Collection, form: FormInput) => {
   // A hand-edited slug is never auto-suffixed: taken (by another collection) or reserved is an error.
   const taken = listSlugs();
   taken.delete(collection.slug);
-  const parsed = parseSettings(form, taken);
+  const sortable = new Set(["created", ...listFields(collection.id).map((field) => String(field.id))]);
+  const parsed = parseSettings(form, taken, sortable);
   // Settings are checked before any image work, so a refused save never leaves picture files behind.
   if (!parsed.success) return rejected(parsed.error, form);
   const { name, slug } = parsed.data;
@@ -61,6 +65,41 @@ const save = async (collection: Collection, form: FormInput) => {
   if ("errors" in prepared) return pictureRejected(prepared.errors, { name, slug }, form);
   await commitImage(prepared.image, collection.image, () => updateCollection(collection.id, parsed.data, prepared.image));
   return saved(collection, { name, slug });
+};
+
+// The have tab's default order: the title (stored as null), any other field, or date added; then the direction.
+const DefaultSort = ({ collection, fields }: { collection: Collection; fields: Field[] }) => {
+  const { t } = useLingui();
+  const title = fields.find((field) => field.id === collection.titleFieldId);
+  const options = [
+    { value: "", label: title?.label ?? "" },
+    ...fields.filter((field) => field !== title).map((field) => ({ value: String(field.id), label: field.label })),
+    { value: "created", label: t({ id: "items.sort.created", message: "Date added" }) },
+  ];
+  return (
+    <>
+      <FormField id="settings-default-sort" label={t({ id: "collections.settings.defaultSort", message: "Default sort" })}>
+        {(control) => (
+          <Select {...control} name="defaultSort" defaultValue={collection.defaultSort ?? ""}>
+            {options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
+        )}
+      </FormField>
+      <RadioGroup
+        legend={t({ id: "collections.settings.defaultDir", message: "Default order" })}
+        name="defaultDir"
+        defaultValue={collection.defaultDir}
+        options={[
+          { value: "asc", label: t({ id: "items.sort.asc", message: "Ascending" }) },
+          { value: "desc", label: t({ id: "items.sort.desc", message: "Descending" }) },
+        ]}
+      />
+    </>
+  );
 };
 
 export const action = collectionAction((collection, form) => (form.intent === "delete" ? remove : save)(collection, form));
@@ -107,6 +146,7 @@ export default function CollectionSettings({ params, actionData }: { params: Par
               { value: "grid", label: t({ id: "collections.view.grid", message: "Grid" }) },
             ]}
           />
+          <DefaultSort collection={collection} fields={listFields(collection.id)} />
           <fieldset className="grid gap-4">
             <legend className="mb-1 font-bold">
               <Trans id="collections.settings.picture">Picture</Trans>

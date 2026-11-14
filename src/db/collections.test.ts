@@ -54,11 +54,19 @@ describe("collections repository", () => {
     expect(listSlugs()).toEqual(new Set(["magic-the-gathering", "vinyl"]));
   });
 
-  it("updates name, slug, visibility and default view", () => {
+  it("updates name, slug, visibility, default view and default sort", () => {
     const { id } = getCollectionBySlug("vinyl")!;
-    updateCollection(id, { name: "Records", slug: "records", isPublic: 1, defaultView: "grid" });
+    expect(getCollectionBySlug("vinyl")).toMatchObject({ defaultSort: null, defaultDir: "asc" });
+    updateCollection(id, { name: "Records", slug: "records", isPublic: 1, defaultView: "grid", defaultSort: "created", defaultDir: "desc" });
     expect(getCollectionBySlug("vinyl")).toBeUndefined();
-    expect(getCollectionBySlug("records")).toMatchObject({ id, name: "Records", isPublic: 1, defaultView: "grid" });
+    expect(getCollectionBySlug("records")).toMatchObject({
+      id,
+      name: "Records",
+      isPublic: 1,
+      defaultView: "grid",
+      defaultSort: "created",
+      defaultDir: "desc",
+    });
   });
 
   it("sets, keeps and clears the picture (TICKET-COL-06)", () => {

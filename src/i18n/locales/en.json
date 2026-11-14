@@ -68,6 +68,8 @@
   "fields.type.date": "Date",
   "items.sort.created": "Date added",
   "settings.defaultLocale": "Default language",
+  "collections.settings.defaultDir": "Default order",
+  "collections.settings.defaultSort": "Default sort",
   "collections.settings.defaultView": "Default view",
   "collections.delete.card": "Delete",
   "fields.delete.title": "Delete “{label}”?",
