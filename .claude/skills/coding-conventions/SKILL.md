@@ -225,9 +225,12 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - A tab's defaults (left out of URLs) come from the `ListContext`: the want tab's rank, the have tab's collection
   default sort (TICKET-COL-07), resolved once by `defaultSortOf` against the fields the viewer may see.
 - Invalid params are dropped, not turned into errors. Toolbars are GET forms, so every state is shareable and works
-  without JS. `data-submit-once` on one drops repeated and unchanged submits; that's the only inline script, from
+  without JS. `data-submit-once` on one drops repeated and unchanged submits, through an inline script from
   [src/lib/submit-once.ts](../../../src/lib/submit-once.ts) (functions serialized by `toString`, so they may only use
-  their parameters and browser globals), rendered by `routes/root.tsx` so it also runs on JS-free public pages.
+  their parameters and browser globals; helpers go in as arguments), rendered by `routes/root.tsx` so it also runs on
+  JS-free public pages. The page motion's scripts follow the same pattern
+  ([src/lib/page-motion.ts](../../../src/lib/page-motion.ts), TICKET-UI-10): progressive enhancement only, the
+  decision logic a tested pure function, animations via WAAPI on view-transition pseudo-elements.
 
 ## i18n (ADR 0002)
 

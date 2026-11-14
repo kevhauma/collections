@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **37 / 38 done**
+Progress: **37 / 39 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -50,6 +50,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 36 ‖ | [COL-09](../../collections/tickets/TICKET-COL-09-title-source-link.md) | Link the title to a URL field | M7 After the first cut | ITM-05 | ✅ |
 | 37 ‖ | [COL-08](../../collections/tickets/TICKET-COL-08-default-item-image.md) | Default image for items without one | M7 After the first cut | COL-06 | ✅ |
 | 38 ‖ | [ITM-06](../../items/tickets/TICKET-ITM-06-group-by-field.md) | Group the item list by a field | M7 After the first cut | ITM-05 | ✅ |
+| 39 ‖ | [UI-10](../../ui/tickets/TICKET-UI-10-page-load-and-page-turn-motion.md) | Pen-test page load, page turn and handwritten title | M7 After the first cut | UI-05, UI-07 | 🔄 |
 
 ## Why this order
 
@@ -125,6 +126,8 @@ graph LR
   ITM05 --> COL09[COL-09 title link]
   COL06 --> COL08[COL-08 default item image]
   ITM05 --> ITM06[ITM-06 group by field]
+  UI05 --> UI10[UI-10 page motion]
+  UI07 --> UI10
 ```
 
 ## Not in v1

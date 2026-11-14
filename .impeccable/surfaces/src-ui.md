@@ -21,7 +21,7 @@ FIRST VIEWPORT: Admin: top line of scrawled app name, collection links (active h
 
 FORM: User-steered: Ballpoint Notes (re-roll 1 steer) → Crammed Page, bolder register (re-roll 2, fused with japanese-high-density-web) → hand-drawn outlines + post-it images (re-roll 3 steer). Seed key d9a418d7.
 
-Signature interaction: a want reranks in place and keeps its highlighter until noticed; a bought want is struck through with "got it!" before it leaves for Have. Motion: post-its settle with a small rotate-and-drop when added, and the red pen marks what the pointer rests on (hover-marks addendum); nothing else animates; reduced motion removes both.
+Signature interaction: a want reranks in place and keeps its highlighter until noticed; a bought want is struck through with "got it!" before it leaves for Have. Motion: post-its settle with a small rotate-and-drop when added, the red pen marks what the pointer rests on (hover-marks addendum), and pages arrive and change like notebook pages (page-motion addendum); nothing else animates; reduced motion removes them.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
@@ -40,6 +40,16 @@ HOVER: The page reacts like a notebook being marked up. On a device with a point
 ## Notebook polish addendum (TICKET-UI-08)
 
 POLISH: The page is written on the squares. One square is one line of set text (22px), and the shells and list pages step in whole squares from the page top, so each word sits in the middle of its squares and every drawn box and rule runs along a grid line. Every line on the page is drawn: table rules are the outline's own ballpoint strands (two under the header row, a faint dotted pencil rule between rows and above the footer), and links carry a drawn pen stroke under their words that follows them onto a second line. Post-its are held on by a pin, tape or an ink paperclip, mixed per item with no visible pattern (TICKET-UI-09); tapping an item's photo opens it large in a drawn dialog, also without JS. The public sheet widens on big screens so a many-field table fits.
+
+## Page motion addendum (TICKET-UI-10)
+
+PAGE LOAD: A public page opened fresh (from a chat, a typed URL, a bookmark, a refresh) gets a pen test: a blank sheet of the same squared paper covers the page, a drawn ballpoint scribbles a coil of loops and a flick across it (730 ms), the sheet is crumpled into a creased, shaded ball (380 ms) and tossed off towards the bottom-right (340 ms). The page is rendered and usable under it from the first frame: the sheet, ball and pen are decoration (`aria-hidden`, no pointer events). Admin pages never play it; without JavaScript there is none.
+
+PAGE CHANGE: Following a link or submitting a form turns the old page over from its bottom-right corner (620 ms, ease-in-out): the fold runs perpendicular to the page diagonal, and the turned part shows the back of the sheet, squared paper a shade darker with the post-it shadow. The new page lies underneath and is usable from the start. Its scrawled title then writes itself left to right with the pen riding the leading edge (45 ms a character, at most 900 ms), starting once the turn has cleared it. Back and forward turn the page the other way. Refinements of the page you are on stay still: sort, search, filter, group and the Have / Want tabs.
+
+PEN: A small drawn ballpoint (body, cone, grip lines, clip) in the ink outline style through `#ink-wobble`, paper-filled, with the post-it lift shadow because it is an object on the page.
+
+LIMITS: Only the colour tokens, the ink wobble and the shadow vocabulary; no image files. Reduced motion: no pen test, a page change is a 160 ms crossfade and the title is there at once. A browser without cross-document view transitions changes pages instantly.
 
 ## Unresolved
 

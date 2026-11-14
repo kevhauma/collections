@@ -100,10 +100,7 @@
     scrollbar-color: var(--color-rule) var(--color-paper);
     /* Each line of text fills one row of squares, centred in it, and every box edge and rule falls on a grid line,
        because the page steps in whole squares from the top (TICKET-UI-08). */
-    background:
-      linear-gradient(90deg, var(--color-grid) 1px, transparent 1px) 0 0 / var(--grid-square) var(--grid-square),
-      linear-gradient(var(--color-grid) 1px, transparent 1px) 0 0 / var(--grid-square) var(--grid-square),
-      var(--color-paper);
+    @apply squared-paper;
   }
   body {
     min-height: 100dvh;
@@ -127,6 +124,14 @@
     @apply ink-underline;
     justify-self: start;
   }
+}
+
+/* The page's squared paper. --sheet tints it (the back of a turning page). */
+@utility squared-paper {
+  background:
+    linear-gradient(90deg, var(--color-grid) 1px, transparent 1px) 0 0 / var(--grid-square) var(--grid-square),
+    linear-gradient(var(--color-grid) 1px, transparent 1px) 0 0 / var(--grid-square) var(--grid-square),
+    var(--sheet, var(--color-paper));
 }
 
 /* The drawn word underline: a background image, so it follows a link onto its next line (clone) and never touches
@@ -332,5 +337,178 @@
     margin: 6px 0;
     position-area: bottom span-right;
     position-try-fallbacks: flip-block, flip-inline;
+  }
+}
+
+/* Page motion (TICKET-UI-10, timings in lib/page-motion.ts). Every page change in the app is a cross-document view
+   transition; the script turns it into the page turn and the handwritten title, or skips it for a refinement.
+   Without the script it is the browser's crossfade. */
+@view-transition {
+  navigation: auto;
+}
+
+/* The page under the turn is already usable. */
+::view-transition {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 160ms;
+  }
+}
+
+/* The script runs every animation of the turn; the old page lies on top of the new one going forward, under it going
+   back. Only the new page names its title, pen and flap, so the old title turns away with its page. */
+html:active-view-transition-type(turn, back) {
+  &::view-transition-group(*),
+  &::view-transition-old(*),
+  &::view-transition-new(*) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  & h1 {
+    view-transition-name: page-title;
+  }
+  & .page-pen {
+    view-transition-name: page-pen;
+    visibility: visible;
+  }
+  & .page-flap {
+    view-transition-name: page-flap;
+  }
+}
+html:active-view-transition-type(turn)::view-transition-old(root) {
+  z-index: 1;
+}
+
+/* The title is wiped in left to right behind a soft edge; the script slides the mask. */
+::view-transition-new(page-title) {
+  mask: linear-gradient(90deg, #000 calc(50% - 6px), transparent calc(50% + 6px)) 100% 0 / 200% 100% no-repeat;
+}
+
+/* The back of the turned sheet: the page flap's group spans the page and draws it, clipped by the script. */
+::view-transition-group(page-flap) {
+  width: 100%;
+  height: 100%;
+  transform: none;
+  filter: drop-shadow(var(--shadow-postit));
+}
+::view-transition-image-pair(page-flap) {
+  --sheet: color-mix(in srgb, var(--color-paper) 93%, var(--color-ink));
+  @apply squared-paper;
+  clip-path: polygon(0 0, 0 0, 0 0);
+}
+::view-transition-old(page-flap),
+::view-transition-new(page-flap) {
+  display: none;
+}
+
+@layer components {
+  /* The drawn ballpoint: an object on the page, so it lifts like a post-it. Its tip (3, 61) rides a motion path. */
+  .page-pen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 50;
+    width: 64px;
+    height: 64px;
+    overflow: visible;
+    pointer-events: none;
+    visibility: hidden;
+    offset-anchor: 3px 61px;
+    offset-rotate: 0deg;
+    filter: drop-shadow(var(--shadow-postit));
+    & .pen-body {
+      fill: var(--color-paper);
+      stroke: var(--color-ink);
+      stroke-width: 1.5px;
+      stroke-linejoin: round;
+    }
+    & .pen-line,
+    & .pen-clip {
+      fill: none;
+      stroke: var(--color-ink);
+      stroke-width: 1.5px;
+      stroke-linecap: round;
+    }
+    & .pen-clip {
+      stroke-width: 2.4px;
+    }
+  }
+  .page-flap {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+
+  /* The pen test's scrap sheet over the viewport, shown while the script plays it. */
+  .pen-test {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+  }
+  html[data-pen-test] {
+    & .pen-test {
+      display: block;
+    }
+    & .page-pen {
+      visibility: visible;
+    }
+  }
+  .pen-test-ball,
+  .pen-test-sheet,
+  .pen-test-paper,
+  .pen-test-ink,
+  .pen-test-creases,
+  .pen-test-shade {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .pen-test-ball {
+    filter: drop-shadow(var(--shadow-postit));
+  }
+  .pen-test-paper {
+    @apply squared-paper;
+  }
+  .pen-test-ink path {
+    fill: none;
+    stroke: var(--color-ink);
+    stroke-width: 1.8px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1 2;
+    stroke-dashoffset: 1;
+  }
+  .pen-test-creases,
+  .pen-test-shade {
+    opacity: 0;
+  }
+  .pen-test-creases line {
+    stroke: var(--color-ink);
+    stroke-opacity: 0.3;
+    stroke-width: 1px;
+    vector-effect: non-scaling-stroke;
+    &.light {
+      stroke: var(--color-paper);
+      stroke-opacity: 0.85;
+    }
+  }
+  /* The ball's shading: ink gathering towards its edge (the ball's radius is 14% of the shorter side). */
+  .pen-test-shade {
+    background: radial-gradient(
+      circle calc(min(100vw, 100vh) * 0.175) at 46% 45%,
+      transparent 35%,
+      color-mix(in srgb, var(--color-ink) 30%, transparent)
+    );
   }
 }

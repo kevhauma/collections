@@ -2,10 +2,12 @@ import { Trans } from "@lingui/react/macro";
 import type { ReactNode } from "react";
 import { Outlet } from "react-router";
 import { getCookie } from "../context";
+import { pageTurnScript } from "../lib/page-motion";
 import { submitOnceScript } from "../lib/submit-once";
 import { forcedTheme, themeCookie } from "../lib/theme";
 import { setupRequestI18n } from "../i18n";
 import { InkDefs } from "../ui/ink-defs";
+import { PageFlap, PagePen } from "../ui/page-motion";
 import { LinkButton } from "../ui/button";
 import { RouteError } from "./route-error";
 import "../ui/styles.css";
@@ -31,6 +33,8 @@ export const Layout = ({ children }: { children: ReactNode }) => {
         {fonts.map((href) => (
           <link key={href} rel="preload" href={href} as="font" type="font/woff2" crossOrigin="" />
         ))}
+        {/* In <head>, so it is listening before the first frame fires pagereveal (lib/page-motion.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: pageTurnScript }} />
       </head>
       <body>
         {/* First focusable element: off-screen until it gets keyboard focus. */}
@@ -40,8 +44,10 @@ export const Layout = ({ children }: { children: ReactNode }) => {
           </LinkButton>
         </div>
         <InkDefs />
+        <PagePen />
+        <PageFlap />
         {children}
-        {/* The one inline script: the list toolbar's Apply guard, on public pages too (lib/submit-once.ts). */}
+        {/* The list toolbar's Apply guard, on public pages too (lib/submit-once.ts). */}
         <script dangerouslySetInnerHTML={{ __html: submitOnceScript }} />
       </body>
     </html>

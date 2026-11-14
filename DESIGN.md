@@ -233,7 +233,7 @@ The page is a single centred sheet (max width 72rem, 16px side padding, 32px fro
 The page is flat paper; drawn boxes sit on it without shadow. Depth only belongs to things physically stuck onto the page: post-its cast a soft blue-tinted shadow, pin heads carry a small bead shadow, and popovers borrow the post-it shadow because they float over the page like a note. Dialogs dim the page with a 25% ink wash instead of a shadow.
 
 ### Shadow Vocabulary
-- **Post-it lift** (`box-shadow: 1px 3px 4px rgb(31 58 147 / 0.18)`): post-its and popovers.
+- **Post-it lift** (`box-shadow: 1px 3px 4px rgb(31 58 147 / 0.18)`): post-its and popovers; as a `drop-shadow` on the objects of the page motion (the pen, the crumpled ball, the turned-over corner of a page).
 - **Pin head** (`box-shadow: inset -2px -2px 0 rgb(0 0 0 / 0.25), 1px 2px 2px rgb(0 0 0 / 0.25)`): the red pin on a pinned post-it.
 - **Paperclip** (no shadow, it lies flat): a drawn ink wire over a photo post-it's top edge, with a paper-coloured pass under it so the part on the page stays legible at night.
 
@@ -294,8 +294,17 @@ The red pen marks what the pointer rests on, like a notebook being corrected (TI
 
 - **Pen stroke** (motion): each stroke is drawn by sliding `stroke-dashoffset` to 0, 300ms ease-out; the loop's run-on follows in 60ms, the X's second stroke starts at 300ms. Leaving the control removes the mark at once, with no reverse.
 
+### Page motion
+Pages arrive and change like notebook pages (TICKET-UI-10), drawn with the same ballpoint and paper. All of it is decoration: `aria-hidden`, no pointer events, never holding the page back, and the page is usable under it from the first frame. The pen is a small drawn ballpoint (paper-filled body, cone, three grip lines, clip) in ink through `#ink-wobble`, with the post-it shadow. Defined in `src/ui/page-motion.tsx`, the page-motion rules in `src/ui/styles.css` and the inline scripts from `src/lib/page-motion.ts`.
+
+- **Pen test** (motion, public pages, fresh opens only: another site, a typed URL, a bookmark, a refresh): a blank sheet of the page's squared paper covers the viewport; the pen scribbles a coil of loops and a flick across it, 730ms ease-in-out (stroke drawn by `stroke-dashoffset`, the pen riding it on a motion path); the sheet crumples into a ball, 380ms (a star clip from sheet to ball, the scribble shrinking, creases and ink shading fading in); the ball is tossed off to the bottom-right, 340ms. About 1.4s in all. Never on admin pages, never without JavaScript.
+- **Page turn** (motion, every page change in the app): a cross-document view transition. The old page folds away from its bottom-right corner along a line perpendicular to the page diagonal, 620ms ease-in-out; the turned part is the back of the sheet, squared paper with 7% ink mixed in, and the post-it shadow. Back and forward run it the other way: the previous page folds in from the top-left.
+- **Handwritten title** (motion, after a page turn): the new page's `h1` is wiped in left to right with a soft 12px edge, the pen riding the leading edge, 45ms per character up to 900ms, starting once the turn has cleared it. The title's box never moves.
+- **Stays still:** sort, search, filter and group (same path, new query) and the Have / Want tabs change the page with no motion.
+- **Reduced motion:** no pen test; a page change is a 160ms crossfade and the title is there at once. Browsers without cross-document view transitions change pages instantly; the pen test does not need them.
+
 ### Not shipped yet
-Planned in the direction but not built, so no tokens exist for them: the post-it settle motion (rotate-and-drop on add, removed under reduced motion), the "got it!" strike-through on a bought want, real item photos inside post-its, the admin module mosaic and the public shells. Nothing in the system animates today beyond colour transitions and the pen stroke of the hover marks.
+Planned in the direction but not built, so no tokens exist for them: the post-it settle motion (rotate-and-drop on add, removed under reduced motion), the "got it!" strike-through on a bought want, real item photos inside post-its, the admin module mosaic and the public shells. Beyond colour transitions, only the hover marks' pen stroke and the page motion animate.
 
 ## Do's and Don'ts
 
@@ -311,5 +320,5 @@ Planned in the direction but not built, so no tokens exist for them: the post-it
 - **Don't** add colours outside the twelve tokens, or use post-it colours for anything but post-its.
 - **Don't** highlight more than one item per surface.
 - **Don't** set body text, form values or table data in Reenie Beanie.
-- **Don't** give drawn boxes shadows; only post-its, pins and popovers cast them.
+- **Don't** give drawn boxes shadows; only post-its, pins, popovers and the page-motion objects (pen, ball, turned corner) cast them.
 - **Don't** draw clean straight-cornered rectangles, hairline borders or a neutral grey sidebar: that is the grey database app this world refuses.
