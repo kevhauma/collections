@@ -11,7 +11,7 @@ Import each component from its own file (`../ui/button`). There is no barrel.
 
 | File | What |
 |---|---|
-| `styles.css` | Tailwind `@theme` tokens (the only colours that exist), the squared-paper base, and the utilities `ink-outline`, `highlighted`, `postit-corner`, `ink-check`, `popover-anchored`. Self-hosts Kalam and Reenie Beanie. |
+| `styles.css` | Tailwind `@theme` tokens (the only colours that exist), the squared-paper base, and the utilities `ink-outline`, `highlighted`, `day-colours` (day token values whatever the theme: post-its, flags), `postit-corner`, `ink-check`, `popover-anchored`. Self-hosts Kalam and Reenie Beanie. |
 | `ink-defs.tsx` | `InkDefs`: the SVG `#ink-wobble` filter the drawn checkbox, radio and `InkIcon` reference (outlines are vector masks, see `ink-outline`). Render it **once** per document, in the root shell. |
 | `cn.ts` | `cn(...classes)`: `twMerge` over the truthy class strings, so a caller's `className` wins over conflicting defaults. |
 | `invoker-commands.d.ts` | Adds `commandfor` / `command` to React's button types. |

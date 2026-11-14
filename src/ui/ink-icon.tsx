@@ -5,18 +5,20 @@ import { cn } from "./cn";
 const flagEdge = "M1.8 5.6L22.2 5.4M21.8 5L22 19M22.3 18.6L1.9 18.5M2.3 18.9L2.2 5.1";
 
 // Small pen sketches on a 24-unit grid (TICKET-UI-04): ink is currentColor, red pen and paper come from the tokens.
+// Flags keep their day colours at night (TICKET-UI-06): day-colours restates the tokens and text-ink resets
+// currentColor to the day ink.
 const drawings = {
   "flag-en": (
-    <>
+    <g className="day-colours text-ink">
       <rect x="2" y="5.5" width="20" height="13" className="fill-paper" />
       <rect x="2" y="5.5" width="20" height="13" className="fill-ink/20" />
       <path d="M2.5 6l19 12M21.5 6l-19 12" strokeWidth="1.4" />
       <path d="M12 5.6v12.8M2.2 12h19.6" strokeWidth="2.8" className="stroke-red-pen" />
       <path d={flagEdge} />
-    </>
+    </g>
   ),
   "flag-nl": (
-    <>
+    <g className="day-colours text-ink">
       <rect x="2" y="5.5" width="20" height="13" className="fill-paper" />
       <path
         d="M3.2 6.4L4.3 9.3L5.4 6.4L6.5 9.3L7.6 6.4L8.7 9.3L9.8 6.4L10.9 9.3L12 6.4L13.1 9.3L14.2 6.4L15.3 9.3L16.4 6.4L17.5 9.3L18.6 6.4L19.7 9.3L20.8 6.4"
@@ -28,7 +30,7 @@ const drawings = {
         strokeWidth="1.3"
       />
       <path d={flagEdge} />
-    </>
+    </g>
   ),
   // Half day, half night: the right half hatched in.
   system: (

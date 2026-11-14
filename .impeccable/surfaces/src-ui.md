@@ -31,7 +31,7 @@ NIGHT: The same notebook page at night, not a new world. Dark blue-black paper (
 
 ## Drawn icons addendum (TICKET-UI-04)
 
-ICONS: Where a control is an icon, the icon is drawn in the same ballpoint: a small sketch on a 24px grid in one ink stroke, red pen and paper only where the subject has them, fills hatched or scribbled, wobbled by `#ink-wobble`. Never an icon library, emoji or a clean geometric glyph. The header switches are icons only (flags for languages, half-hatched circle / sun / crescent for System / Light / Dark), each a 44px target named by its word (aria-label + title); the pressed one keeps the highlighter.
+ICONS: Where a control is an icon, the icon is drawn in the same ballpoint: a small sketch on a 24px grid in one ink stroke, red pen and paper only where the subject has them, fills hatched or scribbled, wobbled by `#ink-wobble`. Never an icon library, emoji or a clean geometric glyph. The header switches are icons only (flags for languages, half-hatched circle / sun / crescent for System / Light / Dark), each a 44px target named by its word (aria-label + title); the pressed one keeps the highlighter. Flags keep their day colours at night (light field, day blue, day red), like a sticker on the dark page; the notebook icons follow the theme (TICKET-UI-06).
 
 ## Unresolved
 

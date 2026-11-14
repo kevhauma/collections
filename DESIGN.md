@@ -256,7 +256,7 @@ Hand-drawn boxes that read as ink, not chrome.
 - **Sizes:** md (44px min height, 16px sides), sm (40px, 12px sides, 0.875rem), icon (a 44px square for a drawn icon; its name is the aria-label and title).
 
 ### Icons
-Drawn, never picked from an icon set: small pen sketches on a 24px grid, one 1.5px ballpoint stroke with round ends, in ink (currentColor), with red pen and paper only where the subject needs them (a flag), and fills as hatching or scribble rather than flat colour. They pass through the same `#ink-wobble` filter as the checkbox, follow night through the tokens, and are always decorative (`aria-hidden`): the control that holds one carries the word as its aria-label and title. Today they are the header switches: a flag per language and System (half-hatched circle) / Light (sun) / Dark (crescent) for colours. Defined once in `src/ui/ink-icon.tsx`.
+Drawn, never picked from an icon set: small pen sketches on a 24px grid, one 1.5px ballpoint stroke with round ends, in ink (currentColor), with red pen and paper only where the subject needs them (a flag), and fills as hatching or scribble rather than flat colour. They pass through the same `#ink-wobble` filter as the checkbox, follow night through the tokens (except flags, which keep their day colours at night like a printed sticker, since their colours mean a country: TICKET-UI-06), and are always decorative (`aria-hidden`): the control that holds one carries the word as its aria-label and title. Today they are the header switches: a flag per language and System (half-hatched circle) / Light (sun) / Dark (crescent) for colours. Defined once in `src/ui/ink-icon.tsx`.
 
 ### Chips (Badges)
 - **Style:** small drawn box, single pass, bold 0.875rem.

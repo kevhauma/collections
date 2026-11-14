@@ -7,7 +7,7 @@ import { cn } from "./cn";
 // The single grid cell is pinned to the content box, so a `size-full` photo of any shape fills it instead of
 // stretching the post-it.
 const postIt = cva(
-  "postit-corner relative grid shrink-0 grid-cols-[100%] grid-rows-[100%] place-items-center bg-(--postit) p-1.5 shadow-postit",
+  "postit-corner day-colours relative grid shrink-0 grid-cols-[100%] grid-rows-[100%] place-items-center bg-(--postit) p-1.5 shadow-postit",
   {
     variants: {
       color: {

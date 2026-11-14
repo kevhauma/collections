@@ -146,14 +146,18 @@
   background: linear-gradient(176deg, transparent 16%, var(--color-highlighter) 18% 84%, transparent 86%);
 }
 
-/* A post-it with its bottom-right corner lifting. It's paper-coloured by day and night, so what's on it (a red-pen
-   numeral, the tape) keeps the day colours. The build compiles light-dark() into variables resolved on :root, so a
-   color-scheme here can't flip the tokens: the day values of the three used on post-its are restated instead. */
-@utility postit-corner {
+/* Day colours inside, whatever the theme: post-its (paper by day and night, so a red-pen numeral or the tape on
+   them looks as by day) and flags (real-world symbols, TICKET-UI-06). The build compiles light-dark() into variables
+   resolved on :root, so a color-scheme here can't flip the tokens: the day values of the three they use are restated. */
+@utility day-colours {
   color-scheme: light;
   --color-paper: #fdfdfb;
   --color-ink: #1f3a93;
   --color-red-pen: #d6312b;
+}
+
+/* A post-it with its bottom-right corner lifting. */
+@utility postit-corner {
   &::before {
     content: "";
     position: absolute;
