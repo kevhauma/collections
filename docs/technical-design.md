@@ -36,6 +36,9 @@ can also connect an AI agent through the MCP server at `/api/mcp`, which acts as
 - `title_link_field_id` (TICKET-COL-09): a `url` field the title links to, `ON DELETE SET NULL`. On public pages the
   title opens the item's value there; in admin the title stays the edit link and a "↗" opens the source. Used only
   while the field is still a `url` field the viewer may see, and only for an http(s) value.
+- `item_image` (TICKET-COL-08): an optional image shown for the collection's items without one, stored like an item
+  image, set in its own form in the settings. It is decorative in lists (`alt=""`, no enlarge dialog), goes with the
+  collection on delete, and is exported like the collection picture (`itemImage` in `data.json`).
 
 ### Field
 
@@ -192,7 +195,8 @@ collections(id INTEGER PRIMARY KEY, slug TEXT UNIQUE NOT NULL, name TEXT NOT NUL
             title_field_id INTEGER, created_at INTEGER, updated_at INTEGER,
             image TEXT,  -- 004
             default_sort TEXT, default_dir TEXT NOT NULL DEFAULT 'asc',  -- 006
-            title_link_field_id INTEGER REFERENCES fields ON DELETE SET NULL)  -- 007
+            title_link_field_id INTEGER REFERENCES fields ON DELETE SET NULL,  -- 007
+            item_image TEXT)  -- 008
 fields(id INTEGER PRIMARY KEY, collection_id INTEGER NOT NULL REFERENCES collections ON DELETE CASCADE,
        label TEXT NOT NULL, type TEXT NOT NULL, options_json TEXT, required INTEGER NOT NULL DEFAULT 0,
        is_public INTEGER NOT NULL DEFAULT 1, position INTEGER NOT NULL,

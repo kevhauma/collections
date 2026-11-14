@@ -29,6 +29,7 @@ const exportCollection = (collection: SnapshotCollection, imageOf: (id: string |
   titleFieldId: collection.titleFieldId,
   titleLinkFieldId: collection.titleLinkFieldId,
   image: imageOf(collection.image),
+  itemImage: imageOf(collection.itemImage),
   fields: collection.fields.map((field) => ({ ...field, required: field.required === 1, isPublic: field.isPublic === 1 })),
   items: collection.items.map((item) => ({
     status: item.status,
@@ -53,8 +54,13 @@ const csvRows = (collection: ExportedCollection): string[][] => [
   ]),
 ];
 
-// Every image the snapshot points at: collection pictures (TICKET-COL-06) and item images.
-const imagesOf = (collection: SnapshotCollection) => [collection.image, ...collection.items.map((item) => item.image)];
+// Every image the snapshot points at: collection pictures (TICKET-COL-06), default item images (TICKET-COL-08) and
+// item images.
+const imagesOf = (collection: SnapshotCollection) => [
+  collection.image,
+  collection.itemImage,
+  ...collection.items.map((item) => item.image),
+];
 
 // Builds the zip from one snapshot. An image whose file is gone is left out: whatever pointed at it gets `image: null`
 // and its id is listed under `missingImages`, so every path in the zip's data points at a file that's there.

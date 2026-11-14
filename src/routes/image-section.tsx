@@ -11,6 +11,8 @@ import { ImageField } from "./image-field";
 // (TICKET-COL-06). They post `image`, `imageUrl` and `removeImage`, read by `prepareFormImage`.
 
 type ImageSectionProps = {
+  // Prefix of the inputs' ids: the collection settings show two sections (TICKET-COL-08).
+  id?: string;
   image: string | null;
   // The alt text: the item title or the collection name.
   title: string;
@@ -20,7 +22,7 @@ type ImageSectionProps = {
 };
 
 // The current image on a post-it with a "remove" box, then a file to upload or an address to download from.
-export const ImageSection = ({ image, title, url, errors, labels }: ImageSectionProps) => {
+export const ImageSection = ({ id = "item-image", image, title, url, errors, labels }: ImageSectionProps) => {
   const { t } = useLingui();
   return (
     <div className="grid gap-4">
@@ -33,13 +35,14 @@ export const ImageSection = ({ image, title, url, errors, labels }: ImageSection
         </div>
       )}
       <ImageField
+        id={id}
         label={labels.image}
         error={errors.image}
         tooLargeMessage={imageErrorText("tooLarge")}
         previewAlt={title}
       />
       <FormField
-        id="item-image-url"
+        id={`${id}-url`}
         label={labels.imageUrl}
         hint={t({
           id: "items.image.urlHint",

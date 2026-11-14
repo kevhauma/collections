@@ -1,7 +1,7 @@
 # TICKET-COL-08: Default image for items without one
 
 - **Area:** Collections
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Type:** Feature
 - **Traceability:** [technical-design.md § Collection](../../technical-design.md#collection) (extends it), [TICKET-ITM-04](../../items/tickets/TICKET-ITM-04-item-images.md) and [TICKET-COL-06](./TICKET-COL-06-collection-picture.md) (the image pipeline and settings section it reuses)
 
@@ -53,21 +53,46 @@ the blank post-it for every item of that collection that has no image.
 
 ## Acceptance criteria
 
-- [ ] With a default item image set, items without an image show it in the table and grid on admin and public pages.
-      Items with their own image are unchanged.
-- [ ] Removing the default image brings the blank post-its back. Replacing it deletes the old files.
-- [ ] Saving the collection's other settings or its picture leaves the default item image as it is, and the other way
-      round.
-- [ ] A failed save with a new default image chosen leaves no new files in `uploads/`.
-- [ ] Deleting the collection deletes the default image's files.
-- [ ] The export zip holds the default image under `images/`, referenced from `data.json`.
-- [ ] Public pages still ship no client components.
-- [ ] Persistence goes through `src/db/collections.ts`. The action calls `requireAdmin()` and validates with zod.
-- [ ] Unit tests cover: the migration on a version-4 DB, setting/keeping/clearing `itemImage`, `deleteCollection`
-      returning it, and the export including it (and leaving out a missing file).
-- [ ] UI follows the design direction in `.impeccable/surfaces/src-ui.md`; live browser check of settings and both
-      views, with and without a default image, at 360 px and desktop, light and dark, JS on and off.
-- [ ] Verified with the fallow skill.
+- [x] With a default item image set, items without an image show it in the table and grid on admin and public pages.
+      Items with their own image are unchanged. (Scratch instance, 2026-11-14, a "blank sleeve" uploaded as the
+      default: Pet Sounds and Rumours, without photos, show it in `/vinyl` table and grid, `/vinyl/want`,
+      `/admin/c/vinyl` and the admin want grid, with `alt=""` and no enlarge button; the others keep their own photo
+      and dialog. `Thumbnail` in `src/routes/item-views.tsx`, fed `itemImage` by `CollectionItems`.)
+- [x] Removing the default image brings the blank post-its back. Replacing it deletes the old files. (Replacing gave a
+      new id and the old id's two files were gone (12 → 14 → 14 files); ticking "Remove image" set `item_image` null,
+      deleted its two files and the public table showed the blank post-it again.)
+- [x] Saving the collection's other settings or its picture leaves the default item image as it is, and the other way
+      round. (Separate form with `intent=itemImage` and `setItemImage`; `updateCollection` doesn't touch `item_image`.
+      Live: saving the main form kept `item_image`, saving the default form with nothing chosen kept it, and each
+      showed "Saved." only in its own card. Test "sets, keeps and clears the default item image".)
+- [x] A failed save with a new default image chosen leaves no new files in `uploads/`. (A text file named `.png`
+      chosen: "This isn't an image that can be read…" under the default image's Photo input, the upload count stayed
+      at 14 and `item_image` unchanged. `processImage` removes partial files; `commitImage` removes new ones if the
+      write fails.)
+- [x] Deleting the collection deletes the default image's files. (`deleteCollection` returns `item_image` with the
+      picture and item images, and the settings action removes every returned id; test "returns the picture with the
+      item images when deleting a collection" now expects `shelf-default`.)
+- [x] The export zip holds the default image under `images/`, referenced from `data.json`. (`imagesOf` and
+      `exportCollection` in `src/features/backup/export.ts`; the round-trip test expects `images/<sleeve>.webp` in the
+      zip and `itemImage` in `data.json`, and Books' missing `lost-spine` under `missingImages` with `itemImage: null`.)
+- [x] Public pages still ship no client components. (The fallback is chosen in the server-rendered `Thumbnail`; the
+      public vinyl HTML has no module script.)
+- [x] Persistence goes through `src/db/collections.ts`. The action calls `requireAdmin()` and validates with zod.
+      (`setItemImage` in the repository; the `itemImage` intent runs in `collectionAction`, which calls
+      `requireAdmin()`. Its only input is the shared image inputs, validated by `prepareFormImage` like the picture.
+      The intent lookup takes own keys only.)
+- [x] Unit tests cover: the migration on a version-4 DB, setting/keeping/clearing `itemImage`, `deleteCollection`
+      returning it, and the export including it (and leaving out a missing file). (`migrate.test.ts`
+      "008-default-item-image" on a version-7 DB, since 005–007 shipped meanwhile; `collections.test.ts`; `export.test.ts`
+      round trip.)
+- [x] UI follows the design direction in `.impeccable/surfaces/src-ui.md`; live browser check of settings and both
+      views, with and without a default image, at 360 px and desktop, light and dark, JS on and off. (Orca: a
+      "Default item image" card between Settings and Delete, the same layout as the picture section, at 360 px dark
+      and 1440 px light; lists with and without it. Headless Chrome with scripts disabled: uploading and saving said
+      "Saved." in that card, and `/vinyl` table and grid showed the default for Pet Sounds. Input ids get a prefix
+      (`ImageSection id`), so the two image sections don't clash.)
+- [x] Verified with the fallow skill. (`npx fallow@3.43.0 audit --base HEAD`: no issues in 15 changed files, after
+      splitting the settings page into `DefaultItemImage`, `DeleteCollection` and `formStates`.)
 
 ## Notes
 

@@ -30,6 +30,8 @@ export type ItemViewProps = {
   titleFieldId: number;
   // The url field the title links to (TICKET-COL-09), only when it's one of `fields` and still a url field.
   titleLinkFieldId?: number;
+  // The collection's default item image (TICKET-COL-08), for items without one.
+  itemImage?: string | null;
   slug: string;
   sortLink: (sort: ItemSort) => SortLink;
   // Admin want tab sorted by rank (TICKET-ITM-03): rank inputs, plus drag handles when the rows shown are the whole
@@ -114,7 +116,7 @@ const Title = ({ mode, slug, titleFieldId, titleLinkFieldId, item }: TitleProps)
   );
 };
 
-type ThumbnailProps = { item: Item; alt: string; className?: string; size: "sm" | "md" };
+type ThumbnailProps = { item: Item; alt: string; fallback?: string | null; className?: string; size: "sm" | "md" };
 
 // The item's picture opens at display size in a native dialog (TICKET-UI-08): invoker commands and `closedby="any"`
 // (Escape, the × and a backdrop click), so it works without JS and on public pages.
@@ -146,20 +148,21 @@ const Enlargeable = ({ item, image, title, children }: { item: Item; image: stri
   );
 };
 
-// The item's image on a post-it, which opens it large, or the blank post-it when it has none. Pinned, taped or
+// The item's image on a post-it, which opens it large; without one, the collection's default item image (decorative,
+// not a picture of this item, so no alt and nothing to enlarge, TICKET-COL-08) or the blank post-it. Pinned, taped or
 // clipped by a hash of the id (TICKET-UI-09).
-const Thumbnail = ({ item, alt, className, size }: ThumbnailProps) => {
-  const postIt = (
+const Thumbnail = ({ item, alt, fallback, className, size }: ThumbnailProps) => {
+  const postIt = (image: string | null | undefined, imageAlt: string) => (
     <PostIt size={size} {...postItLook(item.id)} className={className}>
-      {item.image && <img src={thumbUrl(item.image)} alt={alt} loading="lazy" className="size-full object-cover" />}
+      {image && <img src={thumbUrl(image)} alt={imageAlt} loading="lazy" className="size-full object-cover" />}
     </PostIt>
   );
   return item.image ? (
     <Enlargeable item={item} image={item.image} title={alt}>
-      {postIt}
+      {postIt(item.image, alt)}
     </Enlargeable>
   ) : (
-    postIt
+    postIt(fallback, "")
   );
 };
 
@@ -251,7 +254,7 @@ const TableCells = ({ item, ...props }: ItemViewProps & { item: Item }) => (
     )}
     {/* Four squares tall, so a row with a picture stays on the grid. */}
     <Td className="h-sq-4 w-18">
-      <Thumbnail item={item} alt={titleOf(item, props.titleFieldId)} size="sm" />
+      <Thumbnail item={item} alt={titleOf(item, props.titleFieldId)} fallback={props.itemImage} size="sm" />
     </Td>
     {props.fields.map((field) => (
       <Td key={field.id}>
@@ -322,6 +325,7 @@ const GridCard = ({ item, shown, titleField, ...props }: ItemViewProps & { item:
     <Thumbnail
       item={item}
       alt={titleOf(item, props.titleFieldId)}
+      fallback={props.itemImage}
       size="md"
       // A whole number of squares wide (and so tall), at most 8.
       className="aspect-square size-auto w-[min(round(down,100%,var(--grid-square)),11rem)]"

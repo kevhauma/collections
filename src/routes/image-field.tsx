@@ -6,6 +6,8 @@ import { Input } from "../ui/input";
 import { PostIt } from "../ui/post-it";
 
 type ImageFieldProps = {
+  // The file input's id; a page with two image sections gives each its own.
+  id: string;
   label: string;
   // The server's message after a failed save.
   error?: string;
@@ -16,7 +18,7 @@ type ImageFieldProps = {
 // The item form's file input (TICKET-ITM-04). With JS it previews the chosen file and refuses one over 15 MB before
 // it's sent, since the server can only answer an oversized upload by dropping the connection. Without JS it's a plain
 // file input.
-export const ImageField = ({ label, error, tooLargeMessage, previewAlt }: ImageFieldProps) => {
+export const ImageField = ({ id, label, error, tooLargeMessage, previewAlt }: ImageFieldProps) => {
   const [preview, setPreview] = useState<string>();
   const [tooLarge, setTooLarge] = useState(false);
   useEffect(
@@ -38,7 +40,7 @@ export const ImageField = ({ label, error, tooLargeMessage, previewAlt }: ImageF
 
   return (
     <div className="grid gap-3">
-      <FormField id="item-image" label={label} error={tooLarge ? tooLargeMessage : error}>
+      <FormField id={id} label={label} error={tooLarge ? tooLargeMessage : error}>
         {(control) => <Input {...control} type="file" name="image" accept="image/*" onChange={choose} />}
       </FormField>
       {preview && (

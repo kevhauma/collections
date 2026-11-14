@@ -9,6 +9,7 @@ import {
   listCollections,
   listPublic,
   listSlugs,
+  setItemImage,
   updateCollection,
 } from "./collections";
 import { createField, deleteField, listFields } from "./fields";
@@ -99,13 +100,27 @@ describe("collections repository", () => {
     expect(getCollectionBySlug("lego")!.image).toBeNull();
   });
 
+  it("sets, keeps and clears the default item image (TICKET-COL-08)", () => {
+    createCollection("Tins", "tins", "Title");
+    const tins = getCollectionBySlug("tins")!;
+    expect(tins.itemImage).toBeNull();
+    setItemImage(tins.id, "blank-tin");
+    expect(getCollectionBySlug("tins")!.itemImage).toBe("blank-tin");
+    // Saving the other settings, or the picture, leaves it alone.
+    updateCollection(tins.id, { ...tins, name: "Old tins" }, "tin-shelf");
+    expect(getCollectionBySlug("tins")).toMatchObject({ name: "Old tins", image: "tin-shelf", itemImage: "blank-tin" });
+    setItemImage(tins.id, null);
+    expect(getCollectionBySlug("tins")).toMatchObject({ image: "tin-shelf", itemImage: null });
+  });
+
   it("returns the picture with the item images when deleting a collection", () => {
     createCollection("Shelf", "shelf", "Title");
     const shelf = getCollectionBySlug("shelf")!;
     updateCollection(shelf.id, shelf, "shelf-photo");
     createItem(shelf.id, { status: "have", quantity: 1, values: { [shelf.titleFieldId]: "A" }, image: "item-photo" });
     createItem(shelf.id, { status: "have", quantity: 1, values: { [shelf.titleFieldId]: "B" } });
-    expect(deleteCollection(shelf.id).toSorted()).toEqual(["item-photo", "shelf-photo"]);
+    setItemImage(shelf.id, "shelf-default");
+    expect(deleteCollection(shelf.id).toSorted()).toEqual(["item-photo", "shelf-default", "shelf-photo"]);
   });
 
   it("deletes a collection with its fields and items", () => {

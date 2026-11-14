@@ -5,7 +5,7 @@ import sharp from "sharp";
 import { beforeAll, describe, expect, it } from "vitest";
 import yauzl from "yauzl";
 import type { ZipFile } from "yazl";
-import { createCollection, getCollectionBySlug, updateCollection } from "../../db/collections";
+import { createCollection, getCollectionBySlug, setItemImage, updateCollection } from "../../db/collections";
 import { readSnapshot } from "../../db/export";
 import { createField, listFields } from "../../db/fields";
 import { createItem } from "../../db/items";
@@ -75,27 +75,41 @@ const setup = async () => {
     uploads,
   );
   updateCollection(vinyl.id, { ...vinyl, isPublic: 1, defaultView: "grid" }, cover);
+  // Default item images (TICKET-COL-08): Vinyl's file exists, Books' is gone.
+  const sleeve = await processImage(
+    await sharp({ create: { width: 400, height: 400, channels: 3, background: "#ffe66d" } }).png().toBuffer(),
+    uploads,
+  );
+  setItemImage(vinyl.id, sleeve);
   createCollection("Books", "books", "Title");
   const books = getCollectionBySlug("books")!;
   updateCollection(books.id, books, "lost-cover");
-  return { vinyl, image, cover, ids: { title: title!, paid: paid!, signed: signed! } };
+  setItemImage(books.id, "lost-spine");
+  return { vinyl, image, cover, sleeve, ids: { title: title!, paid: paid!, signed: signed! } };
 };
 
 describe("buildExport", () => {
   it("round-trips: data.json matches the DB, CSVs are written, and every referenced image is in the zip", async () => {
-    const { image, cover, ids } = await setup();
+    const { image, cover, sleeve, ids } = await setup();
     const now = new Date("2026-11-13T10:00:00Z");
     const files = await unzip(await bytesOf(buildExport(readSnapshot(), uploads, now)));
 
     expect([...files.keys()].sort()).toEqual(
-      ["csv/books.csv", "csv/vinyl.csv", "data.json", `images/${cover}.webp`, `images/${image}.webp`].sort(),
+      ["csv/books.csv", "csv/vinyl.csv", "data.json", `images/${cover}.webp`, `images/${image}.webp`, `images/${sleeve}.webp`].sort(),
     );
     const data = JSON.parse(files.get("data.json")!.toString());
     expect(data).toMatchObject({ version: 1, exportedAt: "2026-11-13T10:00:00.000Z", settings: { defaultLocale: "nl" } });
-    expect(data.missingImages.toSorted()).toEqual(["gone", "lost-cover"]);
+    expect(data.missingImages.toSorted()).toEqual(["gone", "lost-cover", "lost-spine"]);
     const [books, vinyl] = data.collections;
-    expect(books).toMatchObject({ slug: "books", fields: [{ label: "Title" }], items: [], image: null });
-    expect(vinyl).toMatchObject({ slug: "vinyl", name: "Vinyl", isPublic: true, defaultView: "grid", image: `images/${cover}.webp` });
+    expect(books).toMatchObject({ slug: "books", fields: [{ label: "Title" }], items: [], image: null, itemImage: null });
+    expect(vinyl).toMatchObject({
+      slug: "vinyl",
+      name: "Vinyl",
+      isPublic: true,
+      defaultView: "grid",
+      image: `images/${cover}.webp`,
+      itemImage: `images/${sleeve}.webp`,
+    });
     type Exported = { label: string; isPublic: boolean; required: boolean; prefix: string | null; suffix: string | null };
     expect(vinyl.fields.map((field: Exported) => [field.label, field.isPublic, field.required, field.prefix, field.suffix])).toEqual([
       ["Title", true, true, null, null],

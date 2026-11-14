@@ -20,6 +20,8 @@ export type Collection = {
   titleLinkFieldId: number | null;
   // The collection's picture (TICKET-COL-06): an image id, files as for item images.
   image: string | null;
+  // Shown for its items without an image (TICKET-COL-08), the same kind of image id.
+  itemImage: string | null;
 };
 
 type CollectionSummary = Pick<Collection, "id" | "slug" | "name" | "isPublic" | "image"> & {
@@ -33,7 +35,8 @@ export type CollectionSettings = Pick<
 >;
 
 export const columns = `id, slug, name, is_public as isPublic, default_view as defaultView, default_sort as defaultSort,
-  default_dir as defaultDir, title_field_id as titleFieldId, title_link_field_id as titleLinkFieldId, image`;
+  default_dir as defaultDir, title_field_id as titleFieldId, title_link_field_id as titleLinkFieldId, image,
+  item_image as itemImage`;
 
 const summaries = (publicOnly: boolean): CollectionSummary[] =>
   db()
@@ -79,13 +82,19 @@ export const updateCollection = (id: number, settings: CollectionSettings, image
     .run({ ...settings, id, image: image ?? null, keepImage: image === undefined ? 1 : 0 });
 };
 
-// Fields and items go with it through ON DELETE CASCADE. Returns the ids of its picture and its items' images, whose
-// files the caller deletes after this commits.
+// Its own form in the settings (TICKET-COL-08): a new image id, or null to clear it.
+export const setItemImage = (id: number, image: string | null): void => {
+  db().prepare("update collections set item_image = ?, updated_at = unixepoch() where id = ?").run(image, id);
+};
+
+// Fields and items go with it through ON DELETE CASCADE. Returns the ids of its picture, its default item image and
+// its items' images, whose files the caller deletes after this commits.
 export const deleteCollection = (id: number): string[] =>
   db().transaction(() => {
     const images = db()
       .prepare(
         `select image from collections where id = @id and image is not null
+         union all select item_image from collections where id = @id and item_image is not null
          union all select image from items where collection_id = @id and image is not null`,
       )
       .pluck()

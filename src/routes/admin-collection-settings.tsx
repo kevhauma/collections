@@ -1,7 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { redirect, type LoaderFunctionArgs, type Params } from "react-router";
 import { requestContext } from "../context";
-import { deleteCollection, listSlugs, updateCollection, type Collection } from "../db/collections";
+import { deleteCollection, listSlugs, setItemImage, updateCollection, type Collection } from "../db/collections";
 import { listFields, type Field } from "../db/fields";
 import { requireAdmin } from "../features/auth/guard";
 import { commitImage } from "../features/images/change";
@@ -20,7 +20,8 @@ import { CollectionNameFields } from "./collection-name-fields";
 import { ImageSection } from "./image-section";
 
 // /admin/c/:slug/settings (TICKET-COL-01): name, slug, visibility, default view, default sort (TICKET-COL-07), the
-// title link (TICKET-COL-09), the picture (TICKET-COL-06), and deletion.
+// title link (TICKET-COL-09), the picture (TICKET-COL-06), the default item image (TICKET-COL-08, its own form), and
+// deletion.
 
 // The page reads the collection itself: after a form post, React Router's RSC mode renders without rerunning
 // loaders (loaderData is null), so the loader only guards.
@@ -30,7 +31,9 @@ export const loader = ({ params }: LoaderFunctionArgs) => {
   return null;
 };
 
+// `section`: which form posted, so its image errors and "Saved." show there and not in the other one.
 type ActionData = {
+  section?: "itemImage";
   errors: Rejected["errors"] & Partial<Record<"image" | "imageUrl", string>>;
   values: Rejected["values"] & { imageUrl?: string };
   saved?: true;
@@ -136,12 +139,114 @@ const TitleLink = ({ collection, fields }: { collection: Collection; fields: Fie
   );
 };
 
-export const action = collectionAction((collection, form) => (form.intent === "delete" ? remove : save)(collection, form));
+// The default item image's own form: the same image inputs, so the same limits, errors and file handling. Nothing
+// chosen keeps it.
+const saveItemImage = async (collection: Collection, form: FormInput) => {
+  const values = { name: collection.name, slug: collection.slug, imageUrl: String(form.imageUrl ?? "") };
+  const prepared = await prepareFormImage(form);
+  if ("errors" in prepared) return { section: "itemImage", errors: prepared.errors, values } satisfies ActionData;
+  const image = prepared.image;
+  if (image !== undefined) await commitImage(image, collection.itemImage, () => setItemImage(collection.id, image));
+  return { section: "itemImage", errors: {}, values, saved: true } satisfies ActionData;
+};
+
+const intents = { delete: remove, itemImage: saveItemImage };
+// Own keys only, so an intent like "toString" can't reach the prototype.
+const intentOf = (intent: unknown) => (Object.hasOwn(intents, String(intent)) ? intents[intent as keyof typeof intents] : save);
+
+export const action = collectionAction((collection, form) => intentOf(form.intent)(collection, form));
+
+// The state each form shows: the one that posted gets the action's result, the other starts clean.
+const formStates = (collection: Collection, actionData?: ActionData) => {
+  const clean: ActionData = { errors: {}, values: collection };
+  return actionData?.section === "itemImage"
+    ? { settings: clean, itemImage: actionData }
+    : { settings: actionData ?? clean, itemImage: clean };
+};
+
+// The default item image's own form (TICKET-COL-08), with its own errors and "Saved.".
+const DefaultItemImage = ({ collection, state }: { collection: Collection; state: ActionData }) => {
+  const { t } = useLingui();
+  return (
+    <Card heading={t({ id: "collections.settings.itemImage", message: "Default item image" })}>
+      <form method="post" encType="multipart/form-data" className="grid gap-4">
+        <input type="hidden" name="intent" value="itemImage" />
+        <p className="text-ink-soft">
+          <Trans id="collections.settings.itemImageHint">Shown for items that have no photo of their own.</Trans>
+        </p>
+        <ImageSection
+          id="default-item-image"
+          image={collection.itemImage}
+          title=""
+          url={state.values.imageUrl}
+          errors={state.errors}
+          labels={{
+            image: t({ id: "items.image.file", message: "Photo" }),
+            imageUrl: t({ id: "items.image.url", message: "Or an image address" }),
+          }}
+        />
+        <div className="flex flex-wrap items-center gap-4">
+          <Button variant="primary" type="submit">
+            <Trans id="collections.settings.save">Save</Trans>
+          </Button>
+          <p role="status">
+            {state.saved && <Trans id="collections.settings.saved">Saved.</Trans>}
+          </p>
+        </div>
+      </form>
+    </Card>
+  );
+};
+
+// The delete card and its confirmation dialog.
+const DeleteCollection = ({ name }: { name: string }) => {
+  const { t } = useLingui();
+  return (
+    <>
+      <Card heading={t({ id: "collections.delete.card", message: "Delete" })}>
+        <div className="grid justify-items-start gap-4">
+          <p>
+            <Trans id="collections.delete.explain">
+              Deleting removes the collection with all its fields and items. Download an export first if you might
+              want it back.
+            </Trans>
+          </p>
+          <Button variant="danger" mark="cross" commandfor="delete-collection" command="show-modal">
+            <Trans id="collections.delete.open">Delete collection…</Trans>
+          </Button>
+        </div>
+      </Card>
+
+      <Dialog
+        id="delete-collection"
+        title={t({ id: "collections.delete.title", message: `Delete “${name}”?` })}
+        closeLabel={t({ id: "collections.delete.close", message: "Close" })}
+      >
+        <form method="post" className="grid gap-4">
+          <p>
+            <Trans id="collections.delete.confirmText">
+              “{name}” and everything in it will be gone. This can't be undone.
+            </Trans>
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="danger" mark="cross" type="submit" name="intent" value="delete">
+              <Trans id="collections.delete.confirm">Delete for good</Trans>
+            </Button>
+            <Button type="button" commandfor="delete-collection" command="close">
+              <Trans id="collections.delete.cancel">Keep it</Trans>
+            </Button>
+          </div>
+        </form>
+      </Dialog>
+    </>
+  );
+};
 
 export default function CollectionSettings({ params, actionData }: { params: Params; actionData?: ActionData }) {
   const { t } = useLingui();
   const collection = requireCollection(params.slug);
-  const { errors, values, saved } = actionData ?? { errors: {}, values: collection, saved: false };
+  const states = formStates(collection, actionData);
+  const { errors, values, saved } = states.settings;
   const name = collection.name;
   return (
     <div className="grid max-w-xl gap-8">
@@ -194,7 +299,7 @@ export default function CollectionSettings({ params, actionData }: { params: Par
             <ImageSection
               image={collection.image}
               title={name}
-              url={actionData?.values.imageUrl}
+              url={values.imageUrl}
               errors={errors}
               labels={{
                 image: t({ id: "items.image.file", message: "Photo" }),
@@ -213,41 +318,8 @@ export default function CollectionSettings({ params, actionData }: { params: Par
         </form>
       </Card>
 
-      <Card heading={t({ id: "collections.delete.card", message: "Delete" })}>
-        <div className="grid justify-items-start gap-4">
-          <p>
-            <Trans id="collections.delete.explain">
-              Deleting removes the collection with all its fields and items. Download an export first if you might
-              want it back.
-            </Trans>
-          </p>
-          <Button variant="danger" mark="cross" commandfor="delete-collection" command="show-modal">
-            <Trans id="collections.delete.open">Delete collection…</Trans>
-          </Button>
-        </div>
-      </Card>
-
-      <Dialog
-        id="delete-collection"
-        title={t({ id: "collections.delete.title", message: `Delete “${name}”?` })}
-        closeLabel={t({ id: "collections.delete.close", message: "Close" })}
-      >
-        <form method="post" className="grid gap-4">
-          <p>
-            <Trans id="collections.delete.confirmText">
-              “{name}” and everything in it will be gone. This can't be undone.
-            </Trans>
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="danger" mark="cross" type="submit" name="intent" value="delete">
-              <Trans id="collections.delete.confirm">Delete for good</Trans>
-            </Button>
-            <Button type="button" commandfor="delete-collection" command="close">
-              <Trans id="collections.delete.cancel">Keep it</Trans>
-            </Button>
-          </div>
-        </form>
-      </Dialog>
+      <DefaultItemImage collection={collection} state={states.itemImage} />
+      <DeleteCollection name={name} />
     </div>
   );
 }

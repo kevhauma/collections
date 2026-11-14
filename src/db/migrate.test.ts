@@ -195,3 +195,12 @@ describe("007-title-link", () => {
     expect(db.prepare("select title_link_field_id from collections").get()).toEqual({ title_link_field_id: null });
   });
 });
+
+describe("008-default-item-image", () => {
+  it("adds item_image to collections, null for collections that already exist", () => {
+    db = atVersion(7);
+    db.prepare("insert into collections (id, slug, name) values (1, 'records', 'Records')").run();
+    expect(migrate(db)).toContain("008-default-item-image.sql");
+    expect(db.prepare("select item_image from collections").get()).toEqual({ item_image: null });
+  });
+});
