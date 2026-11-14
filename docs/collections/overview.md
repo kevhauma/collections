@@ -8,3 +8,6 @@ Prefix `COL`. Collections, slugs, the field editor, schema evolution. Design: [t
 - [x] [TICKET-COL-04](./tickets/TICKET-COL-04-field-prefix-suffix.md): Field prefix and suffix (extends § Field). Needs TICKET-COL-02, TICKET-ITM-05 (both shipped), independent, can ship any time · v1
 - [x] [TICKET-COL-05](./tickets/TICKET-COL-05-rating-field.md): Rating field with configurable max and symbol (new type in § Field, § Schema evolution). Needs TICKET-COL-03 (shipped), independent, can ship any time · v1
 - [x] [TICKET-COL-06](./tickets/TICKET-COL-06-collection-picture.md): Collection picture (extends § Collection, reuses TICKET-ITM-04). Needs TICKET-COL-01, TICKET-ITM-04 (shipped) and TICKET-BAK-01 (built, one criterion open) for the export part · v1
+- [ ] [TICKET-COL-07](./tickets/TICKET-COL-07-default-sort.md): Default sort per collection (extends § Collection, TICKET-ITM-05). Independent, can ship any time · _unreleased_
+- [ ] [TICKET-COL-08](./tickets/TICKET-COL-08-default-item-image.md): Default image for items without one (extends § Collection, reuses TICKET-ITM-04). Needs TICKET-COL-06 (shipped), independent, can ship any time · _unreleased_
+- [ ] [TICKET-COL-09](./tickets/TICKET-COL-09-title-source-link.md): Link the title to a URL field (source link) (extends § Collection, TICKET-ITM-05). Independent, can ship any time · _unreleased_
