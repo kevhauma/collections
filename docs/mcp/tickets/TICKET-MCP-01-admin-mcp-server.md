@@ -1,7 +1,7 @@
 # TICKET-MCP-01: MCP server for admin edits by an AI agent
 
 - **Area:** MCP
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Type:** Feature
 - **Traceability:** [technical-design.md § Scope](../../technical-design.md#scope) (new: one owner, now also through an agent), [technical-design.md § Auth and security](../../technical-design.md#auth-and-security)
 
@@ -107,9 +107,10 @@ back as tool errors with the same messages as the UI (EN).
       back to the consent page "Connect Claude Code?" (name from its metadata document), Approve → its callback said
       "Authentication successful"; `claude -p` then added a private "Price" field and the item "Blue Train", which the
       admin list showed as "Blue Train · € 25".)
-- [ ] A claude.ai custom connector connects to a deployed instance through the same flow. (Open: needs a deployed
-      HTTPS instance reachable from claude.ai, not available in this session. Discovery, CIMD and the token flow it
-      uses are covered by the tests below and the Claude Code run above.)
+- [x] A claude.ai custom connector connects to a deployed instance through the same flow. (2026-11-14: the admin's
+      claude.ai connector "My Collections" to the deployed HTTPS instance is authorized (OAuth done through the
+      consent flow). Called from a Claude Code session through claude.ai, `list_collections` returned the 9 live
+      collections (e.g. LEGO, public, 50 have / 67 want), and the tool description matches `src/features/mcp/tools.ts`.)
 - [x] Without a token, with an expired token, with a revoked token, and with a token issued for another `resource`,
       `/api/mcp` answers 401 with the `WWW-Authenticate` header. (`src/features/mcp/api.test.ts` › "/api/mcp" › the four
       "answers 401 …" cases, each asserting the `resource_metadata` challenge; live: `POST /api/mcp` without a token on
