@@ -37,6 +37,10 @@ ICONS: Where a control is an icon, the icon is drawn in the same ballpoint: a sm
 
 HOVER: The page reacts like a notebook being marked up. On a device with a pointer, the red pen draws a loose loop round the control under it (buttons, link buttons, tabs, nav links, table sort links) in one quick stroke from about 9 o'clock that runs a little past its start; a control that deletes gets a red X scribbled over it instead, two finer strokes one after the other. Red pen only, wobbled by `#ink-wobble`, never shifting layout or hiding the label. Gone the moment the pointer leaves. Touch and reduced motion get the colour hover only; keyboard focus keeps the dashed outline.
 
+## Notebook polish addendum (TICKET-UI-08)
+
+POLISH: The page is written on the squares. One square is one line of set text (22px), the squares start at the first line's baseline, and the shells and list pages step in whole squares, so words sit on the grid lines like handwriting. Every line on the page is drawn: table rules are the outline's own ballpoint strands (two under the header row, a faint dotted pencil rule between rows and above the footer), and links carry a drawn pen stroke under their words that follows them onto a second line. Photos are clipped onto their post-its with an ink paperclip (blank notes keep the pin and the tape); tapping an item's photo opens it large in a drawn dialog, also without JS. The public sheet widens on big screens so a many-field table fits.
+
 ## Unresolved
 
 - Handwriting face (Kalam) for data at small sizes on phones: verify legibility at 360 px, fall back to a set face for table data if it fails.

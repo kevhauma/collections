@@ -19,8 +19,8 @@ export const Layout = ({ children }: { children: ReactNode }) => {
   return (
     <ClientI18nProvider locale={locale} messages={messages}>
       <div className="mx-auto flex min-h-dvh max-w-6xl flex-col px-4 sm:px-8">
-        <header className="flex min-h-16 flex-wrap items-center gap-x-6 gap-y-2 py-3">
-          <a href="/admin" className="font-hand text-4xl leading-none text-ink no-underline">
+        <header className="flex flex-wrap items-center gap-x-6 py-sq-half">
+          <a href="/admin" className="inline-flex min-h-11 items-center font-hand text-4xl leading-none text-ink no-underline">
             <Trans id="app.name">Collections</Trans>
           </a>
           {loggedIn && <AdminNav />}
@@ -37,7 +37,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
             )}
           </div>
         </header>
-        <main id="main" tabIndex={-1} className="flex-1 py-4 focus-visible:outline-none">
+        <main id="main" tabIndex={-1} className="flex-1 py-sq focus-visible:outline-none">
           {children}
         </main>
       </div>

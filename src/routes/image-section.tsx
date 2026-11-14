@@ -26,7 +26,7 @@ export const ImageSection = ({ image, title, url, errors, labels }: ImageSection
     <div className="grid gap-4">
       {image && (
         <div className="flex flex-wrap items-end gap-4">
-          <PostIt size="lg" tilt="left">
+          <PostIt size="lg" tilt="left" fastening="paperclip">
             <img src={thumbUrl(image)} alt={title} className="size-full object-cover" />
           </PostIt>
           <Checkbox name="removeImage" label={t({ id: "items.image.remove", message: "Remove image" })} />

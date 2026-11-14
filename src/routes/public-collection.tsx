@@ -43,7 +43,7 @@ export default function PublicCollection({ params }: { params: Params }) {
   };
   const search = new URL(requestContext().request.url).searchParams;
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-sq">
       <title>{titles[status]}</title>
       <LinkPreview title={titles[status]} image={collection.image ?? firstImage(collection.id, status)} />
       <h1>{name}</h1>

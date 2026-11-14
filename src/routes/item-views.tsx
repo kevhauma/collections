@@ -3,8 +3,10 @@ import type { ReactNode } from "react";
 import type { Field, FieldType } from "../db/fields";
 import type { Item, ItemSort, ItemStatus } from "../db/items";
 import { affixes, isBlank } from "../features/collections/affixes";
-import { thumbUrl } from "../features/images/shared";
+import { imageUrl, thumbUrl } from "../features/images/shared";
 import { formatDate, formatNumber } from "../i18n";
+import { Dialog } from "../ui/dialog";
+import { HoverMark } from "../ui/hover-mark";
 import { PostIt } from "../ui/post-it";
 import { Rating } from "../ui/rating";
 import { Input } from "../ui/input";
@@ -89,18 +91,58 @@ const postItColors = ["yellow", "pink", "blue", "green"] as const;
 
 type ThumbnailProps = { item: Item; alt: string; className?: string; size: "sm" | "md" };
 
-// The item's image on a post-it, or the blank post-it when it has none. Colour, tilt and fastening vary by id.
-const Thumbnail = ({ item, alt, className, size }: ThumbnailProps) => (
-  <PostIt
-    size={size}
-    color={postItColors[item.id % postItColors.length]}
-    tilt={item.id % 2 ? "left" : "right"}
-    fastening={item.id % 3 ? "pin" : "tape"}
-    className={className}
-  >
-    {item.image && <img src={thumbUrl(item.image)} alt={alt} loading="lazy" className="size-full object-cover" />}
-  </PostIt>
-);
+// The item's picture opens at display size in a native dialog (TICKET-UI-08): invoker commands and `closedby="any"`
+// (Escape, the × and a backdrop click), so it works without JS and on public pages.
+const Enlargeable = ({ item, image, title, children }: { item: Item; image: string; title: string; children: ReactNode }) => {
+  const { t } = useLingui();
+  const dialog = `picture-${item.id}`;
+  return (
+    <>
+      <button
+        type="button"
+        commandfor={dialog}
+        command="show-modal"
+        aria-label={t({ id: "items.picture.open", message: `Show ${title} larger` })}
+        className="relative block cursor-zoom-in"
+      >
+        {children}
+        <HoverMark />
+      </button>
+      <Dialog
+        id={dialog}
+        title={title}
+        closeLabel={t({ id: "items.picture.close", message: "Close" })}
+        closedby="any"
+        className="w-[min(48rem,calc(100vw-2rem))]"
+      >
+        <img src={imageUrl(image)} alt={title} loading="lazy" className="max-h-[75dvh] w-full object-contain" />
+      </Dialog>
+    </>
+  );
+};
+
+// Colour and tilt vary by id; a picture is clipped on, a blank post-it pinned or taped (also by id).
+const postItLook = (item: Item) => ({
+  color: postItColors[item.id % postItColors.length],
+  tilt: item.id % 2 ? "left" : "right",
+  fastening: item.image ? "paperclip" : item.id % 3 ? "pin" : "tape",
+} as const);
+
+// The item's image on a post-it, which opens it large, or the blank post-it when it has none.
+const Thumbnail = ({ item, alt, className, size }: ThumbnailProps) => {
+  const postIt = (
+    <PostIt size={size} {...postItLook(item)} className={className}>
+      {item.image && <img src={thumbUrl(item.image)} alt={alt} loading="lazy" className="size-full object-cover" />}
+    </PostIt>
+  );
+  return item.image ? (
+    <Enlargeable item={item} image={item.image} title={alt}>
+      {postIt}
+    </Enlargeable>
+  ) : (
+    postIt
+  );
+};
 
 // Type a new rank and press Enter: a plain form posting to the list route's action, so it works without JS.
 const RankForm = ({ item, title, count }: { item: Item; title: string; count: number }) => {
@@ -188,7 +230,8 @@ const TableCells = ({ item, ...props }: ItemViewProps & { item: Item }) => (
         <RankCell item={item} titleFieldId={props.titleFieldId} ranking={props.ranking} />
       </Td>
     )}
-    <Td className="w-18">
+    {/* Four squares tall, so a row with a picture stays on the grid. */}
+    <Td className="h-sq-4 w-18">
       <Thumbnail item={item} alt={titleOf(item, props.titleFieldId)} size="sm" />
     </Td>
     {props.fields.map((field) => (
@@ -256,14 +299,15 @@ const Quantity = ({ quantity }: { quantity: number | null }) => {
 
 // A want's numeral sits on its post-it's corner; its rank input, while reordering, under the title.
 const GridCard = ({ item, shown, titleField, ...props }: ItemViewProps & { item: Item; shown: Field[]; titleField: Field }) => (
-  <div className="relative grid content-start gap-3">
+  <div className="relative grid content-start gap-sq">
     <Thumbnail
       item={item}
       alt={titleOf(item, props.titleFieldId)}
       size="md"
-      className="aspect-square size-auto w-full max-w-44"
+      // A whole number of squares wide (and so tall), at most 8.
+      className="aspect-square size-auto w-[min(round(down,100%,var(--grid-square)),11rem)]"
     />
-    <div className="grid gap-0.5">
+    <div className="grid">
       <strong>
         <FieldValue field={titleField} value={item.values[titleField.id]}>
           <Title mode={props.mode} slug={props.slug} titleFieldId={props.titleFieldId} item={item} />
@@ -297,7 +341,7 @@ export const ItemGrid = (props: ItemViewProps) => {
       items={props.items}
       ranking={props.ranking}
       layout="list"
-      className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-5"
+      className="grid grid-cols-2 gap-x-5 gap-y-sq-2 sm:grid-cols-3 lg:grid-cols-5"
       row={(item) => <GridCard {...props} item={item} shown={shown} titleField={titleField} />}
     />
   );

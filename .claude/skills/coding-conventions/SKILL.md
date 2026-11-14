@@ -223,7 +223,9 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   [src/features/items/list-params.ts](../../../src/features/items/list-params.ts). The views are `ItemTable` /
   `ItemGrid` / `ItemToolbar` in `src/routes/item-views.tsx` and `item-toolbar.tsx`, with `mode: "admin" | "public"`.
 - Invalid params are dropped, not turned into errors. Toolbars are GET forms, so every state is shareable and works
-  without JS.
+  without JS. `data-submit-once` on one drops repeated and unchanged submits; that's the only inline script, from
+  [src/lib/submit-once.ts](../../../src/lib/submit-once.ts) (functions serialized by `toString`, so they may only use
+  their parameters and browser globals), rendered by `routes/root.tsx` so it also runs on JS-free public pages.
 
 ## i18n (ADR 0002)
 
@@ -259,7 +261,12 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   references its `#ink-wobble` filter.
 - A drawn box is the `ink-outline` utility (pen outline on `::before`/`::after`); recolour it with `--ink-line`.
   Controls that can't carry pseudo-elements (`<input>`, `<select>`) get it on a wrapper, as in
-  [src/ui/input.tsx](../../../src/ui/input.tsx).
+  [src/ui/input.tsx](../../../src/ui/input.tsx). A divider is `ink-rule` / `ink-rule-dotted` (never a CSS border), and links
+  get the drawn `ink-underline` from the base styles; a link that shouldn't be underlined (a button, a tab) has
+  `no-underline`, and a hover underline is `hover:ink-underline`.
+- Vertical rhythm is whole grid squares (one square = one line of text, TICKET-UI-08): use the `sq` spacing tokens
+  (`py-sq-half`, `py-sq`, `gap-sq`, `gap-y-sq-2`, `h-sq-4`) and 44px controls, so text in the main column stays on the
+  grid lines. Exemplars: the shells, [item-views.tsx](../../../src/routes/item-views.tsx), [table.tsx](../../../src/ui/table.tsx).
 - Clickable controls get the red-pen hover mark by rendering `HoverMark` ([src/ui/hover-mark.tsx](../../../src/ui/hover-mark.tsx))
   as their last child inside a positioned parent; `Button` / `LinkButton` already do. A control that deletes passes
   `mark="cross"`, set per control, never inferred from `variant="danger"`.

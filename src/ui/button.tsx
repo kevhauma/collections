@@ -10,7 +10,7 @@ const button = cva(
       variant: {
         primary: "bg-ink text-paper [--ink-echo:none] hover:bg-ink-soft",
         secondary: "text-ink hover:bg-grid",
-        ghost: "text-ink underline before:hidden after:hidden hover:bg-grid",
+        ghost: "text-ink before:hidden after:hidden hover:bg-grid",
         danger: "text-red-pen [--ink-line:var(--color-red-pen)] hover:bg-red-pen/10",
       },
       size: {
@@ -20,6 +20,8 @@ const button = cva(
         icon: "size-11",
       },
     },
+    // A ghost is an underlined word; an icon has no words to underline.
+    compoundVariants: [{ variant: "ghost", size: ["sm", "md"], className: "ink-underline" }],
     defaultVariants: { variant: "secondary", size: "md" },
   },
 );

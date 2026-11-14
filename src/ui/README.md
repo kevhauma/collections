@@ -11,7 +11,7 @@ Import each component from its own file (`../ui/button`). There is no barrel.
 
 | File | What |
 |---|---|
-| `styles.css` | Tailwind `@theme` tokens (the only colours that exist), the squared-paper base, and the utilities `ink-outline`, `hover-mark`, `highlighted`, `day-colours` (day token values whatever the theme: post-its, flags), `postit-corner`, `ink-check`, `popover-anchored`. Self-hosts Kalam and Reenie Beanie; `routes/root.tsx` preloads the same three woff2 files (TICKET-UI-07), so a new face there needs a preload too. |
+| `styles.css` | Tailwind `@theme` tokens (the only colours that exist), the squared-paper base, and the utilities `ink-outline`, `ink-rule` / `ink-rule-dotted` (a drawn line along the bottom edge: header rule / row rule), `ink-underline` (the drawn word underline every link gets unless it has `no-underline`; `--underline` swaps its ink), `hover-mark`, `highlighted`, `day-colours` (day token values whatever the theme: post-its, flags), `postit-corner`, `ink-check`, `popover-anchored`. One `--grid-square` (22px) is one line of set text, and the spacing tokens `sq-half`, `sq`, `sq-2`, `sq-4` (`py-sq`, `gap-sq`, `h-sq-4`) keep vertical rhythm on the squares (TICKET-UI-08). Self-hosts Kalam and Reenie Beanie; `routes/root.tsx` preloads the same three woff2 files (TICKET-UI-07), so a new face there needs a preload too. |
 | `ink-defs.tsx` | `InkDefs`: the SVG `#ink-wobble` filter the drawn checkbox, radio and `InkIcon` reference (outlines are vector masks, see `ink-outline`). Render it **once** per document, in the root shell. |
 | `cn.ts` | `cn(...classes)`: `twMerge` over the truthy class strings, so a caller's `className` wins over conflicting defaults. |
 | `invoker-commands.d.ts` | Adds `commandfor` / `command` to React's button types. |
@@ -37,7 +37,7 @@ Every component takes `className`, merged with `cn()`. Use it for layout only.
 | `ErrorSummary` | `error-summary.tsx` | `title: ReactNode`, `errors: {href, text}[]` (each links to its control). A red-pen box with `role="alert"` at the top of a failed form; renders nothing without errors. |
 | `Card` | `card.tsx` | `heading?: ReactNode` (an `<h2>` on a paper-scrap tab), `tone`: `red` (default) · `ink`, `children`. A drawn `<section>`. |
 | `Badge` | `badge.tsx` | `variant`: `outline` (default) · `highlight` · `pencil` (private / secondary), `children`. |
-| `PostIt` | `post-it.tsx` | `color`: `yellow` · `pink` · `blue` · `green`. `tilt`: `left` · `right` · `none`. `size`: `sm` (56 px) · `md` (80 px) · `lg` (176 px). `fastening`: `pin` (default) · `tape` · `none`. `children`: a photo (`<img className="size-full object-cover">`, any aspect ratio: the single grid cell is pinned to the box) or a note. This is the item image frame. |
+| `PostIt` | `post-it.tsx` | `color`: `yellow` · `pink` · `blue` · `green`. `tilt`: `left` · `right` · `none`. `size`: `sm` (56 px) · `md` (80 px) · `lg` (176 px). `fastening`: `pin` (default) · `tape` · `paperclip` (photos) · `none`. `children`: a photo (`<img className="size-full object-cover">`, any aspect ratio: the single grid cell is pinned to the box) or a note. This is the item image frame. |
 | `Rating` | `rating.tsx` | `value`, `max`, `symbol`, `label` (read out instead, e.g. "4 of 5"). A row of `max` symbols, the first `value` in ink and the rest faded. |
 | `InkIcon` | `ink-icon.tsx` | `name`: `flag-en` · `flag-nl` · `system` · `light` · `dark`. A 24 px pen sketch in ink (currentColor) through `#ink-wobble`, `aria-hidden`; the control holding it carries the name. Add a drawing to its `drawings` map for a new icon (a new locale needs its flag). |
 | `Rank` | `rank.tsx` | `children` (the number). A want's rank scrawled in red pen, Reenie Beanie 36 px. |
@@ -46,7 +46,7 @@ Every component takes `className`, merged with `cn()`. Use it for layout only.
 | `Th` | `table.tsx` | `children`, `sort?: { href, direction: "ascending" \| "descending" \| "none" }`. A sortable header renders a plain link and sets `aria-sort`. |
 | `Td` | `table.tsx` | All `<td>` attributes. |
 | `TabLinks` | `tab-links.tsx` | `label` (the nav's accessible name), `tabs: {href, label, current?}[]`, `variant`: `tabs` (drawn, default; the current tab is filled with ink) · `nav` (plain links; the current one gets the highlighter). Tabs are links, and the current one gets `aria-current="page"`. |
-| `Dialog` | `dialog.tsx` | `id`, `title: ReactNode`, `closeLabel: string` (accessible name of the × button), `children`. Open it with `<Button commandfor={id} command="show-modal">`. |
+| `Dialog` | `dialog.tsx` | `id`, `title: ReactNode`, `closeLabel: string` (accessible name of the × button), `closedby?: "any"` (also closes on a backdrop click), `className?` (e.g. a wider width), `children`. Open it with `<Button commandfor={id} command="show-modal">`. |
 | `Popover` | `popover.tsx` | `id`, `children`. Open it with `<Button popoverTarget={id}>`. It sits under its button where CSS anchor positioning exists, and centred otherwise. Light dismiss and Escape come from the browser. |
 
 ## Client components

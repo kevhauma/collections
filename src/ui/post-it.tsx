@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { ReactNode } from "react";
 import { cn } from "./cn";
 
-// The frame for item images (and notes): a square post-it, slightly turned, pinned or taped to the page.
+// The frame for item images (and notes): a square post-it, slightly turned, pinned, taped or clipped to the page.
 // A real photo goes in as a child (`<img className="size-full object-cover">`); the padding keeps the paper visible.
 // The single grid cell is pinned to the content box, so a `size-full` photo of any shape fills it instead of
 // stretching the post-it.
@@ -23,6 +23,9 @@ const postIt = cva(
   },
 );
 
+// A paperclip's wire: down the inner leg, round the small bottom bend, up and over the top, down the outer leg.
+const clipWire = "M7 9V26a2 2 0 0 1-4 0V6a4 4 0 0 1 8 0V29a5 5 0 0 1-10 0V12";
+
 const fastenings = {
   pin: (
     <span
@@ -35,6 +38,21 @@ const fastenings = {
       aria-hidden="true"
       className="absolute -top-2 left-1/2 z-10 h-3.5 w-11 -translate-x-1/2 rotate-4 border border-ink/15 bg-paper/60"
     />
+  ),
+  // Pictures (TICKET-UI-08): a clip over the top edge in ink, wobbled like the drawn icons. The wider paper-coloured
+  // pass under it keeps the part above the post-it legible on dark paper at night.
+  paperclip: (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 12 36"
+      className="absolute -top-3 left-2 z-10 h-8 w-auto overflow-visible fill-none stroke-ink"
+      strokeLinecap="round"
+    >
+      <g filter="url(#ink-wobble)">
+        <path d={clipWire} strokeWidth="3.5" className="stroke-paper" />
+        <path d={clipWire} strokeWidth="1.4" />
+      </g>
+    </svg>
   ),
   none: null,
 };

@@ -34,7 +34,7 @@ export const FormField = ({ id, label, hint, error, required, className, childre
     .map((kind) => ({ id: `${id}-${kind}`, kind, text: texts[kind] }))
     .filter((message) => message.text);
   return (
-    <div className={cn("grid gap-1", className)}>
+    <div className={cn("grid", className)}>
       <label htmlFor={id} className="font-bold">
         {label}
         <RequiredMark word={required} />

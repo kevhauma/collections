@@ -19,7 +19,7 @@ typography:
     fontFamily: "Reenie Beanie, cursive"
     fontSize: "clamp(3.5rem, 12vw, 5.75rem)"
     fontWeight: 400
-    lineHeight: 0.8
+    lineHeight: "0.8em, rounded to whole squares"
   headline:
     fontFamily: "Reenie Beanie, cursive"
     fontSize: "2.25rem"
@@ -29,22 +29,22 @@ typography:
     fontFamily: "Kalam, cursive"
     fontSize: "1rem"
     fontWeight: 400
-    lineHeight: 1.4
+    lineHeight: "22px"
   label:
     fontFamily: "Kalam, cursive"
     fontSize: "1rem"
     fontWeight: 700
-    lineHeight: 1.4
+    lineHeight: "22px"
   label-sm:
     fontFamily: "Kalam, cursive"
     fontSize: "0.875rem"
     fontWeight: 700
-    lineHeight: 1.43
+    lineHeight: "22px"
   tab:
     fontFamily: "Kalam, cursive"
     fontSize: "0.875rem"
     fontWeight: 700
-    lineHeight: 1.43
+    lineHeight: "22px"
     letterSpacing: "0.025em"
 rounded:
   drawn: "6px 12px 5px 10px / 10px 6px 12px 5px"
@@ -56,7 +56,7 @@ spacing:
   sm: "8px"
   md: "12px"
   lg: "16px"
-  grid-square: "18px"
+  grid-square: "22px"
   xl: "24px"
   2xl: "40px"
 components:
@@ -110,7 +110,7 @@ components:
     typography: "{typography.label}"
     rounded: "{rounded.sketch}"
     padding: "0 14px"
-    height: "40px"
+    height: "44px"
   tab-link-current:
     backgroundColor: "{colors.ink}"
     textColor: "{colors.paper}"
@@ -158,17 +158,17 @@ components:
 
 **Creative North Star: "The Crammed Notebook Page"**
 
-The whole collection lives on one page of a squared-paper notebook, written and boxed in blue ballpoint. Every container, button, tab, input and chip is a box someone drew by hand: a light, searching sketch of several ballpoint strands that cross and run past the corners, gone over a second time more faintly. Item images are post-its tacked onto the page with a red pin or a strip of tape, each turned a few degrees. The page is dense on purpose; the owner should see everything about a collection at once, and a relative on a phone should see the same paper and ink in one calm column.
+The whole collection lives on one page of a squared-paper notebook, written and boxed in blue ballpoint. Every container, button, tab, input and chip is a box someone drew by hand: a light, searching sketch of several ballpoint strands that cross and run past the corners, gone over a second time more faintly. Item photos are post-its clipped onto the page with a paperclip (blank notes take a red pin or a strip of tape), each turned a few degrees. The page is dense on purpose; the owner should see everything about a collection at once, and a relative on a phone should see the same paper and ink in one calm column.
 
 The handwriting carries the voice. Titles are scrawled large and loose; everything you read for information is written in a neater, steadier hand that stays legible down to 360 px table data. Colour is a pen case, not a palette: blue ink for nearly everything, a red pen for marks that demand attention, a highlighter for the one thing that matters most.
 
 The world refuses the grey database app: a neutral sidebar, hairline tables, a single blue accent on white. At night it is the same page under a desk lamp: dark paper, light ink, the post-its still paper.
 
 **Key Characteristics:**
-- Squared paper background (18px grid) under everything.
+- Squared paper background (22px grid, one square per line of text) under everything.
 - Sketched pen outline, smooth vector strands overshooting square corners, on every drawn box; content inside stays crisp.
 - Blue ballpoint for text and outlines, red pen for ranks, module tabs and corrections, highlighter for the top item.
-- Post-its, pinned or taped and tilted, as the frame for item images.
+- Post-its, clipped (photos) or pinned and taped (blank notes) and tilted, as the frame for item images.
 - Two handwriting faces: scrawled display, neat set text.
 
 ## Colors
@@ -188,7 +188,7 @@ A ballpoint pen case on white squared paper: one blue ink in three strengths, on
 ### Neutral
 - **Notebook White** (paper): the page and the fill of inputs, dialogs and popovers; also the text colour on filled ink and red surfaces.
 - **Grid Line Blue** (grid): the 1px lines of the squared paper, and the hover fill of secondary, ghost and tab controls.
-- **Margin Rule Blue** (rule): dashed table row rules and the scrollbar thumb.
+- **Margin Rule Blue** (rule): the dotted pencil rules between table rows and above the public footer, and the scrollbar thumb.
 - **Faded Ink** (ink-soft): secondary text (hints, notes, empty-state copy) and the primary button's hover fill. 6.03:1 on paper.
 - **Pencil Grey** (pencil): placeholders and the pencil badge, for text that is provisional. 6.63:1 on paper.
 
@@ -214,7 +214,7 @@ Both faces are self-hosted via Fontsource, latin subset (covers EN and NL).
 ### Hierarchy
 - **Display** (Reenie Beanie 400, clamp(3.5rem, 12vw, 5.75rem), line-height 0.8, balanced wrap): the page title, every h1.
 - **Headline** (Reenie Beanie 400, 2.25rem, line-height 1): dialog titles, empty-state titles, rank numerals in red, notes written on a large post-it (1.875rem).
-- **Body** (Kalam 400, 1rem, line-height 1.4): all set text including table data, which stays legible at 360 px.
+- **Body** (Kalam 400, 1rem, line-height one grid square, 22px): all set text including table data, which stays legible at 360 px. Every set size keeps a whole number of squares per line (xs to xl one, 2xl to 4xl two), and the display line height rounds 0.8em to whole squares, so text runs along the squares (TICKET-UI-08).
 - **Label** (Kalam 700, 1rem): buttons, tab links, form labels, legends, table headers, emphasised table titles.
 - **Label small** (Kalam 700, 0.875rem): small buttons and badges. Hints use Kalam 400 at 0.875rem in faded ink.
 - **Tab** (Kalam 700, 0.875rem, uppercase, 0.025em tracking, paper on red or ink): module heading tabs only.
@@ -226,7 +226,7 @@ Both faces are self-hosted via Fontsource, latin subset (covers EN and NL).
 
 ## Layout
 
-The page is a single centred sheet (max width 72rem, 16px side padding, 32px from the sm breakpoint) on the full-bleed squared-paper background, whose 18px square is the page's visual unit. Layout spacing uses the default 4px scale: 4 and 8px between controls, 16px between form fields, 24px inside dialogs, 40px between modules. On desktop the admin page is a mosaic of drawn modules (a wider main column beside a narrower one from the lg breakpoint); at 360 px the same modules stack into one column, and title, tabs and actions wrap in place rather than collapsing into a menu. Tables scroll sideways inside their module instead of shrinking type. Touch targets are at least 40px (small controls) or 44px (default controls and inputs).
+The page is a single centred sheet (max width 72rem, 16px side padding, 32px from the sm breakpoint; the public sheet is 48rem, widening to 72rem from the xl breakpoint so a table with many fields fits) on the full-bleed squared-paper background, whose 22px square is the page's visual unit and one line of text. Text sits on the grid lines: the rows of squares start at the first line's baseline (half a square plus 0.25rem), and the vertical rhythm of the shells and list pages is whole squares (`py-sq`, `gap-sq`, header rows of two squares, 44px controls, table rows of four), so set text in the main column lands on a line. Inside a component the default 4px scale still applies horizontally. Layout spacing uses the default 4px scale: 4 and 8px between controls, 16px between form fields, 24px inside dialogs, 40px between modules. On desktop the admin page is a mosaic of drawn modules (a wider main column beside a narrower one from the lg breakpoint); at 360 px the same modules stack into one column, and title, tabs and actions wrap in place rather than collapsing into a menu. Tables scroll sideways inside their module instead of shrinking type. Touch targets are at least 40px (small controls) or 44px (default controls and inputs).
 
 ## Elevation & Depth
 
@@ -235,6 +235,7 @@ The page is flat paper; drawn boxes sit on it without shadow. Depth only belongs
 ### Shadow Vocabulary
 - **Post-it lift** (`box-shadow: 1px 3px 4px rgb(31 58 147 / 0.18)`): post-its and popovers.
 - **Pin head** (`box-shadow: inset -2px -2px 0 rgb(0 0 0 / 0.25), 1px 2px 2px rgb(0 0 0 / 0.25)`): the red pin on a pinned post-it.
+- **Paperclip** (no shadow, it lies flat): a drawn ink wire over a photo post-it's top edge, with a paper-coloured pass under it so the part on the page stays legible at night.
 
 ### Named Rules
 **The Stuck-On Rule.** Only objects stuck onto the page cast shadows. Drawn boxes are ink on paper and stay flat.
@@ -276,17 +277,17 @@ Drawn, never picked from an icon set: small pen sketches on a 24px grid, one 1.5
 - **Checkbox / Radio:** the control itself is a 22px drawn box (round for radio, uneven rounded corners otherwise) that wobbles through the `#ink-wobble` filter, since an input can't carry the outline's pseudo-elements; checked shows an ink tick or ink dot.
 
 ### Navigation
-- **Tab links:** drawn boxes, bold ink, 40px min height; the current tab is filled with ink and paper text. Tabs are real links to separate URLs, so they work without JavaScript.
-- **Links:** underlined, 1.5px thick, 4px offset.
+- **Tab links:** drawn boxes, bold ink, 44px min height (two squares); the current tab is filled with ink and paper text. Tabs are real links to separate URLs, so they work without JavaScript.
+- **Links:** underlined in pen: a drawn stroke under the words (one firm wobbling strand and a faint one, 1.5px, never thickened when stretched), a background image so it follows a link onto its next line and leaves the text crisp. Ink by day and night; red under a red error link. Buttons, tabs and the app name opt out with `no-underline`.
 
 ### Tables
-Ruled like a notebook: a 2px ink line under the header row, dashed rule-blue lines between rows, 8px cell padding. Sortable headers are plain links with a small drawn arrow.
+Ruled like a notebook, with drawn rules (TICKET-UI-08): two ballpoint strands under the header row and a faint dotted pencil rule (rule blue) between rows, both the outline's own edge strokes stretched along the row. Cells start a square below the rule and a row with a picture is four squares tall, so cell text sits on the grid. Sortable headers are plain links with a small drawn arrow.
 
 ### Post-it (Signature Component)
-The frame for item images and notes: a square post-it in one of four pad colours, tilted left or right, fastened with a red pin or a strip of translucent tape, with a lifting corner and the post-it shadow. Sizes 56px, 80px and 176px; 6px padding (16px on the large size) keeps the paper visible around a photo. The empty state is a blank taped post-it beside a scrawled title and one action.
+The frame for item images and notes: a square post-it in one of four pad colours, tilted left or right, fastened with a paperclip (a photo: item thumbnails, the collection picture, the item form's image) or a red pin or strip of translucent tape (a blank note), with a lifting corner and the post-it shadow. An item photo is a button that opens the display-size image in a dialog. Sizes 56px, 80px and 176px; 6px padding (16px on the large size) keeps the paper visible around a photo. The empty state is a blank taped post-it beside a scrawled title and one action.
 
 ### Dialog and Popover
-Both are drawn boxes on paper. The dialog is a native modal (max 32rem, 24px padding) with a scrawled title and a ghost close button. The popover anchors under its trigger where the browser supports it, centred otherwise, and carries the post-it shadow.
+Both are drawn boxes on paper. The dialog is a native modal (max 32rem, 24px padding; 48rem for an item picture) with a scrawled title and a ghost close button. Opened by invoker commands, so it works without JavaScript; a picture dialog also closes on a backdrop click (`closedby="any"`). The popover anchors under its trigger where the browser supports it, centred otherwise, and carries the post-it shadow.
 
 ### Hover marks
 The red pen marks what the pointer rests on, like a notebook being corrected (TICKET-UI-05). Buttons, link buttons, tabs, nav links and table sort links get a loose red loop drawn round them: one stroke from about 9 o'clock, clockwise and a little past its start, 14px beyond the sides and 10px beyond top and bottom (a wide oval round a text button, nearly a circle round a 44px icon). A control that deletes gets a red X scribbled over it instead: two finer, lighter strokes (1.1px at 80%), the second after the first, so the label stays readable. Which one is set per control (`mark="cross"` on `Button` / `LinkButton`), never by the danger colour, since a danger action that doesn't delete (revoke) gets the loop. Red pen only, 1.5px, through `#ink-wobble`, inline SVG on top of the control that takes no pointer events and no layout space. Hover only: keyboard focus keeps its dashed outline, touch shows nothing, and reduced motion keeps just the colour hover. Defined in `src/ui/hover-mark.tsx` and the `hover-mark` utility.
@@ -301,7 +302,7 @@ Planned in the direction but not built, so no tokens exist for them: the post-it
 ### Do:
 - **Do** draw every box, button, tab, input and chip with the sketched double-pass outline; recolour it for danger and errors rather than inventing a new border.
 - **Do** keep text and outlines in ballpoint blue on paper; use faded ink for secondary text and pencil grey only for placeholders and provisional states.
-- **Do** frame item images in a post-it, tilted, pinned or taped, with paper showing around the photo.
+- **Do** frame item images in a post-it, tilted and clipped, with paper showing around the photo.
 - **Do** use red pen only for ranks, module heading tabs and corrections (danger, errors), at bold or large sizes.
 - **Do** use the dashed ink focus ring (2px, 3px offset) on every focusable element.
 - **Do** keep controls at least 40px tall, and layouts working from 360px.

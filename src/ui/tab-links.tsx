@@ -2,13 +2,13 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { ReactNode } from "react";
 import { HoverMark } from "./hover-mark";
 
-const link = cva("inline-flex min-h-10 items-center font-bold text-ink no-underline", {
+const link = cva("inline-flex min-h-11 items-center font-bold text-ink no-underline", {
   variants: {
     variant: {
       // Drawn tabs; the current one is filled in with ink (Have / Want).
       tabs: "ink-outline px-3.5 hover:bg-grid aria-[current=page]:bg-ink aria-[current=page]:text-paper aria-[current=page]:[--ink-echo:none]",
       // Plain links; the current one is run over with the highlighter (app sections, collections).
-      nav: "relative px-3 hover:underline aria-[current=page]:highlighted",
+      nav: "relative px-3 hover:ink-underline aria-[current=page]:highlighted",
     },
   },
   defaultVariants: { variant: "tabs" },

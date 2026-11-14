@@ -9,6 +9,7 @@ import { TabLinks } from "../ui/tab-links";
 
 // Search, filters and sort as a GET form, plus the table/grid toggle as links (TICKET-ITM-05). The URL holds all of
 // it, so it works without JS and a filtered view can be shared. Shared by the admin list and the public pages.
+// `data-submit-once`: with JS, repeated or unchanged Applies send nothing (lib/submit-once.ts, TICKET-UI-08).
 
 type ItemToolbarProps = {
   params: ListParams;
@@ -56,8 +57,8 @@ export const ItemToolbar = ({ params, fields, status, resetHref, viewHref }: Ite
     grid: t({ id: "collections.view.grid", message: "Grid" }),
   };
   return (
-    <div className="grid gap-3">
-      <form method="get" role="search" className="flex flex-wrap items-end gap-3">
+    <div className="grid gap-sq">
+      <form method="get" role="search" data-submit-once className="group flex flex-wrap items-end gap-x-3 gap-y-sq">
         <input type="hidden" name="view" value={params.view} />
         <FormField id="list-q" label={t({ id: "items.search", message: "Search" })} className="min-w-52 flex-1">
           {(control) => <Input {...control} type="search" name="q" defaultValue={params.q} maxLength={maxQueryLength} />}
@@ -85,7 +86,10 @@ export const ItemToolbar = ({ params, fields, status, resetHref, viewHref }: Ite
           )}
         </FormField>
         <div className="flex items-center gap-3">
-          <Button type="submit">{t({ id: "items.filter.apply", message: "Apply" })}</Button>
+          <Button type="submit">
+            <span className="group-aria-busy:hidden">{t({ id: "items.filter.apply", message: "Apply" })}</span>
+            <span className="hidden group-aria-busy:inline">{t({ id: "items.filter.busy", message: "Applying…" })}</span>
+          </Button>
           <a href={resetHref}>{t({ id: "items.filter.reset", message: "Reset" })}</a>
         </div>
       </form>

@@ -1,7 +1,7 @@
 # TICKET-UI-08: Notebook polish
 
 - **Area:** UI
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Traceability:** [technical-design.md § Stack](../../technical-design.md#stack) (UI library), [.impeccable/surfaces/src-ui.md](../../../.impeccable/surfaces/src-ui.md), [DESIGN.md](../../../DESIGN.md), extends [TICKET-ITM-04](../../items/tickets/TICKET-ITM-04-item-images.md) and [TICKET-ITM-05](../../items/tickets/TICKET-ITM-05-collection-views.md)
 
 ## User story
@@ -80,29 +80,62 @@ the paper's squares.
 
 ## Acceptance criteria
 
-- [ ] `PostIt` has a `paperclip` fastening; item thumbnails with a picture, the collection picture and the item form's
-      image use it. It's visible on every post-it colour, by day and night.
-- [ ] On a ≥1280px viewport, a public have list in table view with 8+ fields shows more columns without horizontal
-      scroll than today; at 360px nothing changes and the page doesn't scroll sideways.
-- [ ] Clicking Apply ten times quickly sends one request (network panel); Apply with an unchanged query sends none.
-      With JS off, Apply still submits the GET form.
-- [ ] Clicking an item picture in table and grid view (admin and public) opens the display-size image in a dialog
+- [x] `PostIt` has a `paperclip` fastening; item thumbnails with a picture, the collection picture and the item form's
+      image use it. It's visible on every post-it colour, by day and night. (`fastenings.paperclip` in
+      `src/ui/post-it.tsx`: an ink wire over a wider paper-coloured pass, so the part on the page reads on dark paper;
+      used by `Thumbnail` via `postItLook` in `src/routes/item-views.tsx`, `CollectionPicture` and `ImageSection`.
+      Orca screenshots 2026-11-14 on yellow, pink, blue and green post-its, light and dark.)
+- [x] On a ≥1280px viewport, a public have list in table view with 8+ fields shows more columns without horizontal
+      scroll than today; at 360px nothing changes and the page doesn't scroll sideways. (Public shell
+      `max-w-3xl xl:max-w-6xl` in `src/routes/public-layout.tsx`. At 1440px a 10-field have list: table scroller
+      1088/1088 px, all 12 columns visible; with the old `max-w-3xl` the same table was 1019 px in a 704 px scroller. At
+      360px `scrollWidth` = 360.)
+- [x] Clicking Apply ten times quickly sends one request (network panel); Apply with an unchanged query sends none.
+      With JS off, Apply still submits the GET form. (`data-submit-once` on the toolbar form and the inline guard from
+      `src/lib/submit-once.ts`, rendered in `routes/root.tsx`. Production build, Orca network log: ten clicks with an
+      unchanged query sent no request; ten clicks after typing "kind" sent one `?view=table&q=kind…`. The button shows
+      "Applying…" while busy. Headless Chrome over CDP with script execution disabled: typing "blue" + Apply loaded
+      `?view=table&q=blue…` with 2 rows.)
+- [x] Clicking an item picture in table and grid view (admin and public) opens the display-size image in a dialog
       with an alt text; Escape, the close button and a backdrop click close it. Works with JS off. Public pages still
-      ship no client components.
-- [ ] Table rows, the header underline, the sortable-list handle cell and the public footer use the drawn divider; no
-      straight `border-dashed`/`border-dotted` divider remains in `src/**/*.tsx`.
-- [ ] Links and the sortable header's hover state show a drawn underline instead of a straight one, including a link
+      ship no client components. (`Enlargeable` in `src/routes/item-views.tsx`: an invoker-command button and a
+      `Dialog closedby="any"` with `imageUrl` and alt = item title. Orca, admin want table, public table and grid: the
+      dialog opens with the 1000px image; Escape, a backdrop click and the × close it. Same in headless Chrome with
+      scripts disabled. The public production HTML has no module script, only the flight data and the submit guard.
+      Backdrop close relies on `closedby`, which Safari lacks; there Escape and × still close it.)
+- [x] Table rows, the header underline, the sortable-list handle cell and the public footer use the drawn divider; no
+      straight `border-dashed`/`border-dotted` divider remains in `src/**/*.tsx`. (`ink-rule` / `ink-rule-dotted` in
+      `styles.css`, used by `Th`, `Td`, the `SortableList` handle cell and the public `main` above the footer;
+      `grep border-dashed|border-dotted src/**/*.tsx` finds nothing.)
+- [x] Links and the sortable header's hover state show a drawn underline instead of a straight one, including a link
       that wraps over two lines; link text stays crisp. Visible by day and night, with 3:1 contrast
-      against the paper.
-- [ ] Body text lines in the main column sit on the grid: line height equals `--grid-square` (or a whole multiple),
+      against the paper. (`ink-underline` utility, applied to `a:not(.no-underline)` and as `hover:ink-underline` on
+      `Th`, nav tabs and ghost buttons: a background-image stroke with `box-decoration-break: clone`. Orca: the wrapped
+      title link "What's Going On" is underlined on both lines. Ink #1f3a93 on paper 9.89:1, night #d3ddff 13.5:1; the
+      error summary's red underline 4.76:1 / 5.5:1.)
+- [x] Body text lines in the main column sit on the grid: line height equals `--grid-square` (or a whole multiple),
       checked by overlaying a page screenshot on the grid at 360px and desktop. Headline sizes keep their look.
-- [ ] Dark mode still meets the TICKET-UI-03 contrast rules for the clip, the dividers and the dialog.
-- [ ] Every new string (dialog close label, busy label) has an explicit i18n id with EN and NL text.
-- [ ] Unit tests cover: the "unchanged query" check (same params → skip, any changed field → submit, ignoring
-      parameter order) if it lands as a function.
-- [ ] UI follows the design direction in `.impeccable/surfaces/src-ui.md` and `DESIGN.md` (update both for the clip,
-      the drawn divider and the new line height); live browser check at 360px and desktop, light and dark.
-- [ ] Verified with the fallow skill.
+      (`--grid-square: 1.375rem` = the body line height and every `--text-*--line-height`; the grid rows start at the
+      baseline, `calc(var(--grid-square) / 2 + 0.25rem)`; shells, list page, toolbar and table step in `sq` tokens. On
+      the public list at 360px and 1440px, label, table header and cell text all have their glyph box at the same
+      offset to the grid rows (measured with Range rects), and a zoomed screenshot shows the words on the lines.
+      Labels inside 44px drawn boxes (tabs, buttons, inputs) are centred in the box, half a square off, by choice: the
+      boxes stay on the squares. The h1 keeps its size, its line height rounded to whole squares.)
+- [x] Dark mode still meets the TICKET-UI-03 contrast rules for the clip, the dividers and the dialog. (Clip: day ink
+      on post-its 8:1+, the paper pass on night paper 18:1; header rule in night ink 13.5:1; row rules keep the `rule`
+      token the dashed borders used; the dialog is unchanged paper and ink. Orca dark screenshots of table, grid and
+      dialog.)
+- [x] Every new string (dialog close label, busy label) has an explicit i18n id with EN and NL text.
+      (`items.picture.open`, `items.picture.close`, `items.filter.busy` in `en.json` / `nl.json`; catalogs test passes.)
+- [x] Unit tests cover: the "unchanged query" check (same params → skip, any changed field → submit, ignoring
+      parameter order) if it lands as a function. (`src/lib/submit-once.test.ts`: "skips the same params", "ignores
+      parameter order", "submits when any field changed".)
+- [x] UI follows the design direction in `.impeccable/surfaces/src-ui.md` and `DESIGN.md` (update both for the clip,
+      the drawn divider and the new line height); live browser check at 360px and desktop, light and dark. (Notebook
+      polish addendum in `src-ui.md`; DESIGN.md typography, spacing, layout, links, tables, post-it and dialog sections.
+      Orca 2026-11-14: public list table and grid at 360px and 1440px, admin want table and item form, light and dark.)
+- [x] Verified with the fallow skill. (`npx fallow@3.43.0 audit --base HEAD`: no issues in 23 changed files; advisory
+      styling notes only, for the picture dialog's width and the grid post-it's rounded width.)
 
 ## Notes
 

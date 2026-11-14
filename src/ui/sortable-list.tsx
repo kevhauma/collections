@@ -26,7 +26,7 @@ const layouts = {
     Container: "tbody",
     Row: "tr",
     row: "scroll-mt-6",
-    handle: (handle: ReactNode) => <td className="w-6 border-b border-dashed border-rule">{handle}</td>,
+    handle: (handle: ReactNode) => <td className="ink-rule-dotted w-6">{handle}</td>,
     content: (content: ReactNode) => content,
     alert: (text: string) => (
       <tr>

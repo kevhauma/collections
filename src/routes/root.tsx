@@ -2,6 +2,7 @@ import { Trans } from "@lingui/react/macro";
 import type { ReactNode } from "react";
 import { Outlet } from "react-router";
 import { getCookie } from "../context";
+import { submitOnceScript } from "../lib/submit-once";
 import { forcedTheme, themeCookie } from "../lib/theme";
 import { setupRequestI18n } from "../i18n";
 import { InkDefs } from "../ui/ink-defs";
@@ -40,6 +41,8 @@ export const Layout = ({ children }: { children: ReactNode }) => {
         </div>
         <InkDefs />
         {children}
+        {/* The one inline script: the list toolbar's Apply guard, on public pages too (lib/submit-once.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: submitOnceScript }} />
       </body>
     </html>
   );

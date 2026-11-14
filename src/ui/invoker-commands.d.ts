@@ -6,4 +6,8 @@ declare module "react" {
     commandfor?: string;
     command?: "show-modal" | "close" | "request-close" | "toggle-popover" | "show-popover" | "hide-popover";
   }
+  // Light dismiss for a dialog (TICKET-UI-08), not in the types either.
+  interface DialogHTMLAttributes<T> {
+    closedby?: "any" | "closerequest" | "none";
+  }
 }

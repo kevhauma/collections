@@ -54,7 +54,7 @@ export default function AdminCollection({ params }: { params: Params }) {
     </LinkButton>
   );
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-sq">
       <title>{t({ id: "collections.page.title", message: `${name} · Collections` })}</title>
       <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
         <h1>{name}</h1>

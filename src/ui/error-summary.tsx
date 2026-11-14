@@ -15,7 +15,7 @@ export const ErrorSummary = ({ title, errors, className }: ErrorSummaryProps) =>
       <ul className="grid list-disc gap-1 pl-5">
         {errors.map((error) => (
           <li key={error.href}>
-            <a href={error.href} className="font-bold text-red-pen">
+            <a href={error.href} className="font-bold text-red-pen [--underline:var(--ink-underline-red)]">
               {error.text}
             </a>
           </li>

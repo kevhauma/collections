@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **31 / 32 done**
+Progress: **32 / 33 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -44,6 +44,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 30 ‖ | [UI-07](../../ui/tickets/TICKET-UI-07-no-font-flash-on-navigation.md) | No font jump when switching pages | M7 After the first cut | UI-01 | ✅ |
 | 31 ‖ | [UI-05](../../ui/tickets/TICKET-UI-05-pen-drawn-hover-marks.md) | Red-pen hover marks | M7 After the first cut | UI-04 | ✅ |
 | 32 ‖ | [MCP-02](../../mcp/tickets/TICKET-MCP-02-create-collections-and-item-images.md) | MCP tools to create collections and set item images | M7 After the first cut | MCP-01 (built) | ✅ |
+| 33 ‖ | [UI-08](../../ui/tickets/TICKET-UI-08-notebook-polish.md) | Notebook polish | M7 After the first cut | ITM-04, ITM-05 | ✅ |
 
 ## Why this order
 
@@ -112,6 +113,8 @@ graph LR
   UI01 --> UI07[UI-07 font preload]
   UI04 --> UI05[UI-05 hover marks]
   MCP01[MCP-01 MCP server] --> MCP02[MCP-02 collections and images]
+  ITM04 --> UI08[UI-08 notebook polish]
+  ITM05 --> UI08
 ```
 
 ## Not in v1
