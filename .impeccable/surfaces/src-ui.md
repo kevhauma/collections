@@ -13,7 +13,7 @@ Whole app shell and its two faces: admin (Operate, desktop + phone) and public h
 
 THESIS: The collection is one crammed notebook page drawn in blue ballpoint on squared paper; every item photo is a post-it tacked onto it. Refuses the grey database app: neutral sidebar, hairline table, one blue accent.
 
-OWN-WORLD: White squared paper (#fdfdfb, #e3e9f3 grid), ballpoint blue ink #1f3a93 for all text and outlines, red pen #d6312b for ranks and module tabs only, highlighter #fff27a for the active/top item. Every box, button, tab, input and chip has a wobbly double-pass pen outline (SVG displacement filter on pseudo-elements, content stays crisp). Post-its in yellow, pink, blue, green, pinned or taped, slightly rotated. Reenie Beanie for scrawled display and numbers, Kalam for set text.
+OWN-WORLD: White squared paper (#fdfdfb, #e3e9f3 grid), ballpoint blue ink #1f3a93 for all text and outlines, red pen #d6312b for ranks and module tabs only, highlighter #fff27a for the active/top item. Every box, button, tab, input and chip has a sketched double-pass pen outline (vector strand masks on pseudo-elements, strands overshoot square corners, content stays crisp). Post-its in yellow, pink, blue, green, pinned or taped, slightly rotated. Reenie Beanie for scrawled display and numbers, Kalam for set text.
 
 STORY: The owner sees everything about a collection on one page and edits without leaving it. A relative opens the want link on a phone, reads a short ranked list with the top wish highlighted, sees owned items and doesn't buy a duplicate.
 

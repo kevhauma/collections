@@ -1,4 +1,4 @@
-// The ballpoint wobble every drawn outline references as url(#ink-wobble). Render once per document.
+// The ballpoint wobble the drawn checkbox and radio reference as url(#ink-wobble). Render once per document.
 export const InkDefs = () => (
   <svg aria-hidden="true" className="absolute size-0">
     <filter id="ink-wobble">

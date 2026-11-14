@@ -48,6 +48,7 @@ typography:
     letterSpacing: "0.025em"
 rounded:
   drawn: "6px 12px 5px 10px / 10px 6px 12px 5px"
+  sketch: "2px"
   scrap: "3px 9px 4px 8px"
   full: "9999px"
 spacing:
@@ -63,7 +64,7 @@ components:
     backgroundColor: "{colors.ink}"
     textColor: "{colors.paper}"
     typography: "{typography.label}"
-    rounded: "{rounded.drawn}"
+    rounded: "{rounded.sketch}"
     padding: "0 16px"
     height: "44px"
   button-primary-hover:
@@ -72,7 +73,7 @@ components:
     backgroundColor: "transparent"
     textColor: "{colors.ink}"
     typography: "{typography.label}"
-    rounded: "{rounded.drawn}"
+    rounded: "{rounded.sketch}"
     padding: "0 16px"
     height: "44px"
   button-secondary-hover:
@@ -87,7 +88,7 @@ components:
     backgroundColor: "transparent"
     textColor: "{colors.red-pen}"
     typography: "{typography.label}"
-    rounded: "{rounded.drawn}"
+    rounded: "{rounded.sketch}"
     padding: "0 16px"
     height: "44px"
   button-sm:
@@ -98,13 +99,13 @@ components:
     backgroundColor: "{colors.paper}"
     textColor: "{colors.ink}"
     typography: "{typography.body}"
-    rounded: "{rounded.drawn}"
+    rounded: "{rounded.sketch}"
     padding: "0 12px"
     height: "44px"
   tab-link:
     textColor: "{colors.ink}"
     typography: "{typography.label}"
-    rounded: "{rounded.drawn}"
+    rounded: "{rounded.sketch}"
     padding: "0 14px"
     height: "40px"
   tab-link-current:
@@ -112,7 +113,7 @@ components:
     textColor: "{colors.paper}"
   card:
     backgroundColor: "rgb(253 253 251 / 0.6)"
-    rounded: "{rounded.drawn}"
+    rounded: "{rounded.sketch}"
     padding: "28px 16px 16px"
   card-tab-red:
     backgroundColor: "{colors.red-pen}"
@@ -129,7 +130,7 @@ components:
   badge:
     textColor: "{colors.ink}"
     typography: "{typography.label-sm}"
-    rounded: "{rounded.drawn}"
+    rounded: "{rounded.sketch}"
     padding: "0 10px"
   badge-highlight:
     backgroundColor: "{colors.highlighter}"
@@ -154,7 +155,7 @@ components:
 
 **Creative North Star: "The Crammed Notebook Page"**
 
-The whole collection lives on one page of a squared-paper notebook, written and boxed in blue ballpoint. Every container, button, tab, input and chip is a box someone drew by hand: a wobbly outline traced twice, the second pass fainter and slightly off. Item images are post-its tacked onto the page with a red pin or a strip of tape, each turned a few degrees. The page is dense on purpose; the owner should see everything about a collection at once, and a relative on a phone should see the same paper and ink in one calm column.
+The whole collection lives on one page of a squared-paper notebook, written and boxed in blue ballpoint. Every container, button, tab, input and chip is a box someone drew by hand: a light, searching sketch of several ballpoint strands that cross and run past the corners, gone over a second time more faintly. Item images are post-its tacked onto the page with a red pin or a strip of tape, each turned a few degrees. The page is dense on purpose; the owner should see everything about a collection at once, and a relative on a phone should see the same paper and ink in one calm column.
 
 The handwriting carries the voice. Titles are scrawled large and loose; everything you read for information is written in a neater, steadier hand that stays legible down to 360 px table data. Colour is a pen case, not a palette: blue ink for nearly everything, a red pen for marks that demand attention, a highlighter for the one thing that matters most.
 
@@ -162,7 +163,7 @@ The world refuses the grey database app: a neutral sidebar, hairline tables, a s
 
 **Key Characteristics:**
 - Squared paper background (18px grid) under everything.
-- Double-pass wobbly pen outline on every drawn box; content inside stays crisp.
+- Sketched pen outline, smooth vector strands overshooting square corners, on every drawn box; content inside stays crisp.
 - Blue ballpoint for text and outlines, red pen for ranks, module tabs and corrections, highlighter for the top item.
 - Post-its, pinned or taped and tilted, as the frame for item images.
 - Two handwriting faces: scrawled display, neat set text.
@@ -237,13 +238,13 @@ The page is flat paper; drawn boxes sit on it without shadow. Depth only belongs
 
 ## Shapes
 
-Nothing is a clean rectangle. Drawn boxes use an uneven four-corner radius (6px 12px 5px 10px / 10px 6px 12px 5px) so no two sides match, and their outline is a 2px pen line passed through a turbulence displacement filter (the shared `#ink-wobble` SVG filter, rendered once per document). A second fainter pass (1.3px, 45% opacity, offset a few pixels and rotated 0.35deg) traces it again, as if the box were drawn twice. Filled shapes (primary button, current tab, badges) drop the second pass. The outline lives on pseudo-elements so text and images inside never wobble. Paper scraps (module heading tabs) use a smaller uneven radius (3px 9px 4px 8px) and a -1.5deg turn. Post-its are square, unrounded, tilted (-3deg or 2deg) and have a folded-up bottom-right corner (12px). Pins and radios are round.
+Nothing is a clean rectangle. Drawn boxes are sketched: each side is one firm ballpoint strand (about 0.85px, 80% ink) and three fainter, finer ones that search around it, and at the corners the strands cross and run a few pixels past each other, so the box itself is square (2px radius on its fill). The strokes are vector masks on the outline's pseudo-elements (defined once in `styles.css`): four fixed 22px corners and four edges that stretch only along their length, so the line stays smooth, never pixel-stepped, and keeps its weight at any box size. A second pass at half strength (offset a few pixels, rotated 0.3deg, with the edges swapped) adds more strands, as if the box were gone over again. Filled shapes (primary button, current tab, badges) drop the second pass. The outline lives on pseudo-elements so text and images inside never wobble. Paper scraps (module heading tabs) use a smaller uneven radius (3px 9px 4px 8px) and a -1.5deg turn. Post-its are square, unrounded, tilted (-3deg or 2deg) and have a folded-up bottom-right corner (12px). Pins and radios are round.
 
 ## Components
 
 ### Buttons
 Hand-drawn boxes that read as ink, not chrome.
-- **Shape:** drawn box (rounded drawn), double-pass wobble outline.
+- **Shape:** sketched box (square, strands overshooting the corners), double-pass outline.
 - **Primary:** filled ballpoint blue with paper text, single outline pass; one per surface, for the main action ("+ Add item", "Save").
 - **Secondary (default):** drawn outline, ink text, transparent fill.
 - **Ghost:** no box at all, an underlined ink word.
@@ -266,7 +267,7 @@ Hand-drawn boxes that read as ink, not chrome.
 - **Style:** drawn box on a wrapper around the control (inputs cannot carry pseudo-elements), paper fill, ink text, pencil placeholder, 44px min height, 12px sides. Textareas start at 96px and resize vertically. Selects carry a drawn chevron.
 - **Focus:** the wrapper takes the dashed ink focus ring.
 - **Error:** an invalid control's box turns red pen; the error message sits under it in bold red and is announced before the hint. Hints are 0.875rem faded ink.
-- **Checkbox / Radio:** the control itself is a 22px drawn box (round for radio) that wobbles; checked shows an ink tick or ink dot.
+- **Checkbox / Radio:** the control itself is a 22px drawn box (round for radio, uneven rounded corners otherwise) that wobbles through the `#ink-wobble` filter, since an input can't carry the outline's pseudo-elements; checked shows an ink tick or ink dot.
 
 ### Navigation
 - **Tab links:** drawn boxes, bold ink, 40px min height; the current tab is filled with ink and paper text. Tabs are real links to separate URLs, so they work without JavaScript.
@@ -287,7 +288,7 @@ Planned in the direction but not built, so no tokens exist for them: the post-it
 ## Do's and Don'ts
 
 ### Do:
-- **Do** draw every box, button, tab, input and chip with the double-pass wobble outline; recolour it for danger and errors rather than inventing a new border.
+- **Do** draw every box, button, tab, input and chip with the sketched double-pass outline; recolour it for danger and errors rather than inventing a new border.
 - **Do** keep text and outlines in ballpoint blue on paper; use faded ink for secondary text and pencil grey only for placeholders and provisional states.
 - **Do** frame item images in a post-it, tilted, pinned or taped, with paper showing around the photo.
 - **Do** use red pen only for ranks, module heading tabs and corrections (danger, errors), at bold or large sizes.
