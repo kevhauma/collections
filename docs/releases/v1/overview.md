@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **25 / 27 done**
+Progress: **26 / 28 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -39,6 +39,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 25 ‖ | [UI-03](../../ui/tickets/TICKET-UI-03-dark-mode.md) | Dark mode | M7 After the first cut | UI-02, I18N-02 | ✅ |
 | 26 ‖ | [COL-06](../../collections/tickets/TICKET-COL-06-collection-picture.md) | Collection picture | M7 After the first cut | COL-01, ITM-04, BAK-01 (built) | ✅ |
 | 27 ‖ | [MCP-01](../../mcp/tickets/TICKET-MCP-01-admin-mcp-server.md) | MCP server for admin edits by an AI agent | M7 After the first cut | AUTH-02, ITM-02, COL-03 | 🔄 |
+| 28 ‖ | [UI-04](../../ui/tickets/TICKET-UI-04-pen-drawn-switcher-icons.md) | Pen-drawn switcher icons | M7 After the first cut | UI-03, I18N-02 | ✅ |
 
 ## Why this order
 
@@ -101,6 +102,8 @@ graph LR
   COL01 --> COL06[COL-06 collection picture]
   ITM04 --> COL06
   BAK01 --> COL06
+  UI03 --> UI04[UI-04 switcher icons]
+  I18N02 --> UI04
 ```
 
 ## Not in v1

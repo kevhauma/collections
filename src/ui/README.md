@@ -12,7 +12,7 @@ Import each component from its own file (`../ui/button`). There is no barrel.
 | File | What |
 |---|---|
 | `styles.css` | Tailwind `@theme` tokens (the only colours that exist), the squared-paper base, and the utilities `ink-outline`, `highlighted`, `postit-corner`, `ink-check`, `popover-anchored`. Self-hosts Kalam and Reenie Beanie. |
-| `ink-defs.tsx` | `InkDefs`: the SVG `#ink-wobble` filter the drawn checkbox and radio reference (outlines are vector masks, see `ink-outline`). Render it **once** per document, in the root shell. |
+| `ink-defs.tsx` | `InkDefs`: the SVG `#ink-wobble` filter the drawn checkbox, radio and `InkIcon` reference (outlines are vector masks, see `ink-outline`). Render it **once** per document, in the root shell. |
 | `cn.ts` | `cn(...classes)`: `twMerge` over the truthy class strings, so a caller's `className` wins over conflicting defaults. |
 | `invoker-commands.d.ts` | Adds `commandfor` / `command` to React's button types. |
 
@@ -25,7 +25,7 @@ Every component takes `className`, merged with `cn()`. Use it for layout only.
 
 | Component | File | Props |
 |---|---|---|
-| `Button` | `button.tsx` | All `<button>` attributes, plus `variant`: `primary` (filled ink) · `secondary` (drawn, default) · `ghost` (underlined, no outline) · `danger` (red pen). `size`: `sm` (min 40 px) · `md` (min 44 px, default). Also opens dialogs (`commandfor="id" command="show-modal"`) and popovers (`popoverTarget="id"`). As a toggle, `aria-pressed` gives it the highlighter. |
+| `Button` | `button.tsx` | All `<button>` attributes, plus `variant`: `primary` (filled ink) · `secondary` (drawn, default) · `ghost` (underlined, no outline) · `danger` (red pen). `size`: `sm` (min 40 px) · `md` (min 44 px, default) · `icon` (44 px square; give it an `aria-label` and `title`). Also opens dialogs (`commandfor="id" command="show-modal"`) and popovers (`popoverTarget="id"`). As a toggle, `aria-pressed` gives it the highlighter. |
 | `LinkButton` | `button.tsx` | All `<a>` attributes, plus the same `variant` / `size` as `Button`. |
 | `Input` | `input.tsx` | All `<input>` attributes. `className` goes to the drawn box and the rest to the input. Set `aria-invalid` and the box turns red. |
 | `Textarea` | `input.tsx` | All `<textarea>` attributes, same split as `Input`. |
@@ -38,6 +38,7 @@ Every component takes `className`, merged with `cn()`. Use it for layout only.
 | `Badge` | `badge.tsx` | `variant`: `outline` (default) · `highlight` · `pencil` (private / secondary), `children`. |
 | `PostIt` | `post-it.tsx` | `color`: `yellow` · `pink` · `blue` · `green`. `tilt`: `left` · `right` · `none`. `size`: `sm` (56 px) · `md` (80 px) · `lg` (176 px). `fastening`: `pin` (default) · `tape` · `none`. `children`: a photo (`<img className="size-full object-cover">`, any aspect ratio: the single grid cell is pinned to the box) or a note. This is the item image frame. |
 | `Rating` | `rating.tsx` | `value`, `max`, `symbol`, `label` (read out instead, e.g. "4 of 5"). A row of `max` symbols, the first `value` in ink and the rest faded. |
+| `InkIcon` | `ink-icon.tsx` | `name`: `flag-en` · `flag-nl` · `system` · `light` · `dark`. A 24 px pen sketch in ink (currentColor) through `#ink-wobble`, `aria-hidden`; the control holding it carries the name. Add a drawing to its `drawings` map for a new icon (a new locale needs its flag). |
 | `Rank` | `rank.tsx` | `children` (the number). A want's rank scrawled in red pen, Reenie Beanie 36 px. |
 | `EmptyState` | `empty-state.tsx` | `title: ReactNode` (scrawled), `children?` (explanation), `action?` (usually a `Button` or `LinkButton`). |
 | `Table` | `table.tsx` | `children` (`<thead>` / `<tbody>`). Wraps the table in a horizontal scroller and uses tabular numerals. |

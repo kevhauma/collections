@@ -29,6 +29,10 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 NIGHT: The same notebook page at night, not a new world. Dark blue-black paper (#12151d, grid #20273a, rule #46526e), light gel-pen ink #d3ddff for text and every drawn outline (ink-soft #a4b3e2, pencil #9ba2b6), a brighter red pen #f05a4f, and the highlighter as a dim amber marker band #5b4b0a that light ink stays readable on. Post-its keep their paper colours and their day contents (dark ink, day red), pinned to the dark page with deeper shadows. Photos are never recoloured. Follows the device by default; a System / Light / Dark switch sits next to the language switch in both headers. Every text pair meets WCAG AA (values and ratios in DESIGN.md › Colors › Night).
 
+## Drawn icons addendum (TICKET-UI-04)
+
+ICONS: Where a control is an icon, the icon is drawn in the same ballpoint: a small sketch on a 24px grid in one ink stroke, red pen and paper only where the subject has them, fills hatched or scribbled, wobbled by `#ink-wobble`. Never an icon library, emoji or a clean geometric glyph. The header switches are icons only (flags for languages, half-hatched circle / sun / crescent for System / Light / Dark), each a 44px target named by its word (aria-label + title); the pressed one keeps the highlighter.
+
 ## Unresolved
 
 - Handwriting face (Kalam) for data at small sizes on phones: verify legibility at 360 px, fall back to a set face for table data if it fails.

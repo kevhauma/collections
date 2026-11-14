@@ -2,8 +2,10 @@ import { useLingui } from "@lingui/react/macro";
 import { getCookie } from "../context";
 import { forcedTheme, themeCookie, themes } from "../lib/theme";
 import { Button } from "../ui/button";
+import { InkIcon } from "../ui/ink-icon";
 
-// System / Light / Dark (TICKET-UI-03). A plain form post to /theme, so it works without JS, like LocaleSwitcher.
+// System / Light / Dark (TICKET-UI-03), drawn as icons (TICKET-UI-04). A plain form post to /theme, so it works
+// without JS, like LocaleSwitcher.
 export const ThemeSwitcher = () => {
   const { t } = useLingui();
   const current = forcedTheme(getCookie(themeCookie)) ?? "system";
@@ -15,8 +17,18 @@ export const ThemeSwitcher = () => {
   return (
     <form method="post" action="/theme" aria-label={t({ id: "shell.theme", message: "Colours" })} className="flex gap-1">
       {themes.map((theme) => (
-        <Button key={theme} type="submit" name="theme" value={theme} variant="ghost" size="sm" aria-pressed={theme === current}>
-          {labels[theme]}
+        <Button
+          key={theme}
+          type="submit"
+          name="theme"
+          value={theme}
+          variant="ghost"
+          size="icon"
+          aria-label={labels[theme]}
+          title={labels[theme]}
+          aria-pressed={theme === current}
+        >
+          <InkIcon name={theme} />
         </Button>
       ))}
     </form>

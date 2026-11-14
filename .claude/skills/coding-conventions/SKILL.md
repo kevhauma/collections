@@ -258,6 +258,8 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 - A drawn box is the `ink-outline` utility (pen outline on `::before`/`::after`); recolour it with `--ink-line`.
   Controls that can't carry pseudo-elements (`<input>`, `<select>`) get it on a wrapper, as in
   [src/ui/input.tsx](../../../src/ui/input.tsx).
+- Icons are drawn inline SVG in [src/ui/ink-icon.tsx](../../../src/ui/ink-icon.tsx) (`InkIcon`), never an icon
+  dependency or image file. An icon-only control is `Button size="icon"` with an `aria-label` and `title`.
 - A form built from field definitions maps `field.type → control` with a lookup object, posts with `noValidate` so
   the server's translated messages show, and lists every invalid input in an `ErrorSummary` at the top. Exemplar:
   [src/routes/admin-item.tsx](../../../src/routes/admin-item.tsx).

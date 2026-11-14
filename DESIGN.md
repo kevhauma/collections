@@ -95,6 +95,9 @@ components:
     typography: "{typography.label-sm}"
     padding: "0 12px"
     height: "40px"
+  button-icon:
+    size: "44px"
+    padding: "0"
   input:
     backgroundColor: "{colors.paper}"
     textColor: "{colors.ink}"
@@ -250,7 +253,10 @@ Hand-drawn boxes that read as ink, not chrome.
 - **Ghost:** no box at all, an underlined ink word.
 - **Danger:** outline and text in red pen, the correction mark.
 - **Hover / Focus:** primary fades to faded ink; secondary and ghost fill with grid blue; danger takes a 10% red wash. Focus is a 2px dashed ink outline 3px out. Disabled drops to 50% opacity with a not-allowed cursor.
-- **Sizes:** md (44px min height, 16px sides), sm (40px, 12px sides, 0.875rem).
+- **Sizes:** md (44px min height, 16px sides), sm (40px, 12px sides, 0.875rem), icon (a 44px square for a drawn icon; its name is the aria-label and title).
+
+### Icons
+Drawn, never picked from an icon set: small pen sketches on a 24px grid, one 1.5px ballpoint stroke with round ends, in ink (currentColor), with red pen and paper only where the subject needs them (a flag), and fills as hatching or scribble rather than flat colour. They pass through the same `#ink-wobble` filter as the checkbox, follow night through the tokens, and are always decorative (`aria-hidden`): the control that holds one carries the word as its aria-label and title. Today they are the header switches: a flag per language and System (half-hatched circle) / Light (sun) / Dark (crescent) for colours. Defined once in `src/ui/ink-icon.tsx`.
 
 ### Chips (Badges)
 - **Style:** small drawn box, single pass, bold 0.875rem.

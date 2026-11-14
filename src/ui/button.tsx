@@ -15,6 +15,8 @@ const button = cva(
       size: {
         sm: "min-h-10 px-3 text-sm",
         md: "min-h-11 px-4",
+        // A square 44px target for an icon; give the button an aria-label.
+        icon: "size-11",
       },
     },
     defaultVariants: { variant: "secondary", size: "md" },
