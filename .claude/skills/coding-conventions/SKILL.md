@@ -146,7 +146,8 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
 
 - A write that both a route action and an MCP tool perform lives once in `src/features/<area>/`, taking the posted
   inputs and returning the translated rejection or undefined: `addField` / `editField` in
-  [field-changes.ts](../../../src/features/collections/field-changes.ts). An MCP tool
+  [field-changes.ts](../../../src/features/collections/field-changes.ts), `saveItem` / `removeItem` (with their image
+  files) in [item-changes.ts](../../../src/features/items/item-changes.ts). An MCP tool
   ([src/features/mcp/tools.ts](../../../src/features/mcp/tools.ts)) builds the same inputs the form posts (every field,
   checkboxes as `"on"`) and throws the messages, which the SDK returns as a tool error.
 - Without a session, `requireAdmin()` sends a GET to `/admin?next=<path>`, and the login returns there.

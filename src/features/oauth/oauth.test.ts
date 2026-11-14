@@ -13,6 +13,7 @@ import {
   isMetadataUrl,
   lifetimes,
   pkceMatches,
+  publicFetch,
   redirectUriMatches,
   refreshTokens,
   resolveClient,
@@ -233,6 +234,15 @@ describe("client ID metadata documents", () => {
     }) as unknown as typeof fetch;
     expect(await resolveClient(url, failing)).toBeUndefined();
   });
+
+  it.each(["https://127.0.0.1/client.json", "https://localhost/client.json", "https://[::1]/client.json",
+    "https://10.0.0.8/client.json", "https://[::ffff:192.168.1.1]/client.json"])(
+    "are never fetched from an internal address: %s",
+    async (internalUrl) => {
+      await expect(publicFetch(internalUrl)).rejects.toThrow("Internal address");
+      expect(await resolveClient(internalUrl)).toBeUndefined();
+    },
+  );
 
   it("authorize only a redirect URI the document lists", async () => {
     expect(await authorizingClient(url, "https://agent.example.com/callback", serving(document))).toMatchObject({ id: url });

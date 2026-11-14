@@ -40,7 +40,9 @@ cookie must never become an API credential.
 - Everything an agent can do, it does as the owner: private fields included. Destructive scope is kept small on
   purpose (one `delete_item`); deleting fields or collections, type changes and option removal are each a later ticket.
 - No scopes: one token grants all tools. Fine for one owner; scopes come with the first tool that needs less.
-- Rate limits are global and in memory (token endpoint 10 failures/min, registration 20/min), like the login limiter.
+- Registration is rate limited globally and in memory (20/min), like the login limiter. The token endpoint isn't:
+  codes and refresh tokens are 256-bit random, so a limiter there adds no protection, only a way to fail every
+  agent's refresh.
 - Metadata documents are fetched on every authorization request (5 s, 10 kB, no redirects), without HTTP caching.
 - The export zip ([TICKET-BAK-01](../backup/tickets/TICKET-BAK-01-export-zip.md)) stays the undo for an agent's
   mistakes; there is no per-call audit log yet.

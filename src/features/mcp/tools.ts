@@ -2,11 +2,11 @@ import { McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import { getCollectionBySlug, listCollections, type Collection } from "../../db/collections";
 import { fieldTypes, listFields, type Field } from "../../db/fields";
-import { createItem, deleteItem, getItem, moveWant, updateItem, type Item } from "../../db/items";
+import { getItem, moveWant, type Item } from "../../db/items";
 import { addField, editField } from "../collections/field-changes";
 import type { FieldRejected } from "../collections/form";
 import type { FormInput } from "../collections/validation";
-import { commitImage } from "../images/change";
+import { removeItem, saveItem } from "../items/item-changes";
 import { translateItemErrors } from "../items/messages";
 import { parseItemForm } from "../items/schema";
 import { itemView } from "../items/view";
@@ -183,9 +183,9 @@ export const tools = {
       rank: z.number().int().optional(),
       values,
     }),
-    run: ({ collection, rank, ...args }) => {
+    run: async ({ collection, rank, ...args }) => {
       const found = collectionOf(collection);
-      return placeWant(found, createItem(found.id, parseItem(found, args)), rank);
+      return placeWant(found, await saveItem(found.id, undefined, parseItem(found, args)), rank);
     },
   }),
   update_item: tool({
@@ -200,7 +200,7 @@ export const tools = {
       rank: z.number().int().optional(),
       values: values.default({}),
     }),
-    run: ({ collection, id, rank, ...args }) => {
+    run: async ({ collection, id, rank, ...args }) => {
       const found = collectionOf(collection);
       const item = itemOf(found, id);
       const parsed = parseItem(found, {
@@ -208,7 +208,7 @@ export const tools = {
         quantity: args.quantity ?? item.quantity ?? undefined,
         values: { ...item.values, ...args.values },
       });
-      updateItem(found.id, id, parsed);
+      await saveItem(found.id, item, parsed);
       return placeWant(found, id, rank);
     },
   }),
@@ -218,8 +218,7 @@ export const tools = {
     input: z.object({ collection: slug, id: itemId }),
     run: async ({ collection, id }) => {
       const found = collectionOf(collection);
-      const item = itemOf(found, id);
-      await commitImage(null, item.image, () => deleteItem(found.id, id));
+      await removeItem(found.id, itemOf(found, id));
       return { deleted: id };
     },
   }),

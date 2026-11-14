@@ -52,9 +52,11 @@ const json = (body: unknown, status = 200) => Response.json(body, { status, head
 const oauthError = (error: string, status = 400) => json({ error }, status);
 
 const day = 24 * 60 * 60;
-// Global, like the login limiter: registration is open to anyone, and a burst of failed exchanges is someone guessing.
+// Global, like the login limiter: registration is open to anyone, and this caps the rows a script can add. A full
+// limiter only stops new DCR clients for a minute; approved clients and metadata-document clients never register.
+// The token endpoint has none: codes and refresh tokens are 256-bit random, so there is nothing to guess, and a
+// limiter there would let anyone fail every agent's refresh.
 const registerLimiter = createRateLimiter({ limit: 20, windowMs: 60_000 });
-const tokenLimiter = createRateLimiter({ limit: 10, windowMs: 60_000 });
 
 const register = async (request: Request) => {
   if (registerLimiter.blocked()) return oauthError("too_many_requests", 429);
@@ -92,7 +94,6 @@ const tokenRequest = z.discriminatedUnion("grant_type", [
 ]);
 
 const token = async (request: Request) => {
-  if (tokenLimiter.blocked()) return oauthError("too_many_requests", 429);
   const form = await request.formData().catch(() => undefined);
   const parsed = tokenRequest.safeParse(form && Object.fromEntries(form));
   if (!parsed.success) return oauthError("invalid_request");
@@ -111,9 +112,7 @@ const token = async (request: Request) => {
           now,
         )
       : refreshTokens(input.refresh_token, input.client_id, now);
-  if (issued) return json(issued);
-  tokenLimiter.fail();
-  return oauthError("invalid_grant");
+  return issued ? json(issued) : oauthError("invalid_grant");
 };
 
 const verifier = {

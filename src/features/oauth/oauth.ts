@@ -1,4 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
+import { lookup } from "node:dns/promises";
+import { BlockList } from "node:net";
 import { z } from "zod";
 import {
   findAccessToken,
@@ -82,6 +84,35 @@ const metadataSchema = z.object({ client_id: z.string(), client_name: clientName
 
 export type ClientInfo = Pick<OAuthClient, "id" | "name" | "redirectUris">;
 
+// Loopback, private, link-local and CGNAT ranges: a metadata document URL must not reach the server's own network.
+const internalRanges: [string, number, "ipv4" | "ipv6"][] = [
+  ["0.0.0.0", 8, "ipv4"],
+  ["10.0.0.0", 8, "ipv4"],
+  ["100.64.0.0", 10, "ipv4"],
+  ["127.0.0.0", 8, "ipv4"],
+  ["169.254.0.0", 16, "ipv4"],
+  ["172.16.0.0", 12, "ipv4"],
+  ["192.168.0.0", 16, "ipv4"],
+  ["::", 128, "ipv6"],
+  ["::1", 128, "ipv6"],
+  ["::ffff:0:0", 96, "ipv6"], // IPv4-mapped: refused outright rather than rechecked as IPv4
+  ["fc00::", 7, "ipv6"],
+  ["fe80::", 10, "ipv6"],
+];
+const internal = new BlockList();
+internalRanges.forEach(([net, prefix, type]) => internal.addSubnet(net, prefix, type));
+
+// fetch, refusing a host that resolves to an internal address (the CIMD spec asks for this).
+// shortcut: fetch resolves the name again, so a DNS-rebinding host can still slip through; pin the checked address
+// with a custom lookup if that matters.
+export const publicFetch: typeof fetch = async (input, init) => {
+  const addresses = await lookup(new URL(String(input)).hostname, { all: true });
+  if (addresses.some(({ address, family }) => internal.check(address, family === 6 ? "ipv6" : "ipv4"))) {
+    throw new Error("Internal address");
+  }
+  return fetch(input, init);
+};
+
 // Fetched on every authorization request, so a changed document applies at once. No redirects, 5 s, 10 kB.
 // shortcut: no HTTP caching of metadata documents; add it if a client's host rate-limits us.
 const fetchMetadata = async (clientId: string, fetcher: typeof fetch): Promise<ClientInfo | undefined> => {
@@ -98,14 +129,14 @@ const fetchMetadata = async (clientId: string, fetcher: typeof fetch): Promise<C
 };
 
 // The client behind a client_id: its metadata document for a URL, its registration otherwise.
-export const resolveClient = async (clientId: string, fetcher: typeof fetch = fetch): Promise<ClientInfo | undefined> =>
+export const resolveClient = async (clientId: string, fetcher: typeof fetch = publicFetch): Promise<ClientInfo | undefined> =>
   isMetadataUrl(clientId) ? fetchMetadata(clientId, fetcher) : getClient(clientId);
 
 // The client of an authorization request, when the redirect URI is one it registered: the only place a code may go.
 export const authorizingClient = async (
   clientId: string,
   redirectUri: string,
-  fetcher: typeof fetch = fetch,
+  fetcher: typeof fetch = publicFetch,
 ): Promise<ClientInfo | undefined> => {
   const client = await resolveClient(clientId, fetcher);
   return client && redirectUriMatches(client, redirectUri) ? client : undefined;

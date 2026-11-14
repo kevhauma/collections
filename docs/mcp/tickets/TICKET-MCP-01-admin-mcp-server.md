@@ -54,8 +54,8 @@ each client once on a consent page and can revoke it later.
   RFC 7591), so both Claude Code and claude.ai connectors can connect. The exact spec revision is recorded in an ADR.
 - `GET /admin/authorize`: the consent page. It requires the admin session (login redirects back here), shows the
   client name, its redirect URI and "can read and edit all your collections", and has Approve / Deny.
-- `POST /api/oauth/token`: authorization code with PKCE (`S256` required), and refresh token with rotation. Rate
-  limited with `createRateLimiter`.
+- `POST /api/oauth/token`: authorization code with PKCE (`S256` required), and refresh token with rotation. Not rate
+  limited: codes and refresh tokens are 256-bit random, so a limiter would only let anyone fail every agent's refresh.
 - Redirect URIs match exactly, as registered, **except the port of a plain-http loopback URI (RFC 8252 § 7.3):
   Claude Code's metadata document lists `http://localhost/callback` and listens on a free port per run.** Only https
   and loopback http may be registered. The `resource` parameter (RFC 8707) must be this server's `/api/mcp`
