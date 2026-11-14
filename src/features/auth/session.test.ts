@@ -58,7 +58,8 @@ describe("sessions", () => {
 describe("sessionCookie", () => {
   it.each([
     ["https://collections.example.org/admin", true],
-    ["http://collections.example.org/admin", true],
+    ["http://collections.example.org/admin", false],
+    ["http://192.168.1.20:3000/admin", false],
     ["http://localhost:3000/admin", false],
     ["http://127.0.0.1:3000/admin", false],
   ])("%s → Secure: %s", (url, secure) => {

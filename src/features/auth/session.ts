@@ -34,11 +34,9 @@ export const getSession = (token: string | undefined, now = nowSeconds()): Sessi
 
 export const destroySession = (token: string): void => deleteSession(hashToken(token));
 
-// Secure everywhere except plain http on this machine (dev, or trying a production build locally).
-const isSecure = (request: Request) => {
-  const url = new URL(request.url);
-  return !(url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname));
-};
+// Secure only over https: browsers silently drop a Secure cookie sent over plain http, so login would never stick.
+// Behind a TLS proxy, TRUST_PROXY makes request.url https (X-Forwarded-Proto).
+const isSecure = (request: Request) => new URL(request.url).protocol === "https:";
 
 export const sessionCookie = (token: string, request: Request, maxAge = lifetime): string =>
   [`${sessionCookieName}=${token}`, "Path=/", "HttpOnly", "SameSite=Lax", `Max-Age=${maxAge}`]
