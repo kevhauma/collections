@@ -190,13 +190,15 @@ session cookie.
 `GET /admin/export` streams `hoardr-export-<date>.zip`:
 
 ```
-data.json            # full backup: settings, collections, fields, items. The format v2 restore reads.
+data.json            # full backup: settings, collections, fields, items, wishlist. The format v2 restore reads.
 csv/<slug>.csv       # one human-readable file per collection, columns = field labels + status/quantity/rank/image
+csv/_wishlist.csv    # the wishlist: rank, title, link, note, price, image (a slug can't start with "_")
 images/<file>.webp   # all images
 ```
 
 Both `data.json` and the CSVs reference images by their path inside the zip (`images/<uuid>.webp`). `data.json`
-carries a `version` number for v2 restore.
+carries a `version` number for v2 restore: 2 since the wishlist (TICKET-WSH-02), under the `wishlist` key
+(`isPublic` and the ranked `items`).
 
 ## Data model
 

@@ -1,7 +1,7 @@
 # TICKET-WSH-02: Wishlist items and images in the export zip
 
 - **Area:** Wishlist
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Type:** Feature
 - **Traceability:** extends [technical-design.md § Export (backup)](../../technical-design.md#export-backup),
   [TICKET-BAK-01](../../backup/tickets/TICKET-BAK-01-export-zip.md)
@@ -41,14 +41,14 @@ wishlist's public flag, so the zip stays a complete backup the day wishlist data
 
 ## Acceptance criteria
 
-- [ ] An export with wishlist items holds them in `data.json` in rank order, a wishlist CSV, and each referenced
-      image under `images/`.
-- [ ] An export with an empty wishlist still writes `wishlist` with `items: []` and the public flag.
-- [ ] `data.json` reports `version: 2`. BAK-02's ticket notes that restore reads version 1 and 2.
-- [ ] Persistence goes through `src/db/export.ts` / `src/db/wishlist.ts`.
-- [ ] Unit tests cover: the snapshot with and without wishlist items, the CSV columns and escaping (a comma and a quote
-      in a note), and the wishlist images being included.
-- [ ] Verified with the fallow skill.
+- [x] An export with wishlist items holds them in `data.json` in rank order, a wishlist CSV, and each referenced
+      image under `images/`. (`buildExport` in `src/features/backup/export.ts`; "round-trips…" in `export.test.ts` checks `data.wishlist`, `csv/_wishlist.csv` and `images/<lamp>.webp`)
+- [x] An export with an empty wishlist still writes `wishlist` with `items: []` and the public flag. ("writes an empty wishlist with its public flag and a header-only CSV")
+- [x] `data.json` reports `version: 2`. BAK-02's ticket notes that restore reads version 1 and 2. (`version = 2` in `export.ts`, asserted in both tests; BAK-02 § Current situation and step 1 updated)
+- [x] Persistence goes through `src/db/export.ts` / `src/db/wishlist.ts`. (`readSnapshot` in `src/db/export.ts` reads the items in its read transaction and the flag via `isWishlistPublic`)
+- [x] Unit tests cover: the snapshot with and without wishlist items, the CSV columns and escaping (a comma and a quote
+      in a note), and the wishlist images being included. (`src/features/backup/export.test.ts`: both snapshots, the CSV with `"Brass, ""big"" one"`, the lamp image in the zip and a missing one under `missingImages`)
+- [x] Verified with the fallow skill. (`fallow audit --base HEAD`: dead code 0, complexity 0, duplication 0)
 
 ## Notes
 

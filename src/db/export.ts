@@ -3,6 +3,7 @@ import { db } from "./connection";
 import { listFields, type Field } from "./fields";
 import type { Item } from "./items";
 import { getDefaultLocale } from "./settings";
+import { isWishlistPublic, type WishItem } from "./wishlist";
 
 // Everything the export needs (TICKET-BAK-01), private fields included: it's the owner's backup.
 
@@ -13,7 +14,13 @@ export type SnapshotCollection = Omit<Collection, "id"> & {
   items: SnapshotItem[];
 };
 
-export type Snapshot = { defaultLocale: string; collections: SnapshotCollection[] };
+type SnapshotWish = Omit<WishItem, "id"> & { createdAt: number; updatedAt: number };
+
+export type Snapshot = {
+  defaultLocale: string;
+  collections: SnapshotCollection[];
+  wishlist: { isPublic: boolean; items: SnapshotWish[] };
+};
 
 const itemsOf = (collectionId: number): SnapshotItem[] =>
   (
@@ -31,6 +38,14 @@ const collectionsOf = (): Collection[] =>
     .prepare(`select ${columns} from collections order by name collate nocase`)
     .all() as Collection[];
 
+const wishItems = (): SnapshotWish[] =>
+  db()
+    .prepare(
+      `select title, link, note, price, image, rank, created_at as createdAt, updated_at as updatedAt
+       from wishlist_items order by rank`,
+    )
+    .all() as SnapshotWish[];
+
 // One read transaction, so every statement sees the same state even while someone saves an item.
 export const readSnapshot = (): Snapshot =>
   db().transaction(() => ({
@@ -40,4 +55,5 @@ export const readSnapshot = (): Snapshot =>
       fields: listFields(id).map(({ valueCount: _count, isTitle: _title, ...field }) => field),
       items: itemsOf(id),
     })),
+    wishlist: { isPublic: isWishlistPublic(), items: wishItems() },
   }))();

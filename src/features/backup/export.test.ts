@@ -10,6 +10,7 @@ import { readSnapshot } from "../../db/export";
 import { createField, listFields } from "../../db/fields";
 import { createItem } from "../../db/items";
 import { setDefaultLocale } from "../../db/settings";
+import { createWishItem, setWishlistPublic } from "../../db/wishlist";
 import { processImage } from "../images/process";
 import { buildExport, exportFilename } from "./export";
 
@@ -85,21 +86,66 @@ const setup = async () => {
   const books = getCollectionBySlug("books")!;
   updateCollection(books.id, books, "lost-cover");
   setItemImage(books.id, "lost-spine");
-  return { vinyl, image, cover, sleeve, ids: { title: title!, paid: paid!, signed: signed! } };
+  // The wishlist (TICKET-WSH-02): one item with an image, one whose image file is gone.
+  const lamp = await processImage(
+    await sharp({ create: { width: 400, height: 400, channels: 3, background: "#7bd389" } }).png().toBuffer(),
+    uploads,
+  );
+  setWishlistPublic(true);
+  createWishItem({ title: "Lamp", link: "https://shop.example/lamp", note: 'Brass, "big" one', price: "€25", image: lamp });
+  createWishItem({ title: "Mug", link: null, note: null, price: null, image: "lost-mug" });
+  return { vinyl, image, cover, sleeve, lamp, ids: { title: title!, paid: paid!, signed: signed! } };
 };
 
 describe("buildExport", () => {
+  it("writes an empty wishlist with its public flag and a header-only CSV", async () => {
+    expect(readSnapshot().wishlist).toEqual({ isPublic: false, items: [] });
+    const files = await unzip(await bytesOf(buildExport(readSnapshot(), uploads)));
+    expect(JSON.parse(files.get("data.json")!.toString())).toMatchObject({ version: 2, wishlist: { isPublic: false, items: [] } });
+    expect(files.get("csv/_wishlist.csv")!.toString("utf8")).toBe("﻿rank,title,link,note,price,image\r\n");
+  });
+
   it("round-trips: data.json matches the DB, CSVs are written, and every referenced image is in the zip", async () => {
-    const { image, cover, sleeve, ids } = await setup();
+    const { image, cover, sleeve, lamp, ids } = await setup();
     const now = new Date("2026-11-13T10:00:00Z");
     const files = await unzip(await bytesOf(buildExport(readSnapshot(), uploads, now)));
 
     expect([...files.keys()].sort()).toEqual(
-      ["csv/books.csv", "csv/vinyl.csv", "data.json", `images/${cover}.webp`, `images/${image}.webp`, `images/${sleeve}.webp`].sort(),
+      [
+        "csv/_wishlist.csv",
+        "csv/books.csv",
+        "csv/vinyl.csv",
+        "data.json",
+        `images/${cover}.webp`,
+        `images/${image}.webp`,
+        `images/${sleeve}.webp`,
+        `images/${lamp}.webp`,
+      ].sort(),
     );
     const data = JSON.parse(files.get("data.json")!.toString());
-    expect(data).toMatchObject({ version: 1, exportedAt: "2026-11-13T10:00:00.000Z", settings: { defaultLocale: "nl" } });
-    expect(data.missingImages.toSorted()).toEqual(["gone", "lost-cover", "lost-spine"]);
+    expect(data).toMatchObject({ version: 2, exportedAt: "2026-11-13T10:00:00.000Z", settings: { defaultLocale: "nl" } });
+    expect(data.missingImages.toSorted()).toEqual(["gone", "lost-cover", "lost-mug", "lost-spine"]);
+    expect(data.wishlist).toEqual({
+      isPublic: true,
+      items: [
+        {
+          title: "Lamp",
+          link: "https://shop.example/lamp",
+          note: 'Brass, "big" one',
+          price: "€25",
+          image: `images/${lamp}.webp`,
+          rank: 1,
+          createdAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
+          updatedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
+        },
+        expect.objectContaining({ title: "Mug", link: null, note: null, price: null, image: null, rank: 2 }),
+      ],
+    });
+    expect(files.get("csv/_wishlist.csv")!.toString("utf8")).toBe(
+      "﻿rank,title,link,note,price,image\r\n" +
+        `1,Lamp,https://shop.example/lamp,"Brass, ""big"" one",€25,images/${lamp}.webp\r\n` +
+        "2,Mug,,,,\r\n",
+    );
     const [books, vinyl] = data.collections;
     expect(books).toMatchObject({ slug: "books", fields: [{ label: "Title" }], items: [], image: null, itemImage: null });
     expect(vinyl).toMatchObject({
