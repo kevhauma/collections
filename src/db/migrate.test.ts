@@ -204,3 +204,17 @@ describe("008-default-item-image", () => {
     expect(db.prepare("select item_image from collections").get()).toEqual({ item_image: null });
   });
 });
+
+describe("009-wishlist", () => {
+  it("adds wishlist_items and a private wishlist, leaving existing data untouched", () => {
+    db = atVersion(8);
+    db.prepare("insert into collections (id, slug, name) values (1, 'records', 'Records')").run();
+    db.prepare("update settings set default_locale = 'nl'").run();
+    expect(migrate(db)).toContain("009-wishlist.sql");
+    expect(db.prepare("select slug, name from collections").all()).toEqual([{ slug: "records", name: "Records" }]);
+    expect(db.prepare("select default_locale, wishlist_public from settings").get()).toEqual({ default_locale: "nl", wishlist_public: 0 });
+    db.prepare("insert into wishlist_items (title, rank) values ('Lamp', 1)").run();
+    expect(db.prepare("select created_at is not null from wishlist_items").pluck().get()).toBe(1);
+    expect(() => db!.prepare("insert into wishlist_items (title, rank) values ('Bad', 0)").run()).toThrow(/CHECK/);
+  });
+});

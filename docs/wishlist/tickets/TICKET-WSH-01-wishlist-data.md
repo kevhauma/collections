@@ -1,7 +1,7 @@
 # TICKET-WSH-01: Wishlist table and repository, with dense ranks
 
 - **Area:** Wishlist
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Type:** Feature
 - **Traceability:** new; extends [technical-design.md § Data model](../../technical-design.md#data-model) and
   [§ Want ranking](../../technical-design.md#want-ranking), [ADR 0004](../../adr/0004-dense-integer-ranks.md)
@@ -52,18 +52,26 @@ and a repository that ranks items exactly like collection wants. No UI yet; the 
 
 ## Acceptance criteria
 
-- [ ] The migration applies on a database at the current version and leaves existing data untouched.
-- [ ] A new item gets rank n+1. Moving an item to rank k shifts the others; a rank beyond the end clamps to the
+- [x] The migration applies on a database at the current version and leaves existing data untouched. ([migrations/009-wishlist.sql](../../../migrations/009-wishlist.sql); `009-wishlist` in `src/db/migrate.test.ts` keeps a collection and the default locale)
+- [x] A new item gets rank n+1. Moving an item to rank k shifts the others; a rank beyond the end clamps to the
       bottom and below 1 to the top. Deleting an item closes the gap. Ranks stay dense 1..n after every operation.
-- [ ] `deleteWishItem` returns the image id of the item it deleted (or null), and an unknown id changes nothing.
-- [ ] The wishlist is private on a fresh database, and `setWishlistPublic` toggles it.
-- [ ] Validation rejects an empty title, a non-http(s) link (`javascript:`, `ftp:`) and over-long text, with explicit
-      error ids.
-- [ ] Persistence goes through `src/db/wishlist.ts`. No SQL anywhere else.
-- [ ] Unit tests cover: the migration on a version-8 DB, append, move (up, down, clamped both ends), delete closing the
+      (`src/db/wishlist.test.ts`: append, move up/down, clamp, delete, 200-step random sequence)
+- [x] `deleteWishItem` returns the image id of the item it deleted (or null), and an unknown id changes nothing.
+      ("deletes an item, closes the gap and returns its image", "changes nothing for an unknown id")
+- [x] The wishlist is private on a fresh database, and `setWishlistPublic` toggles it. ("starts private and toggles
+      public"; migration test reads `wishlist_public = 0`)
+- [x] Validation rejects an empty title, a non-http(s) link (`javascript:`, `ftp:`) and over-long text, with explicit
+      error ids. (`wishSchema` in `src/features/wishlist/validation.ts`, messages `wishlist.error.*` in `form.ts`, EN + NL;
+      `validation.test.ts`)
+- [x] Persistence goes through `src/db/wishlist.ts`. No SQL anywhere else. (the only new SQL is in that file and the
+      migration. Ranking shares `moveInList`; the renumbering SQL stays per table, as its scope differs: per collection and
+      status for items, the whole table here)
+- [x] Unit tests cover: the migration on a version-8 DB, append, move (up, down, clamped both ends), delete closing the
       gap, a random sequence of operations keeping ranks dense (like the `moveWant` property test in
-      `items.test.ts`), the public flag, and the validation cases above.
-- [ ] Verified with the fallow skill.
+      `items.test.ts`), the public flag, and the validation cases above. (`src/db/wishlist.test.ts`,
+      `src/features/wishlist/validation.test.ts`, `009-wishlist` in `migrate.test.ts`)
+- [x] Verified with the fallow skill. (`fallow audit --base HEAD`: dead code 0, complexity 0, duplication 0. The
+      repository and `wishErrors` have no app caller yet; WSH-02/03 use them)
 
 ## Notes
 

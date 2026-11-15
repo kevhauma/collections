@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **37 / 46 done**
+Progress: **38 / 46 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -51,7 +51,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 37 ‖ | [COL-08](../../collections/tickets/TICKET-COL-08-default-item-image.md) | Default image for items without one | M7 After the first cut | COL-06 | ✅ |
 | 38 ‖ | [ITM-06](../../items/tickets/TICKET-ITM-06-group-by-field.md) | Group the item list by a field | M7 After the first cut | ITM-05 | ✅ |
 | 39 ‖ | [UI-10](../../ui/tickets/TICKET-UI-10-page-load-and-page-turn-motion.md) | Pen-test page load, page turn and handwritten title | M7 After the first cut | UI-05, UI-07 | 🔄 |
-| 40 | [WSH-01](../../wishlist/tickets/TICKET-WSH-01-wishlist-data.md) | Wishlist table and repository, with dense ranks | M8 Wishlist | ITM-03 | ⬜ |
+| 40 | [WSH-01](../../wishlist/tickets/TICKET-WSH-01-wishlist-data.md) | Wishlist table and repository, with dense ranks | M8 Wishlist | ITM-03 | ✅ |
 | 41 | [WSH-02](../../wishlist/tickets/TICKET-WSH-02-wishlist-in-export.md) | Wishlist items and images in the export zip | M8 Wishlist | WSH-01, BAK-01 (built) | ⬜ |
 | 42 ‖ | [WSH-03](../../wishlist/tickets/TICKET-WSH-03-admin-wishlist.md) | Admin wishlist page | M8 Wishlist | WSH-01, ITM-04 | ⬜ |
 | 43 | [WSH-04](../../wishlist/tickets/TICKET-WSH-04-public-wishlist-page.md) | Public `/wishlist` page | M8 Wishlist | WSH-01, WSH-03, PUB-02 | ⬜ |

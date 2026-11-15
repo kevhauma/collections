@@ -72,6 +72,15 @@ can also connect an AI agent through the MCP server at `/api/mcp`, which acts as
 - Deleting a want closes the gap.
 - See [ADR 0004](adr/0004-dense-integer-ranks.md).
 
+### Wishlist
+
+- One general wishlist, not bound to a collection (TICKET-WSH-01). Its items have fixed fields: title (required),
+  link (http(s) only), note, price (free text: nothing sorts or sums it) and one image. Nothing on it is private.
+- Ranked exactly like collection wants: dense 1..n, a new item joins at the bottom, deleting closes the gap, moves
+  clamp and renumber in one transaction (`moveInList`).
+- An item you receive is deleted: there is no received state.
+- The wishlist as a whole is private or public (`settings.wishlist_public`), private on a fresh install.
+
 ### Schema evolution
 
 | Change | Behaviour |
@@ -194,7 +203,8 @@ carries a `version` number for v2 restore.
 ```sql
 admin(id INTEGER PRIMARY KEY CHECK (id = 1), password_hash TEXT NOT NULL)
 sessions(token_hash TEXT PRIMARY KEY, expires_at INTEGER NOT NULL)
-settings(id INTEGER PRIMARY KEY CHECK (id = 1), default_locale TEXT NOT NULL DEFAULT 'en')
+settings(id INTEGER PRIMARY KEY CHECK (id = 1), default_locale TEXT NOT NULL DEFAULT 'en',
+         wishlist_public INTEGER NOT NULL DEFAULT 0)  -- 009
 collections(id INTEGER PRIMARY KEY, slug TEXT UNIQUE NOT NULL, name TEXT NOT NULL,
             is_public INTEGER NOT NULL DEFAULT 0, default_view TEXT NOT NULL DEFAULT 'table',
             title_field_id INTEGER, created_at INTEGER, updated_at INTEGER,
