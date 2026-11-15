@@ -136,6 +136,8 @@ can also connect an AI agent through the MCP server at `/api/mcp`, which acts as
 | `/admin/c/:slug/settings` | Name, slug, public toggle, default view, delete collection. |
 | `/admin/c/:slug/fields` | Field editor. |
 | `/admin/c/:slug/items/new`, `/admin/c/:slug/items/:id` | Item form. |
+| `/admin/wishlist` | The ranked wishlist, reorder by drag or typed rank, public toggle (TICKET-WSH-03). |
+| `/admin/wishlist/items/new`, `/admin/wishlist/items/:id` | Wishlist item form: title, link, note, price, image; Delete. |
 | `/admin/settings` | Default language for visitors; connected apps with Revoke (TICKET-MCP-01). |
 | `/admin/authorize` | OAuth consent for an agent: Approve or Deny (TICKET-MCP-01). |
 | `/admin/export` | Download the full export zip. |

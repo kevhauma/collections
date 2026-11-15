@@ -54,6 +54,10 @@ export const routes = () =>
               path: "c/:slug/settings",
               lazy: () => import("./routes/admin-collection-settings"),
             },
+            // The general wishlist (TICKET-WSH-03).
+            { id: "admin-wishlist", path: "wishlist", lazy: () => import("./routes/admin-wishlist") },
+            { id: "admin-wishlist-item-new", path: "wishlist/items/new", lazy: () => import("./routes/admin-wishlist-item") },
+            { id: "admin-wishlist-item", path: "wishlist/items/:id", lazy: () => import("./routes/admin-wishlist-item") },
             { id: "admin-settings", path: "settings", lazy: () => import("./routes/admin-settings") },
             // The OAuth consent page for agents connecting to /api/mcp (TICKET-MCP-01).
             { id: "admin-authorize", path: "authorize", lazy: () => import("./routes/admin-authorize") },

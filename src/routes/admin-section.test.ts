@@ -11,6 +11,11 @@ describe("sectionOf", () => {
     ["/admin/settings/", "/admin/settings"],
     ["/admin/c/settings-and-more", "/admin"],
     ["/admin/exports", "/admin"],
+    ["/admin/wishlist", "/admin/wishlist"],
+    ["/admin/wishlist/items/new", "/admin/wishlist"],
+    ["/admin/wishlist/items/4", "/admin/wishlist"],
+    ["/admin/wishlists", "/admin"],
+    ["/admin/c/wishlist", "/admin"],
   ])("%s → %s", (pathname, section) => {
     expect(sectionOf(pathname)).toBe(section);
   });

@@ -21,3 +21,11 @@ export const wishSchema = z.object({
   note: optionalText(2000, "note"),
   price: optionalText(50, "price"),
 });
+
+// The list page's two small forms (TICKET-WSH-03): a typed rank (the no-JS twin of dragging; an emptied input
+// coerces to 0 and is refused rather than moving the item to the top) and the public toggle,
+// whose unticked checkbox sends nothing.
+export const wishlistIntentSchema = z.discriminatedUnion("intent", [
+  z.object({ intent: z.literal("move"), itemId: z.coerce.number().int(), rank: z.coerce.number().int().min(1) }),
+  z.object({ intent: z.literal("visibility"), isPublic: z.literal("on").optional().transform((on) => on === "on") }),
+]);

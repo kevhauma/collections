@@ -144,11 +144,15 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   [field-schema.ts](../../../src/features/collections/field-schema.ts): other types ignore those inputs, so the no-JS
   form can render them for every type and hide them with `:has()`.
 
+- Wishlist items (TICKET-WSH-03) render through the want tab's own `ItemTable` / `ItemGrid`: `wishView` in
+  [src/features/wishlist/view.ts](../../../src/features/wishlist/view.ts) maps them onto want items with fixed field ids,
+  and `itemsBase` tells the views where the admin's item links go. Don't build a parallel set of list views.
 - A write that both a route action and an MCP tool perform lives once in `src/features/<area>/`, taking the posted
   inputs and returning the translated rejection or undefined: `addField` / `editField` in
   [field-changes.ts](../../../src/features/collections/field-changes.ts), `addCollection` in
   [collection-changes.ts](../../../src/features/collections/collection-changes.ts) (the new slug or the rejection),
-  `saveItem` / `removeItem` (with their image files) in [item-changes.ts](../../../src/features/items/item-changes.ts).
+  `saveItem` / `removeItem` (with their image files) in [item-changes.ts](../../../src/features/items/item-changes.ts),
+  `saveWish` / `removeWish` in [wish-changes.ts](../../../src/features/wishlist/wish-changes.ts).
   A tool's image URL goes through `prepareFormImage` with a fetcher that refuses internal addresses. An MCP tool
   ([src/features/mcp/tools.ts](../../../src/features/mcp/tools.ts)) builds the same inputs the form posts (every field,
   checkboxes as `"on"`) and throws the messages, which the SDK returns as a tool error.

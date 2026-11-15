@@ -34,8 +34,10 @@ export type ItemViewProps = {
   itemImage?: string | null;
   // Makes row and dialog ids unique when an item shows in several groups (TICKET-ITM-06), e.g. "-g2".
   idScope?: string;
-  slug: string;
-  sortLink: (sort: ItemSort) => SortLink;
+  // Where the admin's item links go: /admin/c/<slug>/items, or /admin/wishlist/items (TICKET-WSH-03).
+  itemsBase: string;
+  // Sortable headers; the wishlist has none.
+  sortLink?: (sort: ItemSort) => SortLink;
   // Admin want tab sorted by rank (TICKET-ITM-03): rank inputs, plus drag handles when the rows shown are the whole
   // rank order (ascending, unfiltered), so a row's position is its rank.
   ranking?: Ranking;
@@ -85,7 +87,7 @@ const FieldValue = ({ field, value, children }: { field: Field; value: unknown; 
 
 const titleOf = (item: Item, titleFieldId: number) => String(item.values[titleFieldId] ?? "");
 
-type TitleProps = Pick<ItemViewProps, "mode" | "slug" | "titleFieldId" | "titleLinkFieldId"> & { item: Item };
+type TitleProps = Pick<ItemViewProps, "mode" | "itemsBase" | "titleFieldId" | "titleLinkFieldId"> & { item: Item };
 
 // The item's source link (TICKET-COL-09): its value in the title link field, if it's an http(s) address.
 const sourceOf = (item: Item, titleLinkFieldId?: number) => {
@@ -94,7 +96,7 @@ const sourceOf = (item: Item, titleLinkFieldId?: number) => {
 };
 
 // The admin edits an item from its title, with a small ↗ to its source; for visitors the title opens the source.
-const Title = ({ mode, slug, titleFieldId, titleLinkFieldId, item }: TitleProps) => {
+const Title = ({ mode, itemsBase, titleFieldId, titleLinkFieldId, item }: TitleProps) => {
   const { t } = useLingui();
   const title = titleOf(item, titleFieldId);
   const source = sourceOf(item, titleLinkFieldId);
@@ -102,7 +104,7 @@ const Title = ({ mode, slug, titleFieldId, titleLinkFieldId, item }: TitleProps)
   const label = t({ id: "items.title.source", message: `Source of ${title}` });
   return (
     <>
-      <a href={`/admin/c/${slug}/items/${item.id}`}>{title}</a>
+      <a href={`${itemsBase}/${item.id}`}>{title}</a>
       {source && (
         <a
           href={source}
@@ -304,12 +306,12 @@ const TableHead = ({ status, fields, sortLink, ranking }: ItemViewProps) => {
     <thead>
       <tr>
         <HandleHeader ranking={ranking} />
-        {status === "want" && <Th sort={sortLink("rank")}>#</Th>}
+        {status === "want" && <Th sort={sortLink?.("rank")}>#</Th>}
         <Th>
           <span className="sr-only">{t({ id: "items.column.image", message: "Image" })}</span>
         </Th>
         {fields.map((field) => (
-          <Th key={field.id} sort={sortLink(field.id)}>
+          <Th key={field.id} sort={sortLink?.(field.id)}>
             {field.label}
           </Th>
         ))}

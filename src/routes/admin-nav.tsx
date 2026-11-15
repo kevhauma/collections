@@ -10,6 +10,7 @@ export const AdminNav = () => {
   const section = sectionOf(useLocation().pathname);
   const tabs = [
     { href: "/admin", label: t({ id: "admin.nav.collections", message: "Collections" }) },
+    { href: "/admin/wishlist", label: t({ id: "admin.nav.wishlist", message: "Wishlist" }) },
     { href: "/admin/export", label: t({ id: "admin.nav.export", message: "Export" }) },
     { href: "/admin/settings", label: t({ id: "admin.nav.settings", message: "Settings" }) },
   ].map((tab) => ({ ...tab, current: tab.href === section }));

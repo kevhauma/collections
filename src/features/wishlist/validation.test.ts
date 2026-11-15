@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runWithContext } from "../../context";
 import { wishErrors } from "./form";
-import { wishSchema } from "./validation";
+import { wishlistIntentSchema, wishSchema } from "./validation";
 
 const keysOf = (input: Record<string, unknown>) => {
   const parsed = wishSchema.safeParse(input);
@@ -50,5 +50,27 @@ describe("wishSchema", () => {
       title: "Enter a title of up to 200 characters.",
       link: "Enter a web address starting with http:// or https://.",
     });
+  });
+});
+
+describe("wishlistIntentSchema", () => {
+  it("parses a typed rank move", () => {
+    expect(wishlistIntentSchema.parse({ intent: "move", itemId: "12", rank: "1" })).toEqual({ intent: "move", itemId: 12, rank: 1 });
+  });
+
+  it("refuses a move without a whole-number rank or item", () => {
+    expect(wishlistIntentSchema.safeParse({ intent: "move", itemId: "12", rank: "" }).success).toBe(false);
+    expect(wishlistIntentSchema.safeParse({ intent: "move", itemId: "12", rank: "1.5" }).success).toBe(false);
+    expect(wishlistIntentSchema.safeParse({ intent: "move", itemId: "x", rank: "1" }).success).toBe(false);
+  });
+
+  it("reads the public checkbox: ticked, unticked (absent) and forged", () => {
+    expect(wishlistIntentSchema.parse({ intent: "visibility", isPublic: "on" })).toEqual({ intent: "visibility", isPublic: true });
+    expect(wishlistIntentSchema.parse({ intent: "visibility" })).toEqual({ intent: "visibility", isPublic: false });
+    expect(wishlistIntentSchema.safeParse({ intent: "visibility", isPublic: "yes" }).success).toBe(false);
+  });
+
+  it("refuses an unknown intent", () => {
+    expect(wishlistIntentSchema.safeParse({ intent: "toString" }).success).toBe(false);
   });
 });

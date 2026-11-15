@@ -1,6 +1,7 @@
 "use server";
 import { z } from "zod";
 import { moveWant } from "../db/items";
+import { moveWishItem } from "../db/wishlist";
 import { requireAdmin } from "../features/auth/guard";
 import { requireCollection } from "../features/collections/require-collection";
 
@@ -13,4 +14,13 @@ export const moveWantAction = async (slug: string, itemId: number, to: number): 
   requireAdmin();
   const input = moveSchema.parse({ slug, itemId, to });
   if (!moveWant(requireCollection(input.slug).id, input.itemId, input.to)) throw new Error("Not a want of this collection");
+};
+
+const moveWishSchema = z.object({ itemId: z.number().int(), to: z.number().int() });
+
+// Drag-and-drop on the admin wishlist (TICKET-WSH-03); the rank inputs post to the page's route action instead.
+export const moveWishItemAction = async (itemId: number, to: number): Promise<void> => {
+  requireAdmin();
+  const input = moveWishSchema.parse({ itemId, to });
+  if (!moveWishItem(input.itemId, input.to)) throw new Error("Not a wishlist item");
 };

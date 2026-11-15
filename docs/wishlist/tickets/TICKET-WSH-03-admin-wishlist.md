@@ -1,7 +1,7 @@
 # TICKET-WSH-03: Admin wishlist page: list, form, image, reorder, public toggle
 
 - **Area:** Wishlist
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Type:** Feature
 - **Traceability:** extends [technical-design.md § Routes: Admin](../../technical-design.md#admin),
   [TICKET-ITM-02](../../items/tickets/TICKET-ITM-02-item-crud.md), [TICKET-ITM-03](../../items/tickets/TICKET-ITM-03-want-ranking.md),
@@ -52,19 +52,19 @@ toggle. It works like a collection's want tab, without the view switch, search, 
 
 ## Acceptance criteria
 
-- [ ] Adding three items lists them in the order added. Dragging the third to the top, or typing rank 1 on it with JS
-      off, makes it #1 and shifts the others.
-- [ ] Editing an item keeps its rank. Deleting #2 after a confirm leaves the rest as 1..n and removes its image file
-      from the uploads folder.
-- [ ] An image can be uploaded, pasted as a URL, replaced and removed, with the same limits and errors as item images.
-- [ ] A `javascript:` link or an empty title is refused with an inline error, and nothing is saved.
-- [ ] The public toggle flips the wishlist between private and public and shows the matching badge.
-- [ ] Every route and action calls `requireAdmin()` and validates with zod. Persistence goes through
-      `src/db/wishlist.ts`.
-- [ ] Unit tests cover: `sectionOf` for `/admin/wishlist` and its subpaths, and the action's parsing of the form
-      (including the rank move input).
-- [ ] UI follows the design direction in `DESIGN.md`; live browser check at 360 px and desktop, JS on and off.
-- [ ] Verified with the fallow skill.
+- [x] Adding three items lists them in the order added. Dragging the third to the top, or typing rank 1 on it with JS
+      off, makes it #1 and shifts the others. (browser + production build, 2026-11-15: three items listed 1..3 in the order added; dragging Brass lamp's handle from #3 to the top in Orca saved and survived a reload as `1:Brass lamp | 2:Coffee grinder | 3:Wool blanket`; a no-JS form post `intent=move&itemId=3&rank=1` made Coffee grinder #1 and shifted the others. An emptied rank input is refused with 400 instead of jumping to the top)
+- [x] Editing an item keeps its rank. Deleting #2 after a confirm leaves the rest as 1..n and removes its image file
+      from the uploads folder. (editing Brass lamp's price kept it at #2; deleting #2 (Brass lamp, with an image) by posting the Delete dialog's `intent=delete` left ranks 1..2 and its `.webp` and `.thumb.webp` were gone from `uploads/`)
+- [x] An image can be uploaded, pasted as a URL, replaced and removed, with the same limits and errors as item images. (same `ImageSection` / `prepareFormImage` as items: uploaded a PNG, replaced it with another upload, pasted an `/uploads/…webp` address, ticked Remove image (files deleted each time); an unreachable image address showed the item image error inline)
+- [x] A `javascript:` link or an empty title is refused with an inline error, and nothing is saved. (posting an empty title and `javascript:alert(1)` showed both messages inline and in the error summary at 360 px, and the list was unchanged)
+- [x] The public toggle flips the wishlist between private and public and shows the matching badge. (`intent=visibility` with and without `isPublic=on` switched the badge between Public and Private)
+- [x] Every route and action calls `requireAdmin()` and validates with zod. Persistence goes through
+      `src/db/wishlist.ts`. (`loader` and `action` of `admin-wishlist.tsx` and `admin-wishlist-item.tsx` and `moveWishItemAction` call `requireAdmin()` (no session: GET redirects to the login, POSTs get 401) and parse with `wishlistIntentSchema` / `wishSchema`; writes go through `saveWish` / `removeWish` → `src/db/wishlist.ts`)
+- [x] Unit tests cover: `sectionOf` for `/admin/wishlist` and its subpaths, and the action's parsing of the form
+      (including the rank move input). (`admin-section.test.ts` (`/admin/wishlist`, its item paths, `/admin/wishlists`, `/admin/c/wishlist`), `wishlistIntentSchema` cases in `src/features/wishlist/validation.test.ts`, `wishView` in `view.test.ts`)
+- [x] UI follows the design direction in `DESIGN.md`; live browser check at 360 px and desktop, JS on and off. (Orca, dark paper: the want tab's table (drag handles, rank inputs, post-it thumbnails, drawn rules) at 1440 px and 360 px with no page-wide horizontal scroll (scrollWidth 360); the form reuses the item form's card, fields, image post-it and Delete dialog. JS off checked with plain form posts against the production build. Light mode not checked separately: no new colours)
+- [x] Verified with the fallow skill. (`fallow audit --base HEAD`: dead code 0, complexity 0, duplication 0, after unexporting `wishFieldIds` and splitting `WishFields` out of the form)
 
 ## Notes
 

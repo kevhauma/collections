@@ -128,7 +128,7 @@ export const CollectionItems = ({ collection, status, view, counts, base, addAct
       )}
       <Results
         {...props}
-        slug={collection.slug}
+        itemsBase={`/admin/c/${collection.slug}/items`}
         status={status}
         items={items}
         fields={fields}

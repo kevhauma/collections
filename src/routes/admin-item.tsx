@@ -190,11 +190,11 @@ const rowsOf = (fields: Field[], values: FormValues, errors: Errors, requiredWor
   }));
 
 // One summary link per invalid input, in form order.
-const errorLinks = (inputs: Array<{ id: string; label: string; error?: string }>) =>
+export const errorLinks = (inputs: Array<{ id: string; label: string; error?: string }>) =>
   inputs.flatMap((input) => (input.error ? [{ href: `#${input.id}`, text: `${input.label}: ${input.error}` }] : []));
 
 // Only an existing item can be deleted.
-const DeleteDialog = ({ title, editing }: { title: string; editing: boolean }) => {
+export const DeleteDialog = ({ title, editing }: { title: string; editing: boolean }) => {
   const { t } = useLingui();
   return (
     editing && (
@@ -222,7 +222,7 @@ const DeleteDialog = ({ title, editing }: { title: string; editing: boolean }) =
 };
 
 // Save, plus Delete for an existing item. Its dialog sits outside the item form, because forms can't nest.
-const SaveButtons = ({ editing }: { editing: boolean }) => (
+export const SaveButtons = ({ editing }: { editing: boolean }) => (
   <div className="flex flex-wrap gap-2">
     <Button variant="primary" type="submit">
       {editing ? <Trans id="items.form.save">Save item</Trans> : <Trans id="items.form.create">Add item</Trans>}
