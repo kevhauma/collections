@@ -2,8 +2,8 @@
 
 export const maxSlugLength = 60;
 
-// Paths the app itself answers; a collection there would be unreachable or shadow the app.
-export const reservedSlugs: ReadonlySet<string> = new Set(["admin", "setup", "uploads", "api", "locale", "theme", "assets"]);
+// Paths the app itself answers; a collection there would be unreachable or shadow the app. `wishlist`: TICKET-WSH-04.
+export const reservedSlugs: ReadonlySet<string> = new Set(["admin", "setup", "uploads", "api", "locale", "theme", "assets", "wishlist"]);
 
 export const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 

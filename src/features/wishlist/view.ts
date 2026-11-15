@@ -41,4 +41,6 @@ export const wishView = (wishes: WishItem[], shown: Array<[WishField, string]>) 
   fields: shown.map(([key, label], index) => fieldOf(key, label, index + 1)),
   items: wishes.map(itemOf),
   titleFieldId: wishFieldIds.title,
+  // For the public page, whose titles open the item's link (TICKET-WSH-04).
+  linkFieldId: wishFieldIds.link,
 });

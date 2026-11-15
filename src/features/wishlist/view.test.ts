@@ -24,5 +24,6 @@ describe("wishView", () => {
       { id: 9, status: "want", quantity: null, rank: 2, values: { 1: "Mug", 3: "Blue" }, image: null },
     ]);
     expect(view.titleFieldId).toBe(1);
+    expect(view.linkFieldId).toBe(4);
   });
 });

@@ -41,6 +41,7 @@ describe("uniqueSlug", () => {
   it("treats reserved words as taken", () => {
     expect(uniqueSlug("admin", new Set())).toBe("admin-2");
     expect(uniqueSlug("assets", new Set(["assets-2"]))).toBe("assets-3");
+    expect(uniqueSlug("wishlist", new Set())).toBe("wishlist-2");
   });
 
   it("stays within the limit when it adds a suffix", () => {

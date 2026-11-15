@@ -84,7 +84,9 @@ export default function AdminWishlist() {
         <ItemTable
           mode="admin"
           status="want"
-          {...view}
+          fields={view.fields}
+          items={view.items}
+          titleFieldId={view.titleFieldId}
           itemsBase="/admin/wishlist/items"
           ranking={{ draggable: true, count: wishes.length, onMove: moveWishItemAction }}
         />

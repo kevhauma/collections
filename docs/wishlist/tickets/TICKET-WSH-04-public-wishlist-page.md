@@ -1,7 +1,7 @@
 # TICKET-WSH-04: Public `/wishlist` page
 
 - **Area:** Wishlist
-- **Released in:** _unreleased_
+- **Released in:** [v1](../../releases/v1/overview.md)
 - **Type:** Feature
 - **Traceability:** extends [technical-design.md § Routes: Public](../../technical-design.md#public-no-client-js) and
   [§ Slugs](../../technical-design.md#slugs), [TICKET-PUB-02](../../sharing/tickets/TICKET-PUB-02-public-collection-pages.md)
@@ -50,17 +50,17 @@ list. It returns 404 while the wishlist is private.
 
 ## Acceptance criteria
 
-- [ ] With the wishlist private, `/wishlist` returns 404 and its HTML holds no wishlist content.
-- [ ] Public, the items appear in rank order. A title with a link opens it (`rel="noreferrer"`); one without is plain
-      text.
-- [ ] Creating or renaming a collection to `wishlist` is refused as reserved. A DB with a `wishlist` collection
-      migrates to `wishlist-2` (or the next free number), and that collection's pages work under the new slug.
-- [ ] The page's OG tags name "Wishlist" and use the first item image.
-- [ ] Persistence goes through `src/db/wishlist.ts`. The page ships no client components.
-- [ ] Unit tests cover: the reserved slug in `slug.test.ts` / `validation.test.ts`, and the rename migration (with and
-      without an existing `wishlist` collection, and with `wishlist-2` already taken).
-- [ ] UI follows the design direction in `DESIGN.md`; live browser check at 360 px and desktop, JS off.
-- [ ] Verified with the fallow skill.
+- [x] With the wishlist private, `/wishlist` returns 404 and its HTML holds no wishlist content. (production build, 2026-11-15: `curl /wishlist` → 404, the not-found page, none of the item titles in the HTML; the loader in `src/routes/public-wishlist.tsx` throws before the component reads anything)
+- [x] Public, the items appear in rank order. A title with a link opens it (`rel="noreferrer"`); one without is plain
+      text. (public: Brass lamp, Coffee grinder, Wool blanket as ranked 1..3; Brass lamp renders `<a href="https://shop.example/lamp" rel="noreferrer">`, the others plain `<strong>` text (`ItemGrid` in public mode with `titleLinkFieldId` = the link))
+- [x] Creating or renaming a collection to `wishlist` is refused as reserved. A DB with a `wishlist` collection
+      migrates to `wishlist-2` (or the next free number), and that collection's pages work under the new slug. (`reservedSlugs` in `slug.ts`; create and rename both answered "This address is used by the app itself". A real collection created at `wishlist` before the change moved to `wishlist-2` on restart (migration 010), and `/wishlist-2` and `/wishlist-2/want` answered 200 with its want)
+- [x] The page's OG tags name "Wishlist" and use the first item image. (`og:title` "Wishlist" and `og:image` = Brass lamp's image (the first ranked item with one), through the shared `LinkPreview`)
+- [x] Persistence goes through `src/db/wishlist.ts`. The page ships no client components. (the page reads `isWishlistPublic` / `listWishlist` only; it imports no client component, and its HTML has no module script, like `/wishlist-2/want`)
+- [x] Unit tests cover: the reserved slug in `slug.test.ts` / `validation.test.ts`, and the rename migration (with and
+      without an existing `wishlist` collection, and with `wishlist-2` already taken). (`slug.test.ts` (`wishlist` → `wishlist-2`), `validation.test.ts` (typed slug on create, rename in settings), `010-reserve-wishlist-slug` in `migrate.test.ts`: with a `wishlist` collection, with `-2`, `-3` taken (→ `wishlist-4`), and without one)
+- [x] UI follows the design direction in `DESIGN.md`; live browser check at 360 px and desktop, JS off. (Orca: the want tab's post-it grid with the scrawled rank, price and note under each title, 2 columns at 360 px (no page-wide scroll) and a row at 1440 px; an item without an image gets the blank post-it. JS off: checked on the raw server HTML (no module script, so nothing hydrates); headless Chrome screenshots with scripts disabled failed to write in this sandbox. The rank numerals sit half behind the post-it, the same as on a collection's want grid today)
+- [x] Verified with the fallow skill. (`fallow audit --base HEAD`: dead code 0, complexity 0, duplication 0)
 
 ## Notes
 

@@ -218,3 +218,24 @@ describe("009-wishlist", () => {
     expect(() => db!.prepare("insert into wishlist_items (title, rank) values ('Bad', 0)").run()).toThrow(/CHECK/);
   });
 });
+
+describe("010-reserve-wishlist-slug", () => {
+  const slugsAfter = (existing: string[]) => {
+    db = atVersion(9);
+    existing.forEach((slug, index) => db!.prepare("insert into collections (id, slug, name) values (?, ?, ?)").run(index + 1, slug, slug));
+    expect(migrate(db)).toContain("010-reserve-wishlist-slug.sql");
+    return db.prepare("select slug from collections order by id").pluck().all();
+  };
+
+  it("moves a collection at /wishlist to wishlist-2", () => {
+    expect(slugsAfter(["vinyl", "wishlist"])).toEqual(["vinyl", "wishlist-2"]);
+  });
+
+  it("takes the next free number when wishlist-2 and -3 are taken", () => {
+    expect(slugsAfter(["wishlist", "wishlist-2", "wishlist-3", "wishlist-5"])).toEqual(["wishlist-4", "wishlist-2", "wishlist-3", "wishlist-5"]);
+  });
+
+  it("changes nothing without a wishlist collection", () => {
+    expect(slugsAfter(["vinyl", "wishlist-2"])).toEqual(["vinyl", "wishlist-2"]);
+  });
+});

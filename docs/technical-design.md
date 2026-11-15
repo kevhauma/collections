@@ -99,7 +99,8 @@ can also connect an AI agent through the MCP server at `/api/mcp`, which acts as
 
 - Generated from the name (`Magic: The Gathering` → `magic-the-gathering`), unique, editable.
 - No redirect from an old slug: old shared links 404. Accepted for a personal app.
-- Reserved: `admin`, `setup`, `uploads`, `api`, `locale`, `theme`, `assets`.
+- Reserved: `admin`, `setup`, `uploads`, `api`, `locale`, `theme`, `assets`, `wishlist`. Migration 010 moved a collection
+  already at `wishlist` to the first free `wishlist-N` (TICKET-WSH-04).
 - See [ADR 0005](adr/0005-plain-public-slugs.md).
 
 ## Routes
@@ -109,6 +110,7 @@ can also connect an AI agent through the MCP server at `/api/mcp`, which acts as
 | Route | Shows |
 |---|---|
 | `/` | Index of public collections. |
+| `/wishlist` | The public wishlist, in rank order (TICKET-WSH-04). 404 while it is private. |
 | `/:slug` | The `have` tab of a public collection. |
 | `/:slug/want` | The `want` tab, ordered by rank by default. |
 | `POST /locale` | Sets the locale cookie and redirects back (works without JS). |

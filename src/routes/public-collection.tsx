@@ -20,7 +20,7 @@ export const loader = ({ params }: LoaderFunctionArgs) => {
 
 // Link previews in chat apps: the page title and, when there is one, the collection's picture or else the tab's first
 // image (absolute).
-const LinkPreview = ({ title, image }: { title: string; image?: string }) => (
+export const LinkPreview = ({ title, image }: { title: string; image?: string }) => (
   <>
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />

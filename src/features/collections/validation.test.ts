@@ -26,6 +26,7 @@ describe("parseCreate", () => {
   it("refuses a typed slug that is taken or reserved instead of suffixing it", () => {
     expect(errorKeys(parseCreate({ name: "Records", slug: "vinyl" }, taken))).toEqual(["slug:taken"]);
     expect(errorKeys(parseCreate({ name: "Records", slug: "uploads" }, taken))).toEqual(["slug:reserved"]);
+    expect(errorKeys(parseCreate({ name: "Records", slug: "wishlist" }, taken))).toEqual(["slug:reserved"]);
   });
 
   it("refuses a malformed typed slug and an empty name", () => {
@@ -39,6 +40,10 @@ describe("parseSettings", () => {
   // The collection's own fields 6 and 7 (7 a url field), plus date added (TICKET-COL-07, TICKET-COL-09).
   const choices = { sortable: new Set(["created", "6", "7"]), linkable: new Set(["7"]) };
   const settings = (form: Record<string, string>, taken = new Set<string>()) => parseSettings(form, { ...choices, taken });
+
+  it("refuses renaming to the reserved wishlist slug", () => {
+    expect(settings({ ...base, slug: "wishlist" }).error?.issues.map((issue) => issue.message)).toEqual(["reserved"]);
+  });
 
   it("reads the public checkbox as 1 when ticked and 0 when absent", () => {
     expect(settings({ ...base, isPublic: "on" }).data).toEqual({ ...base, defaultSort: null, titleLinkFieldId: null, isPublic: 1 });
