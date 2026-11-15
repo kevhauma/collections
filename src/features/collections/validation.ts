@@ -34,6 +34,12 @@ export const parseCreate = (form: FormInput, taken: ReadonlySet<string>) =>
 // (TICKET-COL-09). A value outside them (forged) has no message key, so the form just doesn't save.
 type SettingsChoices = { taken: ReadonlySet<string>; sortable: ReadonlySet<string>; linkable: ReadonlySet<string> };
 
+// "on" when ticked; an unticked checkbox sends nothing.
+const checkbox = z
+  .literal("on")
+  .optional()
+  .transform((on) => (on ? 1 : 0) as 0 | 1);
+
 // "" is none (null); anything else must be one of `allowed`.
 const optionalChoice = (allowed: ReadonlySet<string>) =>
   z
@@ -46,10 +52,8 @@ export const parseSettings = (form: FormInput, { taken, sortable, linkable }: Se
     .object({
       ...fields(taken),
       // An unchecked checkbox sends nothing.
-      isPublic: z
-        .literal("on")
-        .optional()
-        .transform((on) => (on ? 1 : 0) as 0 | 1),
+      isPublic: checkbox,
+      showOnWishlist: checkbox,
       defaultView: z.enum(defaultViews),
       defaultSort: optionalChoice(sortable),
       defaultDir: z.enum(sortDirections),

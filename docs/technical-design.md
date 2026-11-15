@@ -39,6 +39,9 @@ can also connect an AI agent through the MCP server at `/api/mcp`, which acts as
 - `item_image` (TICKET-COL-08): an optional image shown for the collection's items without one, stored like an item
   image, set in its own form in the settings. It is decorative in lists (`alt=""`, no enlarge dialog), goes with the
   collection on delete, and is exported like the collection picture (`itemImage` in `data.json`).
+- `show_on_wishlist` (TICKET-WSH-06, default on): while the collection is public and has wants, the public wishlist
+  shows a small reminder card linking to its want tab, in the home page's order (by name). Set in the settings;
+  exported as `showOnWishlist`.
 
 ### Field
 
@@ -110,7 +113,7 @@ can also connect an AI agent through the MCP server at `/api/mcp`, which acts as
 | Route | Shows |
 |---|---|
 | `/` | Index of public collections, below a full-width wishlist card while the wishlist is public (TICKET-WSH-05). |
-| `/wishlist` | The public wishlist, in rank order (TICKET-WSH-04). 404 while it is private. |
+| `/wishlist` | The public wishlist, in rank order (TICKET-WSH-04), below reminders of public collections with wants (TICKET-WSH-06). 404 while it is private. |
 | `/:slug` | The `have` tab of a public collection. |
 | `/:slug/want` | The `want` tab, ordered by rank by default. |
 | `POST /locale` | Sets the locale cookie and redirects back (works without JS). |
@@ -217,7 +220,8 @@ collections(id INTEGER PRIMARY KEY, slug TEXT UNIQUE NOT NULL, name TEXT NOT NUL
             image TEXT,  -- 004
             default_sort TEXT, default_dir TEXT NOT NULL DEFAULT 'asc',  -- 006
             title_link_field_id INTEGER REFERENCES fields ON DELETE SET NULL,  -- 007
-            item_image TEXT)  -- 008
+            item_image TEXT,  -- 008
+            show_on_wishlist INTEGER NOT NULL DEFAULT 1)  -- 011
 fields(id INTEGER PRIMARY KEY, collection_id INTEGER NOT NULL REFERENCES collections ON DELETE CASCADE,
        label TEXT NOT NULL, type TEXT NOT NULL, options_json TEXT, required INTEGER NOT NULL DEFAULT 0,
        is_public INTEGER NOT NULL DEFAULT 1, position INTEGER NOT NULL,

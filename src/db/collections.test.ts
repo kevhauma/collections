@@ -8,6 +8,7 @@ import {
   getCollectionBySlug,
   listCollections,
   listPublic,
+  listWishlistReminders,
   listSlugs,
   setItemImage,
   updateCollection,
@@ -60,7 +61,8 @@ describe("collections repository", () => {
     const { id } = getCollectionBySlug("vinyl")!;
     expect(getCollectionBySlug("vinyl")).toMatchObject({ defaultSort: null, defaultDir: "asc" });
     const settings = { name: "Records", slug: "records", isPublic: 1, defaultView: "grid", defaultSort: "created", defaultDir: "desc" } as const;
-    updateCollection(id, { ...settings, titleLinkFieldId: null });
+    expect(getCollectionBySlug("vinyl")?.showOnWishlist).toBe(1);
+    updateCollection(id, { ...settings, titleLinkFieldId: null, showOnWishlist: 0 });
     expect(getCollectionBySlug("vinyl")).toBeUndefined();
     expect(getCollectionBySlug("records")).toMatchObject({
       id,
@@ -69,6 +71,7 @@ describe("collections repository", () => {
       defaultView: "grid",
       defaultSort: "created",
       defaultDir: "desc",
+      showOnWishlist: 0,
     });
   });
 
@@ -153,5 +156,38 @@ describe("listPublic", () => {
     ]);
     updateCollection(zines.id, { ...zines, isPublic: 0 });
     expect(listPublic().some((collection) => collection.slug === "zines")).toBe(false);
+  });
+});
+
+describe("listWishlistReminders", () => {
+  it("lists public collections with wants that show on the wishlist, by name", () => {
+    const make = (name: string, slug: string, isPublic: 0 | 1, wants: number) => {
+      createCollection(name, slug, "Title");
+      const collection = getCollectionBySlug(slug)!;
+      updateCollection(collection.id, { ...collection, isPublic });
+      Array.from({ length: wants }, () => createItem(collection.id, { status: "want", values: {} }));
+      createItem(collection.id, { status: "have", quantity: 1, values: {} });
+      return collection;
+    };
+    const slugs = ["r-lego", "r-books", "r-secret", "r-empty"];
+    const reminded = () =>
+      listWishlistReminders()
+        .filter((collection) => slugs.includes(collection.slug))
+        .map(({ slug, wantCount }) => [slug, wantCount]);
+    const lego = make("Lego", "r-lego", 1, 3);
+    make("Books", "r-books", 1, 1);
+    make("Secret", "r-secret", 0, 2);
+    make("Empty", "r-empty", 1, 0);
+    expect(reminded()).toEqual([
+      ["r-books", 1],
+      ["r-lego", 3],
+    ]);
+    updateCollection(lego.id, { ...lego, isPublic: 1, showOnWishlist: 0 });
+    expect(reminded()).toEqual([["r-books", 1]]);
+    updateCollection(lego.id, { ...lego, isPublic: 1, showOnWishlist: 1 });
+    expect(reminded()).toEqual([
+      ["r-books", 1],
+      ["r-lego", 3],
+    ]);
   });
 });

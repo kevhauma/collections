@@ -41,12 +41,24 @@ describe("parseSettings", () => {
   const choices = { sortable: new Set(["created", "6", "7"]), linkable: new Set(["7"]) };
   const settings = (form: Record<string, string>, taken = new Set<string>()) => parseSettings(form, { ...choices, taken });
 
+  it("reads Show on wishlist as 1 when ticked, 0 when unticked (absent), and refuses a forged value", () => {
+    expect(settings({ ...base, showOnWishlist: "on" }).data?.showOnWishlist).toBe(1);
+    expect(settings(base).data?.showOnWishlist).toBe(0);
+    expect(settings({ ...base, showOnWishlist: "yes" }).success).toBe(false);
+  });
+
   it("refuses renaming to the reserved wishlist slug", () => {
     expect(settings({ ...base, slug: "wishlist" }).error?.issues.map((issue) => issue.message)).toEqual(["reserved"]);
   });
 
   it("reads the public checkbox as 1 when ticked and 0 when absent", () => {
-    expect(settings({ ...base, isPublic: "on" }).data).toEqual({ ...base, defaultSort: null, titleLinkFieldId: null, isPublic: 1 });
+    expect(settings({ ...base, isPublic: "on" }).data).toEqual({
+      ...base,
+      defaultSort: null,
+      titleLinkFieldId: null,
+      isPublic: 1,
+      showOnWishlist: 0,
+    });
     expect(settings(base).data?.isPublic).toBe(0);
   });
 

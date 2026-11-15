@@ -276,6 +276,19 @@ export default function CollectionSettings({ params, actionData }: { params: Par
             defaultChecked={collection.isPublic === 1}
             label={t({ id: "collections.settings.public", message: "Public: anyone with the link can see it" })}
           />
+          <div className="grid">
+            <Checkbox
+              name="showOnWishlist"
+              defaultChecked={collection.showOnWishlist === 1}
+              aria-describedby="settings-show-on-wishlist-hint"
+              label={t({ id: "collections.settings.showOnWishlist", message: "Show on wishlist" })}
+            />
+            <p id="settings-show-on-wishlist-hint" className="text-sm text-ink-soft">
+              <Trans id="collections.settings.showOnWishlistHint">
+                While it is public and has wants, the public wishlist points to its want list.
+              </Trans>
+            </p>
+          </div>
           <RadioGroup
             legend={t({ id: "collections.settings.defaultView", message: "Default view" })}
             name="defaultView"

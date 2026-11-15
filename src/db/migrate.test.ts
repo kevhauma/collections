@@ -239,3 +239,12 @@ describe("010-reserve-wishlist-slug", () => {
     expect(slugsAfter(["vinyl", "wishlist-2"])).toEqual(["vinyl", "wishlist-2"]);
   });
 });
+
+describe("011-show-on-wishlist", () => {
+  it("adds show_on_wishlist, on for collections that already exist", () => {
+    db = atVersion(10);
+    db.prepare("insert into collections (id, slug, name) values (1, 'records', 'Records')").run();
+    expect(migrate(db)).toContain("011-show-on-wishlist.sql");
+    expect(db.prepare("select show_on_wishlist from collections").get()).toEqual({ show_on_wishlist: 1 });
+  });
+});

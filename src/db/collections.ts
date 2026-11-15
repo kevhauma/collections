@@ -22,26 +22,28 @@ export type Collection = {
   image: string | null;
   // Shown for its items without an image (TICKET-COL-08), the same kind of image id.
   itemImage: string | null;
+  // A reminder card on the public wishlist while it's public and has wants (TICKET-WSH-06).
+  showOnWishlist: 0 | 1;
 };
 
-type CollectionSummary = Pick<Collection, "id" | "slug" | "name" | "isPublic" | "image"> & {
+type CollectionSummary = Pick<Collection, "id" | "slug" | "name" | "isPublic" | "image" | "showOnWishlist"> & {
   haveCount: number;
   wantCount: number;
 };
 
 export type CollectionSettings = Pick<
   Collection,
-  "name" | "slug" | "isPublic" | "defaultView" | "defaultSort" | "defaultDir" | "titleLinkFieldId"
+  "name" | "slug" | "isPublic" | "defaultView" | "defaultSort" | "defaultDir" | "titleLinkFieldId" | "showOnWishlist"
 >;
 
 export const columns = `id, slug, name, is_public as isPublic, default_view as defaultView, default_sort as defaultSort,
   default_dir as defaultDir, title_field_id as titleFieldId, title_link_field_id as titleLinkFieldId, image,
-  item_image as itemImage`;
+  item_image as itemImage, show_on_wishlist as showOnWishlist`;
 
 const summaries = (publicOnly: boolean): CollectionSummary[] =>
   db()
     .prepare(
-      `select c.id, c.slug, c.name, c.is_public as isPublic, c.image,
+      `select c.id, c.slug, c.name, c.is_public as isPublic, c.image, c.show_on_wishlist as showOnWishlist,
          (select count(*) from items i where i.collection_id = c.id and i.status = 'have') as haveCount,
          (select count(*) from items i where i.collection_id = c.id and i.status = 'want') as wantCount
        from collections c where c.is_public = 1 or not ? order by c.name collate nocase`,
@@ -53,6 +55,10 @@ export const listCollections = (): CollectionSummary[] => summaries(false);
 
 // Public collections only, for the visitors' index (TICKET-PUB-01). Private ones don't show up in any form.
 export const listPublic = (): CollectionSummary[] => summaries(true);
+
+// The reminder cards on the public wishlist (TICKET-WSH-06): public collections with wants that haven't opted out.
+export const listWishlistReminders = (): CollectionSummary[] =>
+  listPublic().filter((collection) => collection.showOnWishlist === 1 && collection.wantCount > 0);
 
 export const getCollectionBySlug = (slug: string): Collection | undefined =>
   db().prepare(`select ${columns} from collections where slug = ?`).get(slug) as Collection | undefined;
@@ -77,6 +83,7 @@ export const updateCollection = (id: number, settings: CollectionSettings, image
     .prepare(
       `update collections set name = @name, slug = @slug, is_public = @isPublic, default_view = @defaultView,
          default_sort = @defaultSort, default_dir = @defaultDir, title_link_field_id = @titleLinkFieldId,
+         show_on_wishlist = @showOnWishlist,
          image = iif(@keepImage, image, @image), updated_at = unixepoch() where id = @id`,
     )
     .run({ ...settings, id, image: image ?? null, keepImage: image === undefined ? 1 : 0 });

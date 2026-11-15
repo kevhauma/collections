@@ -155,6 +155,7 @@ describe("buildExport", () => {
       defaultView: "grid",
       image: `images/${cover}.webp`,
       itemImage: `images/${sleeve}.webp`,
+      showOnWishlist: true,
     });
     type Exported = { label: string; isPublic: boolean; required: boolean; prefix: string | null; suffix: string | null };
     expect(vinyl.fields.map((field: Exported) => [field.label, field.isPublic, field.required, field.prefix, field.suffix])).toEqual([

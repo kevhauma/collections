@@ -31,6 +31,7 @@ const exportCollection = (collection: SnapshotCollection, imageOf: (id: string |
   titleLinkFieldId: collection.titleLinkFieldId,
   image: imageOf(collection.image),
   itemImage: imageOf(collection.itemImage),
+  showOnWishlist: collection.showOnWishlist === 1,
   fields: collection.fields.map((field) => ({ ...field, required: field.required === 1, isPublic: field.isPublic === 1 })),
   items: collection.items.map((item) => ({
     status: item.status,
