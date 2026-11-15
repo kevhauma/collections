@@ -162,6 +162,11 @@ session cookie.
 | `POST /api/oauth/register` | Dynamic Client Registration (RFC 7591). |
 | `POST /api/oauth/token` | Authorization code with PKCE, refresh token with rotation. |
 
+Tools (`src/features/mcp/tools.ts`): collections (`list_collections`, `get_collection`, `create_collection`), fields
+(`create_field`, `update_field`), items (`list_items`, `get_item`, `create_item`, `update_item`, `delete_item`,
+`move_want`) and the wishlist (TICKET-WSH-07: `list_wishlist`, `create_wishlist_item`, `update_wishlist_item`,
+`delete_wishlist_item`, `move_wishlist_item`). Visibility, of a collection or the wishlist, stays admin-UI only.
+
 ## Auth and security
 
 - First-run `/setup` stores a password hash in `admin`. Hash with `node:crypto` `scrypt` and compare with

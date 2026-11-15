@@ -2,11 +2,13 @@ import { existsSync, mkdtempSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import sharp from "sharp";
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { runWithContext } from "../../context";
 import { createCollection, getCollectionBySlug, listCollections, updateCollection } from "../../db/collections";
 import { createField, listFields } from "../../db/fields";
 import { countItems, createItem, getItem, listItems } from "../../db/items";
+import { db } from "../../db/connection";
+import { getWishItem, listWishlist } from "../../db/wishlist";
 import { uploadsDir } from "../images/process";
 import { tools } from "./tools";
 
@@ -359,6 +361,101 @@ describe("item images", () => {
     ).rejects.toThrow("imageUrl:");
     expect(getItem(collection.id, id)).toMatchObject({ values: { [title]: "Kept" } });
     expect(await call("get_item", { collection: slug, id })).toMatchObject({ image: kept });
+    expect(uploads()).toEqual(before);
+  });
+});
+
+describe("wishlist tools", () => {
+  const png = sharp({ create: { width: 8, height: 8, channels: 3, background: "#2b6cd6" } }).png().toBuffer();
+  const uploads = () => (existsSync(uploadsDir()) ? readdirSync(uploadsDir()).sort() : []);
+  const titles = () => listWishlist().map((wish) => `${wish.rank}:${wish.title}`);
+  const add = (title: string, extra: Record<string, unknown> = {}) =>
+    call("create_wishlist_item", { title, ...extra }) as Promise<{ id: number; rank: number; image: string | null }>;
+
+  beforeEach(() => {
+    db().prepare("delete from wishlist_items").run();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("creates at the bottom without a rank, and at rank 2 with one, shifting the others", async () => {
+    await add("Lamp");
+    await add("Mug");
+    expect(await add("Grinder", { rank: 2, price: "~€30–40", link: "https://shop.example/g" })).toMatchObject({
+      rank: 2,
+      title: "Grinder",
+      price: "~€30–40",
+      link: "https://shop.example/g",
+      note: null,
+      image: null,
+    });
+    const listed = (await call("list_wishlist")) as { public: boolean; items: Array<{ title: string; rank: number }> };
+    expect(listed.public).toBe(false);
+    expect(listed.items.map((item) => `${item.rank}:${item.title}`)).toEqual(["1:Lamp", "2:Grinder", "3:Mug"]);
+  });
+
+  it("updates only what is given, keeping the rank, and clears a value with \"\"", async () => {
+    await add("Lamp");
+    const { id } = await add("Mug", { link: "https://shop.example/mug", note: "Blue" });
+    expect(await call("update_wishlist_item", { id, price: "€12" })).toMatchObject({
+      id,
+      title: "Mug",
+      link: "https://shop.example/mug",
+      note: "Blue",
+      price: "€12",
+      rank: 2,
+    });
+    expect(await call("update_wishlist_item", { id, note: "" })).toMatchObject({ note: null, price: "€12" });
+    expect(await call("update_wishlist_item", { id, rank: 1 })).toMatchObject({ rank: 1 });
+  });
+
+  it("refuses an unknown id clearly", async () => {
+    await expect(call("update_wishlist_item", { id: 999_999, price: "€1" })).rejects.toThrow(
+      "No wishlist item has the id 999999. list_wishlist shows them.",
+    );
+    await expect(call("delete_wishlist_item", { id: 999_999 })).rejects.toThrow("No wishlist item has the id 999999");
+    await expect(call("move_wishlist_item", { id: 999_999, rank: 1 })).rejects.toThrow("No wishlist item has the id 999999");
+  });
+
+  it("deletes an item, closing the gap and removing its image files", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response(await png, { headers: { "content-type": "image/png" } }));
+    await add("Lamp");
+    const { id, image } = await add("Mug", { imageUrl: "https://93.184.215.14/mug.png" });
+    await add("Grinder");
+    const id_ = image!.slice("/uploads/".length, -".webp".length);
+    expect(uploads()).toEqual(expect.arrayContaining([`${id_}.webp`, `${id_}.thumb.webp`]));
+    expect(await call("delete_wishlist_item", { id })).toEqual({ deleted: id });
+    expect(titles()).toEqual(["1:Lamp", "2:Grinder"]);
+    expect(uploads()).not.toEqual(expect.arrayContaining([`${id_}.webp`]));
+    expect(uploads()).not.toEqual(expect.arrayContaining([`${id_}.thumb.webp`]));
+  });
+
+  it("moves an item, clamping a rank past either end", async () => {
+    await add("A");
+    const { id } = await add("B");
+    await add("C");
+    expect(await call("move_wishlist_item", { id, rank: 99 })).toMatchObject({ rank: 3 });
+    expect(titles()).toEqual(["1:A", "2:C", "3:B"]);
+    expect(await call("move_wishlist_item", { id, rank: -4 })).toMatchObject({ rank: 1 });
+    expect(titles()).toEqual(["1:B", "2:A", "3:C"]);
+  });
+
+  it("refuses a javascript: link, an empty title and a bad image URL with the form's messages, saving nothing", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response("<html>", { headers: { "content-type": "text/html" } }));
+    const { id } = await add("Kept", { link: "https://shop.example/kept" });
+    const before = uploads();
+    await expect(add("X", { link: "javascript:alert(1)" })).rejects.toThrow(
+      "link: Enter a web address starting with http:// or https://.",
+    );
+    await expect(add("  ")).rejects.toThrow("title: Enter a title of up to 200 characters.");
+    await expect(add("X", { imageUrl: "https://93.184.215.14/page" })).rejects.toThrow("imageUrl: This isn't an image that can be read.");
+    await expect(add("X", { imageUrl: "http://127.0.0.1/a.png" })).rejects.toThrow("imageUrl: Couldn't download an image");
+    const both = call("update_wishlist_item", { id, title: "", link: "javascript:x" });
+    await expect(both).rejects.toThrow("title: Enter a title of up to 200 characters.");
+    await expect(both).rejects.toThrow("link: Enter a web address starting with http:// or https://.");
+    expect(titles()).toEqual(["1:Kept"]);
+    expect(getWishItem(id)).toMatchObject({ title: "Kept", link: "https://shop.example/kept" });
     expect(uploads()).toEqual(before);
   });
 });

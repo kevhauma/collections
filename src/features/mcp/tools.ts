@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getCollectionBySlug, listCollections, type Collection } from "../../db/collections";
 import { fieldTypes, listFields, type Field } from "../../db/fields";
 import { getItem, moveWant, type Item } from "../../db/items";
+import { getWishItem, isWishlistPublic, listWishlist, moveWishItem, type WishItem } from "../../db/wishlist";
 import { addCollection } from "../collections/collection-changes";
 import { addField, editField } from "../collections/field-changes";
 import type { FormInput } from "../collections/validation";
@@ -13,6 +14,9 @@ import { translateItemErrors } from "../items/messages";
 import { parseItemForm } from "../items/schema";
 import { itemView } from "../items/view";
 import { publicFetch } from "../oauth/oauth";
+import { wishErrors } from "../wishlist/form";
+import { wishSchema } from "../wishlist/validation";
+import { removeWish, saveWish } from "../wishlist/wish-changes";
 
 // The MCP tools (TICKET-MCP-01): what the admin can do in the UI, through the same repositories and parsers, so an
 // agent's input passes the same validation and gets the same (English) messages. A tool throws to report a problem;
@@ -109,6 +113,27 @@ const placeWant = (collection: Collection, id: number, rank: number | undefined)
   return itemOut(listFields(collection.id))(itemOf(collection, id));
 };
 
+const wishOf = (id: number): WishItem =>
+  getWishItem(id) ?? refuse(`No wishlist item has the id ${id}. list_wishlist shows them.`);
+
+const wishOut = (wish: WishItem) => ({ ...wish, image: wish.image ? imageUrl(wish.image) : null });
+
+type WishArgs = { title?: string; link?: string; note?: string; price?: string };
+
+// Through the admin form's schema (TICKET-WSH-07), so the agent gets the same messages. What isn't given keeps the
+// item's current value; "" clears it.
+const parseWish = (args: WishArgs, current?: WishItem) => {
+  const kept = (key: keyof WishArgs) => args[key] ?? current?.[key] ?? undefined;
+  const parsed = wishSchema.safeParse({ title: kept("title"), link: kept("link"), note: kept("note"), price: kept("price") });
+  return parsed.success ? parsed.data : refuseErrors(wishErrors(parsed.error));
+};
+
+// Places a wishlist item at `rank` after it was written; ranks outside 1..n are clamped.
+const placeWish = (id: number, rank: number | undefined) => {
+  if (rank !== undefined) moveWishItem(id, rank);
+  return wishOut(wishOf(id));
+};
+
 // Booleans and lists in the shape the field form posts: a ticked checkbox is "on", options one per line.
 const fieldForm = (inputs: Record<string, string | number | boolean | string[] | null | undefined>): FormInput =>
   Object.fromEntries(
@@ -124,6 +149,12 @@ const values = z
   .record(z.string(), z.unknown())
   .describe("Values keyed by field id (get_collection lists them). null or \"\" clears a value.");
 const affix = z.string().describe("Display-only text before or after the value, like € or cm; \"\" for none.");
+const wishId = z.number().int().describe("The wishlist item's id, from list_wishlist.");
+const wishText = {
+  link: z.string().optional().describe("An http(s) address where it can be found; \"\" clears it."),
+  note: z.string().optional().describe("Free text, like a size or colour; \"\" clears it."),
+  price: z.string().optional().describe("Free text, like €25 or ~€30–40; \"\" clears it."),
+};
 const imageUrlArg = z
   .string()
   .optional()
@@ -330,6 +361,55 @@ export const tools = {
       if (rejected) refuseErrors(rejected.errors);
       return fieldView(fieldOf(found, id));
     },
+  }),
+  list_wishlist: tool({
+    description: "The general wishlist (not bound to a collection) in rank order, 1 first, and whether it's public.",
+    annotations: read,
+    input: z.object({}),
+    run: () => ({ public: isWishlistPublic(), items: listWishlist().map(wishOut) }),
+  }),
+  create_wishlist_item: tool({
+    description:
+      "Adds an item to the general wishlist, validated like its admin form. It goes to the bottom, or to `rank` " +
+      "(the others shift). `imageUrl` gives it a picture.",
+    input: z.object({ title: z.string(), ...wishText, rank: z.number().int().optional(), imageUrl: imageUrlArg }),
+    run: async ({ rank, imageUrl: url, ...args }) => {
+      const parsed = parseWish(args);
+      return placeWish(await saveWish(undefined, { ...parsed, image: await agentImage(url) }), rank);
+    },
+  }),
+  update_wishlist_item: tool({
+    description:
+      "Changes a wishlist item. Only what's given changes; it keeps its rank unless `rank` is given. `imageUrl` " +
+      "replaces the picture and `removeImage` clears it.",
+    input: z.object({
+      id: wishId,
+      title: z.string().optional(),
+      ...wishText,
+      rank: z.number().int().optional(),
+      imageUrl: imageUrlArg,
+      removeImage: z.boolean().default(false).describe("true removes the item's picture."),
+    }),
+    run: async ({ id, rank, imageUrl: url, removeImage, ...args }) => {
+      const wish = wishOf(id);
+      const parsed = parseWish(args, wish);
+      await saveWish(wish, { ...parsed, image: await agentImage(url, removeImage) });
+      return placeWish(id, rank);
+    },
+  }),
+  delete_wishlist_item: tool({
+    description: "Deletes one wishlist item and its image, for example once it was received. This can't be undone.",
+    annotations: { destructiveHint: true },
+    input: z.object({ id: wishId }),
+    run: async ({ id }) => {
+      await removeWish(wishOf(id));
+      return { deleted: id };
+    },
+  }),
+  move_wishlist_item: tool({
+    description: "Moves a wishlist item to a rank (1 is the top); the others shift to make room.",
+    input: z.object({ id: wishId, rank: z.number().int() }),
+    run: ({ id, rank }) => placeWish(wishOf(id).id, rank),
   }),
 };
 
