@@ -109,7 +109,7 @@ can also connect an AI agent through the MCP server at `/api/mcp`, which acts as
 
 | Route | Shows |
 |---|---|
-| `/` | Index of public collections. |
+| `/` | Index of public collections, below a full-width wishlist card while the wishlist is public (TICKET-WSH-05). |
 | `/wishlist` | The public wishlist, in rank order (TICKET-WSH-04). 404 while it is private. |
 | `/:slug` | The `have` tab of a public collection. |
 | `/:slug/want` | The `want` tab, ordered by rank by default. |

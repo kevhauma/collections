@@ -271,6 +271,7 @@
   "setup.heading": "Welkom",
   "admin.nav.wishlist": "Verlanglijstje",
   "wishlist.heading": "Verlanglijstje",
+  "home.wishlist.count": "Verlanglijstje · {count}",
   "wishlist.page.title": "Verlanglijstje · Hoardr",
   "login.error.wrong": "Verkeerd wachtwoord.",
   "items.value.yes": "Ja",

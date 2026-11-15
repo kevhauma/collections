@@ -271,6 +271,7 @@
   "setup.heading": "Welcome",
   "admin.nav.wishlist": "Wishlist",
   "wishlist.heading": "Wishlist",
+  "home.wishlist.count": "Wishlist · {count}",
   "wishlist.page.title": "Wishlist · Hoardr",
   "login.error.wrong": "Wrong password.",
   "items.value.yes": "Yes",
