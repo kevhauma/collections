@@ -8,7 +8,7 @@ import { createCollection, getCollectionBySlug, listCollections, updateCollectio
 import { createField, listFields } from "../../db/fields";
 import { countItems, createItem, getItem, listItems } from "../../db/items";
 import { db } from "../../db/connection";
-import { getWishItem, listWishlist } from "../../db/wishlist";
+import { createWishlist, getWishItem, listWishlist } from "../../db/wishlist";
 import { uploadsDir } from "../images/process";
 import { tools } from "./tools";
 
@@ -368,12 +368,63 @@ describe("item images", () => {
 describe("wishlist tools", () => {
   const png = sharp({ create: { width: 8, height: 8, channels: 3, background: "#2b6cd6" } }).png().toBuffer();
   const uploads = () => (existsSync(uploadsDir()) ? readdirSync(uploadsDir()).sort() : []);
-  const titles = () => listWishlist(1).map((wish) => `${wish.rank}:${wish.title}`);
+  const titles = (wishlistId = 1) => listWishlist(wishlistId).map((wish) => `${wish.rank}:${wish.title}`);
   const add = (title: string, extra: Record<string, unknown> = {}) =>
-    call("create_wishlist_item", { title, ...extra }) as Promise<{ id: number; rank: number; image: string | null }>;
+    call("create_wishlist_item", { wishlist: "wishlist", title, ...extra }) as Promise<{
+      id: number;
+      rank: number;
+      image: string | null;
+    }>;
 
   beforeEach(() => {
+    db().prepare("delete from wishlists where id <> 1").run();
     db().prepare("delete from wishlist_items").run();
+  });
+
+  it("lists every wishlist by name with its flags and item count", async () => {
+    await add("Lamp");
+    const birthday = createWishlist("Birthday", "birthday");
+    db().prepare("update wishlists set is_public = 1 where id = ?").run(birthday);
+    expect(await call("list_wishlists")).toEqual([
+      { slug: "birthday", name: "Birthday", public: true, showReminders: false, itemCount: 0 },
+      { slug: "wishlist", name: "Wishlist", public: false, showReminders: true, itemCount: 1 },
+    ]);
+  });
+
+  it("creates a private wishlist without reminders, with a unique slug from the name", async () => {
+    expect(await call("create_wishlist", { name: "Birthday" })).toEqual({
+      slug: "birthday",
+      name: "Birthday",
+      public: false,
+      showReminders: false,
+      itemCount: 0,
+    });
+    expect(await call("create_wishlist", { name: "Birthday" })).toMatchObject({ slug: "birthday-2" });
+    await expect(call("create_wishlist", { name: " " })).rejects.toThrow("name: Enter a name of up to 100 characters.");
+  });
+
+  it("adds to the bottom of the named wishlist only, and refuses an unknown slug", async () => {
+    const birthday = createWishlist("Birthday", "birthday");
+    await add("Lamp");
+    await add("Mug");
+    expect(await add("Cake", { wishlist: "birthday" })).toMatchObject({ wishlist: "birthday", rank: 1 });
+    expect(await add("Kite", { wishlist: "birthday" })).toMatchObject({ wishlist: "birthday", rank: 2 });
+    expect(titles()).toEqual(["1:Lamp", "2:Mug"]);
+    expect(titles(birthday)).toEqual(["1:Cake", "2:Kite"]);
+    const message = 'No wishlist has the slug "nope". list_wishlists shows them.';
+    await expect(add("X", { wishlist: "nope" })).rejects.toThrow(message);
+    await expect(call("list_wishlist", { wishlist: "nope" })).rejects.toThrow(message);
+  });
+
+  it("moves an item only within its own wishlist", async () => {
+    const birthday = createWishlist("Birthday", "birthday");
+    await add("A");
+    await add("B");
+    await add("X", { wishlist: "birthday" });
+    const { id } = await add("Y", { wishlist: "birthday" });
+    expect(await call("move_wishlist_item", { id, rank: 1 })).toMatchObject({ wishlist: "birthday", rank: 1 });
+    expect(titles(birthday)).toEqual(["1:Y", "2:X"]);
+    expect(titles()).toEqual(["1:A", "2:B"]);
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -390,8 +441,11 @@ describe("wishlist tools", () => {
       note: null,
       image: null,
     });
-    const listed = (await call("list_wishlist")) as { public: boolean; items: Array<{ title: string; rank: number }> };
-    expect(listed.public).toBe(false);
+    const listed = (await call("list_wishlist", { wishlist: "wishlist" })) as {
+      public: boolean;
+      items: Array<{ title: string; rank: number }>;
+    };
+    expect(listed).toMatchObject({ slug: "wishlist", public: false, itemCount: 3 });
     expect(listed.items.map((item) => `${item.rank}:${item.title}`)).toEqual(["1:Lamp", "2:Grinder", "3:Mug"]);
   });
 

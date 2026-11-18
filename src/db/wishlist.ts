@@ -60,10 +60,6 @@ export const listPublicWishlists = (): WishlistSummary[] => summaries(true);
 export const getPublicWishlist = (slug: string): Wishlist | undefined =>
   db().prepare(`select ${wishlistColumns} from wishlists where slug = ? and is_public = 1`).get(slug) as Wishlist | undefined;
 
-// shortcut: the MCP tools built for one wishlist use the first by name, until TICKET-WSH-11 replaces them.
-// The migration always leaves one.
-export const firstWishlist = (): Wishlist => listWishlists()[0]!;
-
 export const getWishlist = (id: number): Wishlist | undefined =>
   db().prepare(`select ${wishlistColumns} from wishlists where id = ?`).get(id) as Wishlist | undefined;
 

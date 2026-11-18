@@ -156,7 +156,8 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   [field-changes.ts](../../../src/features/collections/field-changes.ts), `addCollection` in
   [collection-changes.ts](../../../src/features/collections/collection-changes.ts) (the new slug or the rejection),
   `saveItem` / `removeItem` (with their image files) in [item-changes.ts](../../../src/features/items/item-changes.ts),
-  `saveWish` / `removeWish` in [wish-changes.ts](../../../src/features/wishlist/wish-changes.ts).
+  `saveWish` / `removeWish` and `addWishlist` / `removeWishlist` in
+  [wish-changes.ts](../../../src/features/wishlist/wish-changes.ts).
   A tool's image URL goes through `prepareFormImage` with a fetcher that refuses internal addresses. An MCP tool
   ([src/features/mcp/tools.ts](../../../src/features/mcp/tools.ts)) builds the same inputs the form posts (every field,
   checkboxes as `"on"`) and throws the messages, which the SDK returns as a tool error.

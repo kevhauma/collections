@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **47 / 50 done**
+Progress: **48 / 50 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -61,7 +61,7 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 47 | [WSH-08](../../wishlist/tickets/TICKET-WSH-08-several-wishlists-data.md) | Several wishlists: table, repository and export | M8 Wishlist | WSH-01..07 | ✅ |
 | 48 | [WSH-09](../../wishlist/tickets/TICKET-WSH-09-admin-several-wishlists.md) | Admin pages for several wishlists | M8 Wishlist | WSH-08 | ✅ |
 | 49 | [WSH-10](../../wishlist/tickets/TICKET-WSH-10-public-several-wishlists.md) | Public pages and home cards for several wishlists | M8 Wishlist | WSH-08, WSH-09 | ✅ |
-| 50 ‖ | [WSH-11](../../wishlist/tickets/TICKET-WSH-11-mcp-several-wishlists.md) | MCP tools for several wishlists | M8 Wishlist | WSH-08 | ⬜ |
+| 50 ‖ | [WSH-11](../../wishlist/tickets/TICKET-WSH-11-mcp-several-wishlists.md) | MCP tools for several wishlists | M8 Wishlist | WSH-08 | ✅ |
 
 ## Why this order
 

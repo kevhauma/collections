@@ -3,7 +3,16 @@ import { z } from "zod";
 import { getCollectionBySlug, listCollections, type Collection } from "../../db/collections";
 import { fieldTypes, listFields, type Field } from "../../db/fields";
 import { getItem, moveWant, type Item } from "../../db/items";
-import { firstWishlist, getWishItem, listWishlist, moveWishItem, type WishItem } from "../../db/wishlist";
+import {
+  getWishItem,
+  getWishlist,
+  getWishlistBySlug,
+  listWishlist,
+  listWishlists,
+  moveWishItem,
+  type WishItem,
+  type Wishlist,
+} from "../../db/wishlist";
 import { addCollection } from "../collections/collection-changes";
 import { addField, editField } from "../collections/field-changes";
 import type { FormInput } from "../collections/validation";
@@ -16,7 +25,7 @@ import { itemView } from "../items/view";
 import { publicFetch } from "../oauth/oauth";
 import { wishErrors } from "../wishlist/form";
 import { wishSchema } from "../wishlist/validation";
-import { removeWish, saveWish } from "../wishlist/wish-changes";
+import { addWishlist, removeWish, saveWish } from "../wishlist/wish-changes";
 
 // The MCP tools (TICKET-MCP-01): what the admin can do in the UI, through the same repositories and parsers, so an
 // agent's input passes the same validation and gets the same (English) messages. A tool throws to report a problem;
@@ -116,7 +125,23 @@ const placeWant = (collection: Collection, id: number, rank: number | undefined)
 const wishOf = (id: number): WishItem =>
   getWishItem(id) ?? refuse(`No wishlist item has the id ${id}. list_wishlist shows them.`);
 
-const wishOut = (wish: WishItem) => ({ ...wish, image: wish.image ? imageUrl(wish.image) : null });
+const wishlistOf = (slug: string): Wishlist =>
+  getWishlistBySlug(slug) ?? refuse(`No wishlist has the slug "${slug}". list_wishlists shows them.`);
+
+// An item names its wishlist by slug, the handle the agent uses everywhere else (TICKET-WSH-11).
+const wishOut = ({ wishlistId, ...wish }: WishItem) => ({
+  ...wish,
+  wishlist: getWishlist(wishlistId)!.slug,
+  image: wish.image ? imageUrl(wish.image) : null,
+});
+
+const wishlistView = (wishlist: Wishlist & { itemCount: number }) => ({
+  slug: wishlist.slug,
+  name: wishlist.name,
+  public: wishlist.isPublic === 1,
+  showReminders: wishlist.showReminders === 1,
+  itemCount: wishlist.itemCount,
+});
 
 type WishArgs = { title?: string; link?: string; note?: string; price?: string };
 
@@ -151,6 +176,7 @@ const values = z
   .describe("Values keyed by field id (get_collection lists them). null or \"\" clears a value.");
 const affix = z.string().describe("Display-only text before or after the value, like € or cm; \"\" for none.");
 const wishId = z.number().int().describe("The wishlist item's id, from list_wishlist.");
+const wishlistSlug = z.string().describe("The wishlist's slug, from list_wishlists.");
 const wishText = {
   link: z.string().optional().describe("An http(s) address where it can be found; \"\" clears it."),
   note: z.string().optional().describe("Free text, like a size or colour; \"\" clears it."),
@@ -363,23 +389,49 @@ export const tools = {
       return fieldView(fieldOf(found, id));
     },
   }),
-  list_wishlist: tool({
-    description: "The general wishlist (not bound to a collection) in rank order, 1 first, and whether it's public.",
+  list_wishlists: tool({
+    description:
+      "Every wishlist (lists not bound to a collection, like a birthday list) by name, with its slug, whether it's " +
+      "public, whether it reminds visitors of the collections' want lists, and how many items it has.",
     annotations: read,
     input: z.object({}),
-    run: () => {
-      const wishlist = firstWishlist();
-      return { public: wishlist.isPublic === 1, items: listWishlist(wishlist.id).map(wishOut) };
+    run: () => listWishlists().map(wishlistView),
+  }),
+  create_wishlist: tool({
+    description:
+      "Creates a private wishlist without collection reminders; its slug is made from the name. Visibility and " +
+      "reminders are changed in the admin UI.",
+    input: z.object({ name: z.string() }),
+    run: ({ name }) => {
+      const created = addWishlist({ name });
+      return "errors" in created ? refuseErrors(created.errors) : wishlistView({ ...wishlistOf(created.slug), itemCount: 0 });
+    },
+  }),
+  list_wishlist: tool({
+    description: "One wishlist's items in rank order, 1 first.",
+    annotations: read,
+    input: z.object({ wishlist: wishlistSlug }),
+    run: ({ wishlist }) => {
+      const found = wishlistOf(wishlist);
+      const items = listWishlist(found.id).map(wishOut);
+      return { ...wishlistView({ ...found, itemCount: items.length }), items };
     },
   }),
   create_wishlist_item: tool({
     description:
-      "Adds an item to the general wishlist, validated like its admin form. It goes to the bottom, or to `rank` " +
-      "(the others shift). `imageUrl` gives it a picture.",
-    input: z.object({ title: z.string(), ...wishText, rank: z.number().int().optional(), imageUrl: imageUrlArg }),
-    run: async ({ rank, imageUrl: url, ...args }) => {
+      "Adds an item to a wishlist, validated like its admin form. It goes to the bottom, or to `rank` (the others " +
+      "shift). `imageUrl` gives it a picture.",
+    input: z.object({
+      wishlist: wishlistSlug,
+      title: z.string(),
+      ...wishText,
+      rank: z.number().int().optional(),
+      imageUrl: imageUrlArg,
+    }),
+    run: async ({ wishlist, rank, imageUrl: url, ...args }) => {
+      const found = wishlistOf(wishlist);
       const parsed = parseWish(args);
-      return placeWish(await saveWish(firstWishlist().id, undefined, { ...parsed, image: await agentImage(url) }), rank);
+      return placeWish(await saveWish(found.id, undefined, { ...parsed, image: await agentImage(url) }), rank);
     },
   }),
   update_wishlist_item: tool({
@@ -411,7 +463,7 @@ export const tools = {
     },
   }),
   move_wishlist_item: tool({
-    description: "Moves a wishlist item to a rank (1 is the top); the others shift to make room.",
+    description: "Moves a wishlist item to a rank (1 is the top) within its own wishlist; the others shift to make room.",
     input: z.object({ id: wishId, rank: z.number().int() }),
     run: ({ id, rank }) => placeWish(wishOf(id).id, rank),
   }),

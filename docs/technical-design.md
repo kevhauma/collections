@@ -173,8 +173,10 @@ session cookie.
 
 Tools (`src/features/mcp/tools.ts`): collections (`list_collections`, `get_collection`, `create_collection`), fields
 (`create_field`, `update_field`), items (`list_items`, `get_item`, `create_item`, `update_item`, `delete_item`,
-`move_want`) and the wishlist (TICKET-WSH-07: `list_wishlist`, `create_wishlist_item`, `update_wishlist_item`,
-`delete_wishlist_item`, `move_wishlist_item`). Visibility, of a collection or the wishlist, stays admin-UI only.
+`move_want`) and the wishlists (TICKET-WSH-07, TICKET-WSH-11: `list_wishlists`, `create_wishlist`, `list_wishlist`
+and `create_wishlist_item` by wishlist slug, `update_wishlist_item`, `delete_wishlist_item`, `move_wishlist_item` by
+item id, their output naming the item's wishlist). Visibility and reminders, and deleting a collection or a wishlist,
+stay admin-UI only.
 
 ## Auth and security
 

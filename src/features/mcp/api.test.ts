@@ -169,13 +169,13 @@ describe("/api/mcp", () => {
     const { tokens } = await connect();
     const text = async (name: string, args: Record<string, unknown>) =>
       JSON.parse((await resultOf(await callTool(tokens.access_token, name, args))).content[0]!.text) as unknown;
-    await text("create_wishlist_item", { title: "Lamp" });
-    await text("create_wishlist_item", { title: "Mug" });
-    await text("create_wishlist_item", { title: "Grinder", rank: 2 });
-    const listed = (await text("list_wishlist", {})) as { items: Array<{ rank: number; title: string }> };
+    await text("create_wishlist_item", { wishlist: "wishlist", title: "Lamp" });
+    await text("create_wishlist_item", { wishlist: "wishlist", title: "Mug" });
+    await text("create_wishlist_item", { wishlist: "wishlist", title: "Grinder", rank: 2 });
+    const listed = (await text("list_wishlist", { wishlist: "wishlist" })) as { items: Array<{ rank: number; title: string }> };
     expect(listed.items.map((item) => `${item.rank}:${item.title}`)).toEqual(["1:Lamp", "2:Grinder", "3:Mug"]);
-    expectChallenge(await callTool("", "create_wishlist_item", { title: "Sneaky" }, { authorization: "" }));
-    expect((await text("list_wishlist", {})) as { items: unknown[] }).toMatchObject({ items: { length: 3 } });
+    expectChallenge(await callTool("", "create_wishlist_item", { wishlist: "wishlist", title: "Sneaky" }, { authorization: "" }));
+    expect((await text("list_wishlist", { wishlist: "wishlist" })) as { items: unknown[] }).toMatchObject({ items: { length: 3 } });
   });
 
   it("answers 401 with the challenge without a token", async () => {
