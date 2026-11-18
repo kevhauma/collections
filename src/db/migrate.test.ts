@@ -116,15 +116,18 @@ describe("001-initial", () => {
   });
 });
 
-// A database left at an older version by a previous release, then opened by this one.
-const atVersion = (version: number) => {
-  const old = join(dir, "old-migrations");
+// The migrations a release up to `version` shipped, in their own folder.
+const upTo = (version: number) => {
+  const old = join(dir, `migrations-${version}`);
   mkdirSync(old);
   readdirSync("migrations")
     .filter((file) => Number.parseInt(file, 10) <= version)
     .forEach((file) => copyFileSync(join("migrations", file), join(old, file)));
-  return openDatabase(join(dir, "data"), old);
+  return old;
 };
+
+// A database left at an older version by a previous release, then opened by this one.
+const atVersion = (version: number) => openDatabase(join(dir, "data"), upTo(version));
 
 describe("002-field-affixes", () => {
   it("adds prefix and suffix, null for fields that already exist", () => {
@@ -210,7 +213,7 @@ describe("009-wishlist", () => {
     db = atVersion(8);
     db.prepare("insert into collections (id, slug, name) values (1, 'records', 'Records')").run();
     db.prepare("update settings set default_locale = 'nl'").run();
-    expect(migrate(db)).toContain("009-wishlist.sql");
+    expect(migrate(db, upTo(9))).toEqual(["009-wishlist.sql"]);
     expect(db.prepare("select slug, name from collections").all()).toEqual([{ slug: "records", name: "Records" }]);
     expect(db.prepare("select default_locale, wishlist_public from settings").get()).toEqual({ default_locale: "nl", wishlist_public: 0 });
     db.prepare("insert into wishlist_items (title, rank) values ('Lamp', 1)").run();
@@ -246,5 +249,35 @@ describe("011-show-on-wishlist", () => {
     db.prepare("insert into collections (id, slug, name) values (1, 'records', 'Records')").run();
     expect(migrate(db)).toContain("011-show-on-wishlist.sql");
     expect(db.prepare("select show_on_wishlist from collections").get()).toEqual({ show_on_wishlist: 1 });
+  });
+});
+
+describe("012-several-wishlists", () => {
+  it("moves a public wishlist's items, in order, into one public wishlist with reminders on", () => {
+    db = atVersion(11);
+    db.prepare("insert into collections (id, slug, name, is_public) values (1, 'records', 'Records', 1)").run();
+    db.prepare("update settings set wishlist_public = 1").run();
+    [["Lamp", 2], ["Mug", 1], ["Rug", 3]].forEach(([title, rank]) =>
+      db!.prepare("insert into wishlist_items (title, rank, image) values (?, ?, 'img')").run(title, rank),
+    );
+    expect(migrate(db)).toContain("012-several-wishlists.sql");
+    expect(db.prepare("select id, name, slug, is_public, show_reminders from wishlists").all()).toEqual([
+      { id: 1, name: "Wishlist", slug: "wishlist", is_public: 1, show_reminders: 1 },
+    ]);
+    expect(db.prepare("select wishlist_id, rank, title, image from wishlist_items order by rank").all()).toEqual([
+      { wishlist_id: 1, rank: 1, title: "Mug", image: "img" },
+      { wishlist_id: 1, rank: 2, title: "Lamp", image: "img" },
+      { wishlist_id: 1, rank: 3, title: "Rug", image: "img" },
+    ]);
+    expect(db.prepare("select slug, name, is_public from collections").all()).toEqual([{ slug: "records", name: "Records", is_public: 1 }]);
+    expect(db.prepare("select name from pragma_table_info('settings')").pluck().all()).not.toContain("wishlist_public");
+    db.prepare("delete from wishlists").run();
+    expect(db.prepare("select count(*) from wishlist_items").pluck().get()).toBe(0);
+  });
+
+  it("keeps a private wishlist private", () => {
+    db = atVersion(11);
+    expect(migrate(db)).toContain("012-several-wishlists.sql");
+    expect(db.prepare("select is_public from wishlists").pluck().get()).toBe(0);
   });
 });

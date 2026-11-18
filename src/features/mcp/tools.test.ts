@@ -368,7 +368,7 @@ describe("item images", () => {
 describe("wishlist tools", () => {
   const png = sharp({ create: { width: 8, height: 8, channels: 3, background: "#2b6cd6" } }).png().toBuffer();
   const uploads = () => (existsSync(uploadsDir()) ? readdirSync(uploadsDir()).sort() : []);
-  const titles = () => listWishlist().map((wish) => `${wish.rank}:${wish.title}`);
+  const titles = () => listWishlist(1).map((wish) => `${wish.rank}:${wish.title}`);
   const add = (title: string, extra: Record<string, unknown> = {}) =>
     call("create_wishlist_item", { title, ...extra }) as Promise<{ id: number; rank: number; image: string | null }>;
 

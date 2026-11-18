@@ -1,6 +1,6 @@
 # v1: build order and status
 
-Progress: **44 / 46 done**
+Progress: **45 / 50 done**
 
 Work top to bottom. A ticket can start once everything in **Needs** is ✅. Rows marked ‖ can run in parallel with
 the row above.
@@ -58,6 +58,10 @@ This table is the source of truth for status. When a ticket is ✅, also tick it
 | 44 | [WSH-05](../../wishlist/tickets/TICKET-WSH-05-wishlist-on-home.md) | Wishlist card at the top of the public home page | M8 Wishlist | WSH-04, PUB-01 | ✅ |
 | 45 ‖ | [WSH-06](../../wishlist/tickets/TICKET-WSH-06-collection-reminders.md) | Collection want-list reminders, with opt-out | M8 Wishlist | WSH-04, COL-01 | ✅ |
 | 46 | [WSH-07](../../wishlist/tickets/TICKET-WSH-07-wishlist-mcp-tools.md) | MCP tools for the wishlist | M8 Wishlist | WSH-01, MCP-02 | ✅ |
+| 47 | [WSH-08](../../wishlist/tickets/TICKET-WSH-08-several-wishlists-data.md) | Several wishlists: table, repository and export | M8 Wishlist | WSH-01..07 | ✅ |
+| 48 | [WSH-09](../../wishlist/tickets/TICKET-WSH-09-admin-several-wishlists.md) | Admin pages for several wishlists | M8 Wishlist | WSH-08 | ⬜ |
+| 49 | [WSH-10](../../wishlist/tickets/TICKET-WSH-10-public-several-wishlists.md) | Public pages and home cards for several wishlists | M8 Wishlist | WSH-08, WSH-09 | ⬜ |
+| 50 ‖ | [WSH-11](../../wishlist/tickets/TICKET-WSH-11-mcp-several-wishlists.md) | MCP tools for several wishlists | M8 Wishlist | WSH-08 | ⬜ |
 
 ## Why this order
 
@@ -149,6 +153,10 @@ graph LR
   WSH04 --> WSH06[WSH-06 collection reminders]
   WSH01 --> WSH07[WSH-07 wishlist MCP]
   MCP02 --> WSH07
+  WSH07 --> WSH08[WSH-08 several wishlists data]
+  WSH08 --> WSH09[WSH-09 admin wishlists]
+  WSH09 --> WSH10[WSH-10 public wishlists]
+  WSH08 --> WSH11[WSH-11 wishlists MCP]
 ```
 
 ## Not in v1

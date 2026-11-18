@@ -5,8 +5,8 @@ describe("wishView", () => {
   it("maps wishes onto want items keyed by the fixed field ids, leaving blanks out", () => {
     const view = wishView(
       [
-        { id: 7, title: "Lamp", link: "https://shop.example/lamp", note: null, price: "€25", image: "img", rank: 1 },
-        { id: 9, title: "Mug", link: null, note: "Blue", price: null, image: null, rank: 2 },
+        { id: 7, wishlistId: 1, title: "Lamp", link: "https://shop.example/lamp", note: null, price: "€25", image: "img", rank: 1 },
+        { id: 9, wishlistId: 1, title: "Mug", link: null, note: "Blue", price: null, image: null, rank: 2 },
       ],
       [
         ["title", "Title"],

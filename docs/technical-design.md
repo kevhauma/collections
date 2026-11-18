@@ -77,12 +77,17 @@ can also connect an AI agent through the MCP server at `/api/mcp`, which acts as
 
 ### Wishlist
 
-- One general wishlist, not bound to a collection (TICKET-WSH-01). Its items have fixed fields: title (required),
-  link (http(s) only), note, price (free text: nothing sorts or sums it) and one image. Nothing on it is private.
-- Ranked exactly like collection wants: dense 1..n, a new item joins at the bottom, deleting closes the gap, moves
-  clamp and renumber in one transaction (`moveInList`).
+- Wishlists are not bound to a collection (TICKET-WSH-01; several since TICKET-WSH-08). Each has a name, a slug
+  (`slugify` / `uniqueSlug` like collections, unique among wishlists only: they live under `/wishlist/`), and is
+  private or public on its own. Listed by name, like collections; no manual order. A new one is private with
+  reminders off; migration 012 turned the one wishlist into `Wishlist` / `wishlist` with its visibility and reminders
+  on, so it looked as before.
+- Items have fixed fields: title (required), link (http(s) only), note, price (free text: nothing sorts or sums it)
+  and one image. Nothing on them is private. An item belongs to one wishlist; moving it to another is delete and add.
+- Ranked exactly like collection wants, per wishlist: dense 1..n, a new item joins at the bottom, deleting closes the
+  gap, moves clamp and renumber in one transaction (`moveInList`), never touching another wishlist's ranks.
 - An item you receive is deleted: there is no received state.
-- The wishlist as a whole is private or public (`settings.wishlist_public`), private on a fresh install.
+- `show_reminders`: whether that wishlist's public page shows the collection reminders (TICKET-WSH-06).
 
 ### Schema evolution
 
@@ -202,23 +207,23 @@ Tools (`src/features/mcp/tools.ts`): collections (`list_collections`, `get_colle
 `GET /admin/export` streams `hoardr-export-<date>.zip`:
 
 ```
-data.json            # full backup: settings, collections, fields, items, wishlist. The format v2 restore reads.
+data.json            # full backup: settings, collections, fields, items, wishlists. The format v2 restore reads.
 csv/<slug>.csv       # one human-readable file per collection, columns = field labels + status/quantity/rank/image
-csv/_wishlist.csv    # the wishlist: rank, title, link, note, price, image (a slug can't start with "_")
+csv/_wishlist-<slug>.csv  # one per wishlist: rank, title, link, note, price, image (a slug can't start with "_")
 images/<file>.webp   # all images
 ```
 
 Both `data.json` and the CSVs reference images by their path inside the zip (`images/<uuid>.webp`). `data.json`
-carries a `version` number for v2 restore: 2 since the wishlist (TICKET-WSH-02), under the `wishlist` key
-(`isPublic` and the ranked `items`).
+carries a `version` number for v2 restore: 2 added the one wishlist (TICKET-WSH-02) under a `wishlist` key; 3 has
+several (TICKET-WSH-08), under `wishlists: [{ name, slug, isPublic, showReminders, items }]`.
 
 ## Data model
 
 ```sql
 admin(id INTEGER PRIMARY KEY CHECK (id = 1), password_hash TEXT NOT NULL)
 sessions(token_hash TEXT PRIMARY KEY, expires_at INTEGER NOT NULL)
-settings(id INTEGER PRIMARY KEY CHECK (id = 1), default_locale TEXT NOT NULL DEFAULT 'en',
-         wishlist_public INTEGER NOT NULL DEFAULT 0)  -- 009
+settings(id INTEGER PRIMARY KEY CHECK (id = 1), default_locale TEXT NOT NULL DEFAULT 'en')
+         -- 009 added wishlist_public, 012 dropped it for wishlists.is_public
 collections(id INTEGER PRIMARY KEY, slug TEXT UNIQUE NOT NULL, name TEXT NOT NULL,
             is_public INTEGER NOT NULL DEFAULT 0, default_view TEXT NOT NULL DEFAULT 'table',
             title_field_id INTEGER, created_at INTEGER, updated_at INTEGER,
@@ -246,6 +251,13 @@ oauth_codes(code_hash TEXT PRIMARY KEY, client_id TEXT NOT NULL REFERENCES oauth
 oauth_tokens(token_hash TEXT PRIMARY KEY, client_id TEXT NOT NULL REFERENCES oauth_clients ON DELETE CASCADE,
              kind TEXT NOT NULL CHECK (kind IN ('access','refresh')), resource TEXT NOT NULL,
              expires_at INTEGER NOT NULL, used_at INTEGER)
+-- 009, 012: wishlists (TICKET-WSH-01, TICKET-WSH-08). Ranks dense 1..n per wishlist.
+wishlists(id INTEGER PRIMARY KEY, name TEXT NOT NULL, slug TEXT UNIQUE NOT NULL,
+          is_public INTEGER NOT NULL DEFAULT 0, show_reminders INTEGER NOT NULL DEFAULT 0,
+          created_at INTEGER, updated_at INTEGER)
+wishlist_items(id INTEGER PRIMARY KEY, wishlist_id INTEGER NOT NULL REFERENCES wishlists ON DELETE CASCADE,
+               title TEXT NOT NULL, link TEXT, note TEXT, price TEXT, image TEXT,
+               rank INTEGER NOT NULL CHECK (rank >= 1), created_at INTEGER, updated_at INTEGER)
 ```
 
 - `created_at` / `updated_at` are unix seconds (`DEFAULT (unixepoch())`).

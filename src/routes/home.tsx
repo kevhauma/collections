@@ -1,6 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { listPublic } from "../db/collections";
-import { isWishlistPublic, listWishlist, type WishItem } from "../db/wishlist";
+import { firstWishlist, listWishlist, type WishItem } from "../db/wishlist";
 import { formatNumber } from "../i18n";
 import { LinkButton } from "../ui/button";
 import { Card } from "../ui/card";
@@ -82,7 +82,7 @@ export default function Home() {
       <h1>
         <Trans id="home.heading">Shared collections</Trans>
       </h1>
-      <SharedCards collections={listPublic()} wishes={isWishlistPublic() ? listWishlist() : undefined} />
+      <SharedCards collections={listPublic()} wishes={firstWishlist().isPublic === 1 ? listWishlist(firstWishlist().id) : undefined} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { redirect, type ActionFunctionArgs } from "react-router";
-import { isWishlistPublic, listWishlist, moveWishItem, setWishlistPublic } from "../db/wishlist";
+import { firstWishlist, listWishlist, moveWishItem, updateWishlist } from "../db/wishlist";
 import { requireAdmin } from "../features/auth/guard";
 import { wishlistIntentSchema } from "../features/wishlist/validation";
 import { wishView } from "../features/wishlist/view";
@@ -27,7 +27,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (!parsed.success) throw new Response(null, { status: 400 });
   const input = parsed.data;
   if (input.intent === "visibility") {
-    setWishlistPublic(input.isPublic);
+    const wishlist = firstWishlist();
+    updateWishlist(wishlist.id, { ...wishlist, isPublic: input.isPublic ? 1 : 0 });
     return redirect("/admin/wishlist");
   }
   if (!moveWishItem(input.itemId, input.rank)) throw new Response(null, { status: 400 });
@@ -55,8 +56,9 @@ const Visibility = ({ isPublic }: { isPublic: boolean }) => {
 
 export default function AdminWishlist() {
   const { t } = useLingui();
-  const isPublic = isWishlistPublic();
-  const wishes = listWishlist();
+  const wishlist = firstWishlist();
+  const isPublic = wishlist.isPublic === 1;
+  const wishes = listWishlist(wishlist.id);
   const view = wishView(wishes, [
     ["title", t({ id: "wishlist.field.title", message: "Title" })],
     ["price", t({ id: "wishlist.field.price", message: "Price" })],

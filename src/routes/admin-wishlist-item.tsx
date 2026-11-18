@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 import type { ReactNode } from "react";
 import { data, redirect, type ActionFunctionArgs, type LoaderFunctionArgs, type Params } from "react-router";
-import { getWishItem, type WishItem } from "../db/wishlist";
+import { firstWishlist, getWishItem, type WishItem } from "../db/wishlist";
 import { requireAdmin } from "../features/auth/guard";
 import { prepareFormImage } from "../features/images/form";
 import { wishErrors } from "../features/wishlist/form";
@@ -47,7 +47,7 @@ const save = async (form: Form, item: WishItem | undefined): Promise<Response | 
   if (!parsed.success) return { errors: wishErrors(parsed.error), values: typed(form) };
   const prepared = await prepareFormImage(form);
   if ("errors" in prepared) return { errors: prepared.errors, values: typed(form) };
-  const id = await saveWish(item, { ...parsed.data, image: prepared.image });
+  const id = await saveWish(firstWishlist().id, item, { ...parsed.data, image: prepared.image });
   return redirect(`/admin/wishlist#item-${id}`);
 };
 

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getCollectionBySlug, listCollections, type Collection } from "../../db/collections";
 import { fieldTypes, listFields, type Field } from "../../db/fields";
 import { getItem, moveWant, type Item } from "../../db/items";
-import { getWishItem, isWishlistPublic, listWishlist, moveWishItem, type WishItem } from "../../db/wishlist";
+import { firstWishlist, getWishItem, listWishlist, moveWishItem, type WishItem } from "../../db/wishlist";
 import { addCollection } from "../collections/collection-changes";
 import { addField, editField } from "../collections/field-changes";
 import type { FormInput } from "../collections/validation";
@@ -366,7 +366,10 @@ export const tools = {
     description: "The general wishlist (not bound to a collection) in rank order, 1 first, and whether it's public.",
     annotations: read,
     input: z.object({}),
-    run: () => ({ public: isWishlistPublic(), items: listWishlist().map(wishOut) }),
+    run: () => {
+      const wishlist = firstWishlist();
+      return { public: wishlist.isPublic === 1, items: listWishlist(wishlist.id).map(wishOut) };
+    },
   }),
   create_wishlist_item: tool({
     description:
@@ -375,7 +378,7 @@ export const tools = {
     input: z.object({ title: z.string(), ...wishText, rank: z.number().int().optional(), imageUrl: imageUrlArg }),
     run: async ({ rank, imageUrl: url, ...args }) => {
       const parsed = parseWish(args);
-      return placeWish(await saveWish(undefined, { ...parsed, image: await agentImage(url) }), rank);
+      return placeWish(await saveWish(firstWishlist().id, undefined, { ...parsed, image: await agentImage(url) }), rank);
     },
   }),
   update_wishlist_item: tool({
@@ -393,7 +396,7 @@ export const tools = {
     run: async ({ id, rank, imageUrl: url, removeImage, ...args }) => {
       const wish = wishOf(id);
       const parsed = parseWish(args, wish);
-      await saveWish(wish, { ...parsed, image: await agentImage(url, removeImage) });
+      await saveWish(wish.wishlistId, wish, { ...parsed, image: await agentImage(url, removeImage) });
       return placeWish(id, rank);
     },
   }),

@@ -3,7 +3,7 @@ import { db } from "./connection";
 import { listFields, type Field } from "./fields";
 import type { Item } from "./items";
 import { getDefaultLocale } from "./settings";
-import { isWishlistPublic, type WishItem } from "./wishlist";
+import { listWishlists, type WishItem, type WishlistSettings } from "./wishlist";
 
 // Everything the export needs (TICKET-BAK-01), private fields included: it's the owner's backup.
 
@@ -14,12 +14,14 @@ export type SnapshotCollection = Omit<Collection, "id"> & {
   items: SnapshotItem[];
 };
 
-type SnapshotWish = Omit<WishItem, "id"> & { createdAt: number; updatedAt: number };
+type SnapshotWish = Omit<WishItem, "id" | "wishlistId"> & { createdAt: number; updatedAt: number };
+
+export type SnapshotWishlist = WishlistSettings & { items: SnapshotWish[] };
 
 export type Snapshot = {
   defaultLocale: string;
   collections: SnapshotCollection[];
-  wishlist: { isPublic: boolean; items: SnapshotWish[] };
+  wishlists: SnapshotWishlist[];
 };
 
 const itemsOf = (collectionId: number): SnapshotItem[] =>
@@ -38,13 +40,13 @@ const collectionsOf = (): Collection[] =>
     .prepare(`select ${columns} from collections order by name collate nocase`)
     .all() as Collection[];
 
-const wishItems = (): SnapshotWish[] =>
+const wishItems = (wishlistId: number): SnapshotWish[] =>
   db()
     .prepare(
       `select title, link, note, price, image, rank, created_at as createdAt, updated_at as updatedAt
-       from wishlist_items order by rank`,
+       from wishlist_items where wishlist_id = ? order by rank`,
     )
-    .all() as SnapshotWish[];
+    .all(wishlistId) as SnapshotWish[];
 
 // One read transaction, so every statement sees the same state even while someone saves an item.
 export const readSnapshot = (): Snapshot =>
@@ -55,5 +57,11 @@ export const readSnapshot = (): Snapshot =>
       fields: listFields(id).map(({ valueCount: _count, isTitle: _title, ...field }) => field),
       items: itemsOf(id),
     })),
-    wishlist: { isPublic: isWishlistPublic(), items: wishItems() },
+    wishlists: listWishlists().map(({ id, name, slug, isPublic, showReminders }) => ({
+      name,
+      slug,
+      isPublic,
+      showReminders,
+      items: wishItems(id),
+    })),
   }))();

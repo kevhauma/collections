@@ -1,14 +1,15 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { ZipFile } from "yazl";
-import type { Snapshot, SnapshotCollection } from "../../db/export";
+import type { Snapshot, SnapshotCollection, SnapshotWishlist } from "../../db/export";
 import { toCsv } from "./csv";
 
 // The full export (TICKET-BAK-01): data.json (the contract TICKET-BAK-02's restore reads; change it only by bumping
 // `version`), csv/<slug>.csv for spreadsheets, and images/<uuid>.webp at display size. Restore regenerates thumbnails.
-// Version 2 added the wishlist (TICKET-WSH-02), with csv/_wishlist.csv: a slug can't start with "_".
+// Version 2 added the wishlist (TICKET-WSH-02), with csv/_wishlist.csv: a slug can't start with "_". Version 3 has
+// several wishlists (TICKET-WSH-08): `wishlists` replaces `wishlist`, with one csv/_wishlist-<slug>.csv each.
 
-const version = 2;
+const version = 3;
 
 const imagePath = (id: string) => `images/${id}.webp`;
 const iso = (unixSeconds: number) => new Date(unixSeconds * 1000).toISOString();
@@ -61,8 +62,11 @@ const wishlistRows = (items: ReturnType<typeof exportWishlist>["items"]): string
   ...items.map((item) => [String(item.rank), item.title, plain(item.link), plain(item.note), plain(item.price), plain(item.image)]),
 ];
 
-const exportWishlist = (wishlist: Snapshot["wishlist"], imageOf: (id: string | null) => string | null) => ({
-  isPublic: wishlist.isPublic,
+const exportWishlist = (wishlist: SnapshotWishlist, imageOf: (id: string | null) => string | null) => ({
+  name: wishlist.name,
+  slug: wishlist.slug,
+  isPublic: wishlist.isPublic === 1,
+  showReminders: wishlist.showReminders === 1,
   items: wishlist.items.map((item) => ({
     ...item,
     image: imageOf(item.image),
@@ -72,7 +76,7 @@ const exportWishlist = (wishlist: Snapshot["wishlist"], imageOf: (id: string | n
 });
 
 // Every image the snapshot points at: collection pictures (TICKET-COL-06), default item images (TICKET-COL-08) and
-// item images. The wishlist's are added in buildExport.
+// item images. The wishlists' are added in buildExport.
 const imagesOf = (collection: SnapshotCollection) => [
   collection.image,
   collection.itemImage,
@@ -84,25 +88,28 @@ const imagesOf = (collection: SnapshotCollection) => [
 export const buildExport = (snapshot: Snapshot, uploads: string, now = new Date()): ZipFile => {
   const referenced = [
     ...new Set(
-      [...snapshot.collections.flatMap(imagesOf), ...snapshot.wishlist.items.map((item) => item.image)].filter((id) => id !== null),
+      [
+        ...snapshot.collections.flatMap(imagesOf),
+        ...snapshot.wishlists.flatMap((wishlist) => wishlist.items.map((item) => item.image)),
+      ].filter((id) => id !== null),
     ),
   ];
   const present = new Set(referenced.filter((id) => existsSync(join(uploads, `${id}.webp`))));
   const imageOf = (id: string | null) => (id && present.has(id) ? imagePath(id) : null);
   const collections = snapshot.collections.map((collection) => exportCollection(collection, imageOf));
-  const wishlist = exportWishlist(snapshot.wishlist, imageOf);
+  const wishlists = snapshot.wishlists.map((wishlist) => exportWishlist(wishlist, imageOf));
   const data = {
     version,
     exportedAt: now.toISOString(),
     settings: { defaultLocale: snapshot.defaultLocale },
     collections,
-    wishlist,
+    wishlists,
     missingImages: referenced.filter((id) => !present.has(id)),
   };
   const zip = new ZipFile();
   zip.addBuffer(Buffer.from(JSON.stringify(data, null, 2)), "data.json");
   collections.forEach((collection) => zip.addBuffer(Buffer.from(toCsv(csvRows(collection))), `csv/${collection.slug}.csv`));
-  zip.addBuffer(Buffer.from(toCsv(wishlistRows(wishlist.items))), "csv/_wishlist.csv");
+  wishlists.forEach((wishlist) => zip.addBuffer(Buffer.from(toCsv(wishlistRows(wishlist.items))), `csv/_wishlist-${wishlist.slug}.csv`));
   present.forEach((id) => zip.addFile(join(uploads, `${id}.webp`), imagePath(id)));
   zip.end();
   return zip;

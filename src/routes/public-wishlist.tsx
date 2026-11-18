@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
 import { data } from "react-router";
 import { listWishlistReminders } from "../db/collections";
-import { isWishlistPublic, listWishlist, type WishItem } from "../db/wishlist";
+import { firstWishlist, listWishlist, type WishItem } from "../db/wishlist";
 import { formatNumber } from "../i18n";
 import { wishView } from "../features/wishlist/view";
 import { LinkButton } from "../ui/button";
@@ -17,7 +17,7 @@ import { LinkPreview } from "./public-collection";
 // lists sit above the items (TICKET-WSH-06).
 
 export const loader = () => {
-  if (!isWishlistPublic()) throw data(null, { status: 404 });
+  if (firstWishlist().isPublic !== 1) throw data(null, { status: 404 });
   return null;
 };
 
@@ -78,7 +78,7 @@ const Wishes = ({ wishes }: { wishes: WishItem[] }) => {
 
 export default function PublicWishlist() {
   const { t } = useLingui();
-  const wishes = listWishlist();
+  const wishes = listWishlist(firstWishlist().id);
   const reminders = listWishlistReminders();
   const title = t({ id: "wishlist.heading", message: "Wishlist" });
   return (

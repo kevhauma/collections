@@ -20,6 +20,10 @@ There is no merge logic: restore is refused if any collection exists.
 - Since TICKET-WSH-02 the export writes version 2: version 1 plus a `wishlist` key (`isPublic`, ranked `items` with
   title, link, note, price, image, rank and timestamps) and `csv/_wishlist.csv`. Restore reads **both** versions; a
   version 1 zip restores an empty, private wishlist.
+- Since TICKET-WSH-08 the export writes version 3: `wishlists: [{ name, slug, isPublic, showReminders, items }]`
+  replaces `wishlist`, with one `csv/_wishlist-<slug>.csv` each. Restore reads versions 1, 2 **and** 3: a version 2
+  `wishlist` restores as one wishlist `Wishlist` / `wishlist` with reminders on; a version 1 zip as that wishlist,
+  empty and private.
 
 ## Desired result (to-be)
 
@@ -27,7 +31,7 @@ There is no merge logic: restore is refused if any collection exists.
   - upload input for the zip (size cap from an env var, default 2 GB, streamed to a temp file, never buffered in
     memory)
 - Restore action:
-  1. Open the zip with `yauzl` and parse `data.json` with a zod schema for `version: 1` or `2`. Unknown versions
+  1. Open the zip with `yauzl` and parse `data.json` with a zod schema for `version: 1`, `2` or `3`. Unknown versions
      are rejected.
   2. Accept only entries named `data.json`, `csv/*.csv` (ignored) and `images/<uuid>.webp`. Any other path,
      including `..`, absolute paths or symlinks, is rejected (zip-slip).
