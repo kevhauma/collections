@@ -9,9 +9,11 @@ import {
   createWishlist,
   deleteWishItem,
   deleteWishlist,
+  getPublicWishlist,
   getWishItem,
   getWishlist,
   getWishlistBySlug,
+  listPublicWishlists,
   listWishlist,
   listWishlists,
   listWishlistSlugs,
@@ -161,6 +163,16 @@ describe("wishlists", () => {
       { name: "Birthday", itemCount: 0, image: null },
       { name: "Wishlist", itemCount: 3, image: "img-b" },
     ]);
+  });
+
+  it("lists only public wishlists, by name, and finds only those by slug for visitors", () => {
+    const house = createWishlist("house", "house");
+    createWishlist("Attic", "attic");
+    [house, b].forEach((id) => updateWishlist(id, { ...getWishlist(id)!, isPublic: 1 }));
+    expect(listPublicWishlists().map((wishlist) => wishlist.slug)).toEqual(["birthday", "house"]);
+    expect(getPublicWishlist("house")?.id).toBe(house);
+    expect(getPublicWishlist("attic")).toBeUndefined();
+    expect(getPublicWishlist("nope")).toBeUndefined();
   });
 
   it("refuses a taken slug; uniqueSlug gives a free one", () => {

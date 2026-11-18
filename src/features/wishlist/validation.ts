@@ -30,4 +30,4 @@ export const wishMoveSchema = z.object({ itemId: z.coerce.number().int(), rank: 
 // A wishlist's settings (TICKET-WSH-09): name and slug like a collection's, but `taken` holds the other wishlists'
 // slugs. Unticked checkboxes send nothing.
 export const parseWishlistSettings = (form: FormInput, taken: ReadonlySet<string>) =>
-  z.object({ ...nameAndSlug(taken, "wishlistTaken"), isPublic: checkbox, showReminders: checkbox }).safeParse(form);
+  z.object({ ...nameAndSlug(taken, { takenKey: "wishlistTaken", reserved: new Set() }), isPublic: checkbox, showReminders: checkbox }).safeParse(form);

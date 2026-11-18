@@ -52,7 +52,15 @@ const summaries = (publicOnly: boolean): WishlistSummary[] =>
 // Every wishlist by name, like collections.
 export const listWishlists = (): WishlistSummary[] => summaries(false);
 
-// shortcut: the pages and MCP tools built for one wishlist use the first by name, until TICKET-WSH-09..11 replace them.
+// Public wishlists only, for visitors (TICKET-WSH-10). Private ones aren't read at all, so their names stay off the
+// public pages.
+export const listPublicWishlists = (): WishlistSummary[] => summaries(true);
+
+// A visitor's wishlist (TICKET-WSH-10): undefined for a private one, as for an unknown slug.
+export const getPublicWishlist = (slug: string): Wishlist | undefined =>
+  db().prepare(`select ${wishlistColumns} from wishlists where slug = ? and is_public = 1`).get(slug) as Wishlist | undefined;
+
+// shortcut: the MCP tools built for one wishlist use the first by name, until TICKET-WSH-11 replaces them.
 // The migration always leaves one.
 export const firstWishlist = (): Wishlist => listWishlists()[0]!;
 

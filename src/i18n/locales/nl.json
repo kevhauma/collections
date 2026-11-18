@@ -284,7 +284,6 @@
   "collections.slug.optional": "Webadres (optioneel)",
   "setup.heading": "Welkom",
   "collections.settings.showOnWishlistHint": "Zolang ze openbaar is en wensen heeft, verwijst het openbare verlanglijstje naar haar wensenlijst.",
-  "wishlist.heading": "Verlanglijstje",
   "home.wishlist.count": "Verlanglijstje · {count}",
   "admin.nav.wishlists": "Verlanglijstjes",
   "wishlists.page.title": "Verlanglijstjes · Hoardr",

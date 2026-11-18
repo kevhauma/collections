@@ -1,29 +1,31 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { listPublic } from "../db/collections";
-import { firstWishlist, listWishlist, type WishItem } from "../db/wishlist";
+import { listPublicWishlists } from "../db/wishlist";
 import { formatNumber } from "../i18n";
 import { LinkButton } from "../ui/button";
 import { Card } from "../ui/card";
 import { EmptyState } from "../ui/empty-state";
 import { CollectionPicture } from "./collection-picture";
 
-// / (TICKET-PUB-01): the collections the owner has made public, below the wishlist when that's public too
-// (TICKET-WSH-05). A server component with no client code; private collections and a private wishlist aren't read at
+// / (TICKET-PUB-01): the collections the owner has made public, below the public wishlists (TICKET-WSH-05, one card
+// each since TICKET-WSH-10). A server component with no client code; private collections and wishlists aren't read at
 // all, so nothing here hints that they exist.
 
-// Full width above the collection cards, so it's the first thing a visitor sees.
-const WishlistCard = ({ wishes }: { wishes: WishItem[] }) => {
+type Wishlists = ReturnType<typeof listPublicWishlists>;
+
+// Full width above the collection cards, so they're the first thing a visitor sees.
+const WishlistCard = ({ wishlist }: { wishlist: Wishlists[number] }) => {
   const { t } = useLingui();
-  const title = t({ id: "wishlist.heading", message: "Wishlist" });
-  const count = formatNumber(wishes.length);
+  const count = formatNumber(wishlist.itemCount);
   return (
-    <Card heading={title}>
-      <div className="flex items-start gap-4">
-        <CollectionPicture image={wishes.find((wish) => wish.image)?.image ?? null} name={title} size="card" />
-        <LinkButton href="/wishlist" variant="primary">
+    <Card heading={wishlist.name}>
+      {/* Named after the wishlist so the repeated link texts stay distinguishable. */}
+      <nav aria-label={wishlist.name} className="flex items-start gap-4">
+        <CollectionPicture image={wishlist.image} name={wishlist.name} size="card" />
+        <LinkButton href={`/wishlist/${wishlist.slug}`} variant="primary">
           {t({ id: "home.wishlist.count", message: `Wishlist · ${count}` })}
         </LinkButton>
-      </div>
+      </nav>
     </Card>
   );
 };
@@ -50,15 +52,21 @@ const CollectionCard = ({ collection }: { collection: Shared["collections"][numb
   );
 };
 
-type Shared = { collections: ReturnType<typeof listPublic>; wishes?: WishItem[] };
+type Shared = { collections: ReturnType<typeof listPublic>; wishlists: Wishlists };
 
-// The wishlist card, then the collection cards; "Nothing shared yet" only when neither is public.
-const SharedCards = ({ collections, wishes }: Shared) => {
+// The wishlist cards, then the collection cards; "Nothing shared yet" only when nothing is public.
+const SharedCards = ({ collections, wishlists }: Shared) => {
   const { t } = useLingui();
-  if (!wishes && collections.length === 0) return <EmptyState title={t({ id: "home.empty", message: "Nothing shared yet" })} />;
+  if (wishlists.length + collections.length === 0) return <EmptyState title={t({ id: "home.empty", message: "Nothing shared yet" })} />;
   return (
     <>
-      {wishes && <WishlistCard wishes={wishes} />}
+      <ul className="grid gap-8 empty:hidden">
+        {wishlists.map((wishlist) => (
+          <li key={wishlist.id}>
+            <WishlistCard wishlist={wishlist} />
+          </li>
+        ))}
+      </ul>
       <ul className="grid items-start gap-x-8 gap-y-10 empty:hidden sm:grid-cols-2">
         {collections.map((collection) => (
           <li key={collection.id}>
@@ -82,7 +90,7 @@ export default function Home() {
       <h1>
         <Trans id="home.heading">Shared collections</Trans>
       </h1>
-      <SharedCards collections={listPublic()} wishes={firstWishlist().isPublic === 1 ? listWishlist(firstWishlist().id) : undefined} />
+      <SharedCards collections={listPublic()} wishlists={listPublicWishlists()} />
     </div>
   );
 }

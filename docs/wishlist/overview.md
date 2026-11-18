@@ -14,5 +14,5 @@ ranking it copies), [§ Routes](../technical-design.md#routes).
 - [x] [TICKET-WSH-07](./tickets/TICKET-WSH-07-wishlist-mcp-tools.md): MCP tools for the wishlist (extends TICKET-MCP-01). Needs TICKET-WSH-01 · v1
 - [x] [TICKET-WSH-08](./tickets/TICKET-WSH-08-several-wishlists-data.md): Several wishlists: table, repository and export (changes § Wishlist, § Data model, § Export; revises WSH-01, WSH-02). Independent, can ship any time · v1
 - [x] [TICKET-WSH-09](./tickets/TICKET-WSH-09-admin-several-wishlists.md): Admin pages for several wishlists (changes § Routes: Admin; revises WSH-03). Needs TICKET-WSH-08 · v1
-- [ ] [TICKET-WSH-10](./tickets/TICKET-WSH-10-public-several-wishlists.md): Public pages and home cards for several wishlists (changes § Routes: Public; revises WSH-04..06). Needs TICKET-WSH-08, TICKET-WSH-09 · _unreleased_
+- [x] [TICKET-WSH-10](./tickets/TICKET-WSH-10-public-several-wishlists.md): Public pages and home cards for several wishlists (changes § Routes: Public; revises WSH-04..06). Needs TICKET-WSH-08, TICKET-WSH-09 · v1
 - [ ] [TICKET-WSH-11](./tickets/TICKET-WSH-11-mcp-several-wishlists.md): MCP tools for several wishlists (changes § API; revises WSH-07). Needs TICKET-WSH-08 · _unreleased_

@@ -9,16 +9,18 @@ const key = (errorKey: ErrorKey) => errorKey;
 
 export type FormInput = Record<string, FormDataEntryValue>;
 
-// `taken`: the slugs of every other collection, or of every other wishlist with `takenKey` "wishlistTaken"
-// (TICKET-WSH-09).
-export const nameAndSlug = (taken: ReadonlySet<string>, takenKey: "taken" | "wishlistTaken" = "taken") => ({
+// `taken`: the slugs of every other collection. Wishlists (TICKET-WSH-09) pass the other wishlists' slugs, their own
+// taken message, and no reserved slugs: they live under /wishlist/, so they can't shadow the app.
+type SlugRules = { takenKey?: "taken" | "wishlistTaken"; reserved?: ReadonlySet<string> };
+
+export const nameAndSlug = (taken: ReadonlySet<string>, { takenKey = "taken", reserved = reservedSlugs }: SlugRules = {}) => ({
   name: z.string().trim().min(1, key("name")).max(100, key("name")),
   slug: z
     .string()
     .trim()
     .max(maxSlugLength, key("format"))
     .regex(slugPattern, key("format"))
-    .refine((slug) => !reservedSlugs.has(slug), key("reserved"))
+    .refine((slug) => !reserved.has(slug), key("reserved"))
     .refine((slug) => !taken.has(slug), key(takenKey)),
 });
 

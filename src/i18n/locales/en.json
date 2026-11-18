@@ -284,7 +284,6 @@
   "collections.slug.optional": "Web address (optional)",
   "setup.heading": "Welcome",
   "collections.settings.showOnWishlistHint": "While it is public and has wants, the public wishlist points to its want list.",
-  "wishlist.heading": "Wishlist",
   "home.wishlist.count": "Wishlist · {count}",
   "admin.nav.wishlists": "Wishlists",
   "wishlists.page.title": "Wishlists · Hoardr",

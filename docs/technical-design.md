@@ -117,8 +117,9 @@ can also connect an AI agent through the MCP server at `/api/mcp`, which acts as
 
 | Route | Shows |
 |---|---|
-| `/` | Index of public collections, below a full-width wishlist card while the wishlist is public (TICKET-WSH-05). |
-| `/wishlist` | The public wishlist, in rank order (TICKET-WSH-04), below reminders of public collections with wants (TICKET-WSH-06). 404 while it is private. |
+| `/` | Index of public collections, below one full-width card per public wishlist, by name (TICKET-WSH-05, TICKET-WSH-10). |
+| `/wishlist/:slug` | A public wishlist, in rank order (TICKET-WSH-04), below reminders of public collections with wants when that wishlist has them on (TICKET-WSH-06). 404 while it is private or unknown. |
+| `/wishlist` | Redirects (302) to the first public wishlist by name, so links from before there were several keep working; 404 when none is public (TICKET-WSH-10). |
 | `/:slug` | The `have` tab of a public collection. |
 | `/:slug/want` | The `want` tab, ordered by rank by default. |
 | `POST /locale` | Sets the locale cookie and redirects back (works without JS). |

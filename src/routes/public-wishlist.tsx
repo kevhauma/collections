@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro";
-import { data } from "react-router";
+import { data, type LoaderFunctionArgs, type Params } from "react-router";
 import { listWishlistReminders } from "../db/collections";
-import { firstWishlist, listWishlist, type WishItem } from "../db/wishlist";
+import { getPublicWishlist, listWishlist, type WishItem, type Wishlist } from "../db/wishlist";
 import { formatNumber } from "../i18n";
 import { wishView } from "../features/wishlist/view";
 import { LinkButton } from "../ui/button";
@@ -11,13 +11,20 @@ import { CollectionPicture } from "./collection-picture";
 import { ItemGrid } from "./item-views";
 import { LinkPreview } from "./public-collection";
 
-// /wishlist (TICKET-WSH-04): the general wishlist for visitors, laid out like a collection's public want list (the
-// same post-it grid with the rank on each post-it). Server components only, under the public layout, so the page
-// ships no JS. A private wishlist answers the same 404 as a private collection. Reminders of the collections' want
-// lists sit above the items (TICKET-WSH-06).
+// /wishlist/:slug (TICKET-WSH-04, one page per wishlist since TICKET-WSH-10): a wishlist for visitors, laid out like
+// a collection's public want list (the same post-it grid with the rank on each post-it). Server components only,
+// under the public layout, so the page ships no JS. A private or unknown wishlist answers the same 404 as a private
+// collection. Reminders of the collections' want lists sit above the items when the wishlist has them on
+// (TICKET-WSH-06).
 
-export const loader = () => {
-  if (firstWishlist().isPublic !== 1) throw data(null, { status: 404 });
+const requirePublicWishlist = (slug: string | undefined): Wishlist => {
+  const wishlist = slug === undefined ? undefined : getPublicWishlist(slug);
+  if (!wishlist) throw data(null, { status: 404 });
+  return wishlist;
+};
+
+export const loader = ({ params }: LoaderFunctionArgs) => {
+  requirePublicWishlist(params.slug);
   return null;
 };
 
@@ -54,7 +61,7 @@ const Reminders = ({ reminders }: { reminders: Reminder[] }) => {
   );
 };
 
-const Wishes = ({ wishes }: { wishes: WishItem[] }) => {
+const Wishes = ({ wishes, slug }: { wishes: WishItem[]; slug: string }) => {
   const { t } = useLingui();
   const view = wishView(wishes, [
     ["title", t({ id: "wishlist.field.title", message: "Title" })],
@@ -70,24 +77,31 @@ const Wishes = ({ wishes }: { wishes: WishItem[] }) => {
         items={view.items}
         titleFieldId={view.titleFieldId}
         titleLinkFieldId={view.linkFieldId}
-        itemsBase={`/admin/w/${firstWishlist().slug}/items`}
+        itemsBase={`/admin/w/${slug}/items`}
       />
     )
   );
 };
 
-export default function PublicWishlist() {
+// The collection reminders, only on a wishlist that has them on.
+const remindersOf = (wishlist: Wishlist): Reminder[] => (wishlist.showReminders ? listWishlistReminders() : []);
+
+// The link preview's picture: the first wish that has one.
+const previewImage = (wishes: WishItem[]) => wishes.find((wish) => wish.image)?.image ?? undefined;
+
+export default function PublicWishlist({ params }: { params: Params }) {
   const { t } = useLingui();
-  const wishes = listWishlist(firstWishlist().id);
-  const reminders = listWishlistReminders();
-  const title = t({ id: "wishlist.heading", message: "Wishlist" });
+  const wishlist = requirePublicWishlist(params.slug);
+  const wishes = listWishlist(wishlist.id);
+  const reminders = remindersOf(wishlist);
+  const title = wishlist.name;
   return (
     <div className="grid gap-sq-2">
       <title>{title}</title>
-      <LinkPreview title={title} image={wishes.find((wish) => wish.image)?.image ?? undefined} />
+      <LinkPreview title={title} image={previewImage(wishes)} />
       <h1>{title}</h1>
       <Reminders reminders={reminders} />
-      <Wishes wishes={wishes} />
+      <Wishes wishes={wishes} slug={wishlist.slug} />
       {wishes.length + reminders.length === 0 && (
         <EmptyState title={t({ id: "wishlist.empty", message: "Nothing on the wishlist yet" })} />
       )}

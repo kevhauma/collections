@@ -86,10 +86,11 @@ describe("parseWishlistSettings", () => {
     });
   });
 
-  it("refuses an empty name, a malformed, reserved or taken slug, and a forged checkbox", () => {
+  it("refuses an empty name, a malformed or taken slug, and a forged checkbox; app paths are free under /wishlist/", () => {
     expect(issues({ name: " ", slug: "birthday" })).toEqual(["name:name"]);
     expect(issues({ name: "B", slug: "Birth Day" })).toEqual(["slug:format"]);
-    expect(issues({ name: "B", slug: "admin" })).toEqual(["slug:reserved"]);
+    expect(issues({ name: "B", slug: "admin" })).toEqual([]);
+    expect(issues({ name: "Wishlist", slug: "wishlist" })).toEqual([]);
     expect(issues({ name: "B", slug: "house" })).toEqual(["slug:wishlistTaken"]);
     expect(issues({ name: "B", slug: "b", isPublic: "yes" }).length).toBe(1);
   });

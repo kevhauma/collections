@@ -69,8 +69,10 @@ delete, laid out like a collection's settings.
       `moveWishItem(wishlistId, …)` for both the route action and `moveWishItemAction`)
 - [x] Renaming and changing the slug moves the admin pages to the new slug; a taken or reserved-pattern slug is
       refused with a message. (rename to Verjaardag / `verjaardag` redirected to `/admin/w/verjaardag/settings`, the
-      old slug 404s; `birthday-2` → "Another wishlist already uses this address.", `admin` → "This address is used by
-      the app itself.", `Bad Slug` → the format message)
+      old slug 404s; `birthday-2` → "Another wishlist already uses this address.", `Bad Slug` → the format message.
+      ~~`admin` → "This address is used by the app itself."~~ Fixed in TICKET-WSH-10: the collections' reserved list
+      refused the migrated wishlist's own slug `wishlist`, so wishlist slugs now skip it, as TICKET-WSH-08 says; they
+      live under `/wishlist/`)
 - [x] The public and reminders checkboxes save (ticked, unticked). (both ticked, then both unticked: the inputs
       rendered `checked` and then not, with "Saved.")
 - [x] Deleting a wishlist removes it, its items and their image files. (`birthday-2` with an uploaded image: delete

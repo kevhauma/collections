@@ -16,8 +16,10 @@ export const routes = () =>
           children: [
             { id: "home", index: true, lazy: () => import("./routes/home") },
             { id: "setup", path: "setup", lazy: () => import("./routes/setup") },
-            // The public wishlist (TICKET-WSH-04): a reserved slug, so no collection can shadow it.
-            { id: "public-wishlist", path: "wishlist", lazy: () => import("./routes/public-wishlist") },
+            // The public wishlists (TICKET-WSH-04, TICKET-WSH-10): a reserved slug, so no collection can shadow them.
+            // /wishlist itself redirects to the first public one, so links shared before there were several still work.
+            { id: "public-wishlist-first", path: "wishlist", lazy: () => import("./routes/public-wishlist-first") },
+            { id: "public-wishlist", path: "wishlist/:slug", lazy: () => import("./routes/public-wishlist") },
             // A public collection: /:slug (have) and /:slug/want. Static paths (setup, admin, locale) rank first.
             { id: "public-collection", path: ":slug/:tab?", lazy: () => import("./routes/public-collection") },
             { id: "not-found", path: "*", lazy: () => import("./routes/not-found") },
