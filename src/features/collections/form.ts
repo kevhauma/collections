@@ -14,6 +14,7 @@ const messages: Record<ErrorKey | FieldErrorKey, ReturnType<typeof msg>> = {
   }),
   reserved: msg({ id: "collections.error.slugReserved", message: "This address is used by the app itself." }),
   taken: msg({ id: "collections.error.slugTaken", message: "Another collection already uses this address." }),
+  wishlistTaken: msg({ id: "wishlist.error.slugTaken", message: "Another wishlist already uses this address." }),
   label: msg({ id: "fields.error.label", message: "Enter a label of up to 100 characters." }),
   labelTaken: msg({ id: "fields.error.labelTaken", message: "Another field already has this label." }),
   option: msg({ id: "fields.error.option", message: "Keep each option under 100 characters." }),

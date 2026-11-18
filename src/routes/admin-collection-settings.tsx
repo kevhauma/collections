@@ -16,6 +16,7 @@ import { Checkbox, RadioGroup } from "../ui/choice";
 import { Dialog } from "../ui/dialog";
 import { FormField } from "../ui/form-field";
 import { Select } from "../ui/input";
+import { SaveRow } from "./admin-parts";
 import { CollectionNameFields } from "./collection-name-fields";
 import { ImageSection } from "./image-section";
 
@@ -185,14 +186,7 @@ const DefaultItemImage = ({ collection, state }: { collection: Collection; state
             imageUrl: t({ id: "items.image.url", message: "Or an image address" }),
           }}
         />
-        <div className="flex flex-wrap items-center gap-4">
-          <Button variant="primary" type="submit">
-            <Trans id="collections.settings.save">Save</Trans>
-          </Button>
-          <p role="status">
-            {state.saved && <Trans id="collections.settings.saved">Saved.</Trans>}
-          </p>
-        </div>
+        <SaveRow saved={state.saved} />
       </form>
     </Card>
   );
@@ -320,14 +314,7 @@ export default function CollectionSettings({ params, actionData }: { params: Par
               }}
             />
           </fieldset>
-          <div className="flex flex-wrap items-center gap-4">
-            <Button variant="primary" type="submit">
-              <Trans id="collections.settings.save">Save</Trans>
-            </Button>
-            <p role="status">
-              {saved && <Trans id="collections.settings.saved">Saved.</Trans>}
-            </p>
-          </div>
+          <SaveRow saved={saved} />
         </form>
       </Card>
 

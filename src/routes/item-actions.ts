@@ -4,6 +4,7 @@ import { moveWant } from "../db/items";
 import { moveWishItem } from "../db/wishlist";
 import { requireAdmin } from "../features/auth/guard";
 import { requireCollection } from "../features/collections/require-collection";
+import { requireWishlist } from "../features/wishlist/require-wishlist";
 
 const moveSchema = z.object({ slug: z.string(), itemId: z.number().int(), to: z.number().int() });
 
@@ -16,11 +17,10 @@ export const moveWantAction = async (slug: string, itemId: number, to: number): 
   if (!moveWant(requireCollection(input.slug).id, input.itemId, input.to)) throw new Error("Not a want of this collection");
 };
 
-const moveWishSchema = z.object({ itemId: z.number().int(), to: z.number().int() });
-
-// Drag-and-drop on the admin wishlist (TICKET-WSH-03); the rank inputs post to the page's route action instead.
-export const moveWishItemAction = async (itemId: number, to: number): Promise<void> => {
+// Drag-and-drop on an admin wishlist (TICKET-WSH-03, bound to its slug since TICKET-WSH-09); the rank inputs post
+// to the page's route action instead. Throws when the item isn't on this wishlist.
+export const moveWishItemAction = async (slug: string, itemId: number, to: number): Promise<void> => {
   requireAdmin();
-  const input = moveWishSchema.parse({ itemId, to });
-  if (!moveWishItem(input.itemId, input.to)) throw new Error("Not a wishlist item");
+  const input = moveSchema.parse({ slug, itemId, to });
+  if (!moveWishItem(requireWishlist(input.slug).id, input.itemId, input.to)) throw new Error("Not on this wishlist");
 };

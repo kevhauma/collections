@@ -130,6 +130,10 @@ where a form doesn't fit, and pair that with `useOptimistic` and a revert on fai
   page with a form reads its data in the component (from `params`), and its `loader` only guards (`requireAdmin()`,
   404). Exemplar: [src/routes/admin-collection-settings.tsx](../../../src/routes/admin-collection-settings.tsx), with
   `requireCollection(params.slug)` from `src/features/collections/require-collection.ts`.
+- An `/admin/w/:slug` page does the same with `requireWishlist` / `wishlistAction` / `requireWish` from
+  [require-wishlist.ts](../../../src/features/wishlist/require-wishlist.ts) (TICKET-WSH-09). Admin list cards, a list
+  page's heading and a settings form's Save row are `AdminListCard`, `AdminPageHeading` and `SaveRow` in
+  [admin-parts.tsx](../../../src/routes/admin-parts.tsx).
 - An `/admin/c/:slug` route action is `collectionAction((collection, form, params) => …)` from the same file: it
   runs `requireAdmin()`, loads the collection (or 404) and reads the form; `params` carries the rest of the URL (an
   item id). A page with several forms posts an `intent`

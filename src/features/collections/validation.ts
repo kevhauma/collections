@@ -4,13 +4,14 @@ import { maxSlugLength, reservedSlugs, slugify, slugPattern, uniqueSlug } from "
 
 // Validation shared by the create and settings actions. Issue messages are keys that form.ts translates.
 
-export type ErrorKey = "name" | "format" | "reserved" | "taken";
+export type ErrorKey = "name" | "format" | "reserved" | "taken" | "wishlistTaken";
 const key = (errorKey: ErrorKey) => errorKey;
 
 export type FormInput = Record<string, FormDataEntryValue>;
 
-// `taken`: the slugs of every other collection.
-const fields = (taken: ReadonlySet<string>) => ({
+// `taken`: the slugs of every other collection, or of every other wishlist with `takenKey` "wishlistTaken"
+// (TICKET-WSH-09).
+export const nameAndSlug = (taken: ReadonlySet<string>, takenKey: "taken" | "wishlistTaken" = "taken") => ({
   name: z.string().trim().min(1, key("name")).max(100, key("name")),
   slug: z
     .string()
@@ -18,13 +19,13 @@ const fields = (taken: ReadonlySet<string>) => ({
     .max(maxSlugLength, key("format"))
     .regex(slugPattern, key("format"))
     .refine((slug) => !reservedSlugs.has(slug), key("reserved"))
-    .refine((slug) => !taken.has(slug), key("taken")),
+    .refine((slug) => !taken.has(slug), key(takenKey)),
 });
 
 // An empty slug is derived from the name and made unique. A typed one is validated as is: taken or reserved is an
 // error, never auto-suffixed.
 export const parseCreate = (form: FormInput, taken: ReadonlySet<string>) =>
-  z.object(fields(taken)).safeParse({
+  z.object(nameAndSlug(taken)).safeParse({
     name: form.name,
     slug: form.slug || uniqueSlug(slugify(String(form.name ?? "")), taken),
   });
@@ -35,7 +36,7 @@ export const parseCreate = (form: FormInput, taken: ReadonlySet<string>) =>
 type SettingsChoices = { taken: ReadonlySet<string>; sortable: ReadonlySet<string>; linkable: ReadonlySet<string> };
 
 // "on" when ticked; an unticked checkbox sends nothing.
-const checkbox = z
+export const checkbox = z
   .literal("on")
   .optional()
   .transform((on) => (on ? 1 : 0) as 0 | 1);
@@ -50,7 +51,7 @@ const optionalChoice = (allowed: ReadonlySet<string>) =>
 export const parseSettings = (form: FormInput, { taken, sortable, linkable }: SettingsChoices) =>
   z
     .object({
-      ...fields(taken),
+      ...nameAndSlug(taken),
       // An unchecked checkbox sends nothing.
       isPublic: checkbox,
       showOnWishlist: checkbox,

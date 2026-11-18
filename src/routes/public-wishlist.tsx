@@ -70,7 +70,7 @@ const Wishes = ({ wishes }: { wishes: WishItem[] }) => {
         items={view.items}
         titleFieldId={view.titleFieldId}
         titleLinkFieldId={view.linkFieldId}
-        itemsBase="/admin/wishlist/items"
+        itemsBase={`/admin/w/${firstWishlist().slug}/items`}
       />
     )
   );

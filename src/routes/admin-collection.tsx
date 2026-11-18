@@ -9,11 +9,11 @@ import { collectionAction, requireCollection } from "../features/collections/req
 import { listQuery } from "../features/items/list-params";
 import { itemView } from "../features/items/view";
 import { LinkButton } from "../ui/button";
+import { AdminPageHeading } from "./admin-parts";
 import { CollectionItems, statusOf } from "./collection-items";
 import { moveWantAction } from "./item-actions";
 import { listHref } from "./item-paths";
 import { CollectionPicture } from "./collection-picture";
-import { VisibilityBadge } from "./visibility-badge";
 
 // /admin/c/:slug (have) and /admin/c/:slug/want (TICKET-ITM-05): the items as a table or grid, with search, sort and
 // filters in the query string, and want reordering (TICKET-ITM-03).
@@ -56,18 +56,14 @@ export default function AdminCollection({ params }: { params: Params }) {
   return (
     <div className="grid gap-sq">
       <title>{t({ id: "collections.page.title", message: `${name} · Hoardr` })}</title>
-      <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
-        <h1>{name}</h1>
-        <VisibilityBadge isPublic={collection.isPublic} />
-        <div className="flex flex-wrap gap-2 sm:ml-auto">
-          <LinkButton href={`/admin/c/${slug}/fields`} size="sm">
-            <Trans id="collections.link.fields">Fields</Trans>
-          </LinkButton>
-          <LinkButton href={`/admin/c/${slug}/settings`} size="sm">
-            <Trans id="collections.link.settings">Settings</Trans>
-          </LinkButton>
-        </div>
-      </div>
+      <AdminPageHeading name={name} isPublic={collection.isPublic}>
+        <LinkButton href={`/admin/c/${slug}/fields`} size="sm">
+          <Trans id="collections.link.fields">Fields</Trans>
+        </LinkButton>
+        <LinkButton href={`/admin/c/${slug}/settings`} size="sm">
+          <Trans id="collections.link.settings">Settings</Trans>
+        </LinkButton>
+      </AdminPageHeading>
       <CollectionPicture image={collection.image} name={name} size="page" />
       <CollectionItems
         mode="admin"

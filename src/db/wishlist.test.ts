@@ -49,26 +49,30 @@ describe("wishlist items", () => {
 
   it("moves an item up and down, shifting the others", () => {
     ["A", "B", "C", "D"].forEach((title) => add(title));
-    expect(moveWishItem(idOf("D"), 2)).toBe(true);
+    expect(moveWishItem(a, idOf("D"), 2)).toBe(true);
     expect(ranks()).toEqual(["1:A", "2:D", "3:B", "4:C"]);
-    moveWishItem(idOf("A"), 3);
+    moveWishItem(a, idOf("A"), 3);
     expect(ranks()).toEqual(["1:D", "2:B", "3:A", "4:C"]);
   });
 
   it("clamps a rank beyond the end to the bottom and below 1 to the top, inside its wishlist", () => {
     ["A", "B", "C"].forEach((title) => add(title));
     ["X", "Y", "Z", "W"].forEach((title) => add(title, null, b));
-    moveWishItem(idOf("A"), 99);
+    moveWishItem(a, idOf("A"), 99);
     expect(ranks()).toEqual(["1:B", "2:C", "3:A"]);
-    moveWishItem(idOf("C"), -5);
+    moveWishItem(a, idOf("C"), -5);
     expect(ranks()).toEqual(["1:C", "2:B", "3:A"]);
     expect(ranks(b)).toEqual(["1:X", "2:Y", "3:Z", "4:W"]);
   });
 
-  it("refuses to move an unknown item", () => {
-    add("A");
-    expect(moveWishItem(999_999, 1)).toBe(false);
-    expect(ranks()).toEqual(["1:A"]);
+  it("refuses to move an unknown item, or one of another wishlist", () => {
+    ["A", "B"].forEach((title) => add(title));
+    add("X", null, b);
+    expect(moveWishItem(a, 999_999, 1)).toBe(false);
+    expect(moveWishItem(b, idOf("B"), 1)).toBe(false);
+    expect(moveWishItem(a, idOf("X", b), 1)).toBe(false);
+    expect(ranks()).toEqual(["1:A", "2:B"]);
+    expect(ranks(b)).toEqual(["1:X"]);
   });
 
   it("keeps the rank and the image on an update without an image", () => {
@@ -116,12 +120,15 @@ describe("wishlist items", () => {
       return seed % n;
     };
     const all = () => [...listWishlist(a), ...listWishlist(b)].map((item) => item.id);
-    const pick = () => all()[random(all().length)]!;
+    const pick = () => getWishItem(all()[random(all().length)]!)!;
     const steps = [
       () => add("w", null, a),
       () => add("w", null, b),
-      () => all().length > 0 && moveWishItem(pick(), random(all().length + 4) - 1),
-      () => all().length > 0 && deleteWishItem(pick()),
+      () => {
+        const wish = all().length > 0 && pick();
+        return wish && moveWishItem(wish.wishlistId, wish.id, random(all().length + 4) - 1);
+      },
+      () => all().length > 0 && deleteWishItem(pick().id),
     ];
     const dense = (wishlistId: number) => {
       const current = listWishlist(wishlistId).map((item) => item.rank);

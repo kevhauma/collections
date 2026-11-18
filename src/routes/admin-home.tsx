@@ -4,11 +4,9 @@ import { requestContext } from "../context";
 import { listCollections } from "../db/collections";
 import { formatNumber } from "../i18n";
 import { LinkButton } from "../ui/button";
-import { Card } from "../ui/card";
 import { EmptyState } from "../ui/empty-state";
 import { LoginForm, loginAction, type LoginResult } from "./admin-login";
-import { CollectionPicture } from "./collection-picture";
-import { VisibilityBadge } from "./visibility-badge";
+import { AdminListCard } from "./admin-parts";
 
 // /admin: the login form without a session, the dashboard (every collection) with one.
 
@@ -54,33 +52,26 @@ function Dashboard() {
             const base = `/admin/c/${collection.slug}`;
             return (
               <li key={collection.id}>
-                <Card heading={collection.name}>
-                  <div className="flex items-start gap-4">
-                    <CollectionPicture image={collection.image} name={collection.name} size="card" />
-                    <div className="grid min-w-0 flex-1 gap-4">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <VisibilityBadge isPublic={collection.isPublic} />
-                        <p>
-                          <Trans id="collections.counts">
-                            {have} have · {want} want
-                          </Trans>
-                        </p>
-                      </div>
-                      {/* Named after the collection so the repeated link texts stay distinguishable. */}
-                      <nav aria-label={collection.name} className="flex flex-wrap gap-2">
-                        <LinkButton href={base} size="sm">
-                          <Trans id="collections.link.items">Items</Trans>
-                        </LinkButton>
-                        <LinkButton href={`${base}/fields`} size="sm" variant="ghost">
-                          <Trans id="collections.link.fields">Fields</Trans>
-                        </LinkButton>
-                        <LinkButton href={`${base}/settings`} size="sm" variant="ghost">
-                          <Trans id="collections.link.settings">Settings</Trans>
-                        </LinkButton>
-                      </nav>
-                    </div>
-                  </div>
-                </Card>
+                <AdminListCard
+                  name={collection.name}
+                  image={collection.image}
+                  isPublic={collection.isPublic}
+                  count={
+                    <Trans id="collections.counts">
+                      {have} have · {want} want
+                    </Trans>
+                  }
+                >
+                  <LinkButton href={base} size="sm">
+                    <Trans id="collections.link.items">Items</Trans>
+                  </LinkButton>
+                  <LinkButton href={`${base}/fields`} size="sm" variant="ghost">
+                    <Trans id="collections.link.fields">Fields</Trans>
+                  </LinkButton>
+                  <LinkButton href={`${base}/settings`} size="sm" variant="ghost">
+                    <Trans id="collections.link.settings">Settings</Trans>
+                  </LinkButton>
+                </AdminListCard>
               </li>
             );
           })}

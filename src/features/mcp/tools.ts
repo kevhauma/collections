@@ -130,7 +130,8 @@ const parseWish = (args: WishArgs, current?: WishItem) => {
 
 // Places a wishlist item at `rank` after it was written; ranks outside 1..n are clamped.
 const placeWish = (id: number, rank: number | undefined) => {
-  if (rank !== undefined) moveWishItem(id, rank);
+  const wish = wishOf(id);
+  if (rank !== undefined) moveWishItem(wish.wishlistId, id, rank);
   return wishOut(wishOf(id));
 };
 

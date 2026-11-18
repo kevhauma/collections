@@ -34,7 +34,7 @@ export type ItemViewProps = {
   itemImage?: string | null;
   // Makes row and dialog ids unique when an item shows in several groups (TICKET-ITM-06), e.g. "-g2".
   idScope?: string;
-  // Where the admin's item links go: /admin/c/<slug>/items, or /admin/wishlist/items (TICKET-WSH-03).
+  // Where the admin's item links go: /admin/c/<slug>/items, or /admin/w/<slug>/items (TICKET-WSH-03, TICKET-WSH-09).
   itemsBase: string;
   // Sortable headers; the wishlist has none.
   sortLink?: (sort: ItemSort) => SortLink;

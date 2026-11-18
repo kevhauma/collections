@@ -1,10 +1,11 @@
 import { useLingui } from "@lingui/react/macro";
 import type { ReactNode } from "react";
-import { data, redirect, type ActionFunctionArgs, type LoaderFunctionArgs, type Params } from "react-router";
-import { firstWishlist, getWishItem, type WishItem } from "../db/wishlist";
+import { redirect, type LoaderFunctionArgs, type Params } from "react-router";
+import type { WishItem, Wishlist } from "../db/wishlist";
 import { requireAdmin } from "../features/auth/guard";
 import { prepareFormImage } from "../features/images/form";
 import { wishErrors } from "../features/wishlist/form";
+import { requireWish, requireWishlist, wishlistAction } from "../features/wishlist/require-wishlist";
 import { wishSchema } from "../features/wishlist/validation";
 import { removeWish, saveWish } from "../features/wishlist/wish-changes";
 import { Card } from "../ui/card";
@@ -14,21 +15,14 @@ import { Input, Textarea } from "../ui/input";
 import { DeleteDialog, errorLinks, SaveButtons } from "./admin-item";
 import { ImageSection } from "./image-section";
 
-// /admin/wishlist/items/new and /admin/wishlist/items/:id (TICKET-WSH-03): a wishlist item's fixed fields and its
-// image, with save and delete. A plain multipart form posting to the route action, so it works without JS.
-
-// The item named in the URL; undefined on the new-item form, the not-found page for an unknown id.
-const requireWish = (id: string | undefined): WishItem | undefined => {
-  if (id === undefined) return undefined;
-  const item = /^\d+$/.test(id) ? getWishItem(Number(id)) : undefined;
-  if (!item) throw data(null, { status: 404 });
-  return item;
-};
+// /admin/w/:slug/items/new and /admin/w/:slug/items/:id (TICKET-WSH-03, TICKET-WSH-09): a wishlist item's fixed
+// fields and its image, with save and delete. A plain multipart form posting to the route action, so it works without
+// JS. An item of another wishlist is the not-found page.
 
 // Reads its data in the component: after a form post, RSC renders without rerunning loaders.
 export const loader = ({ params }: LoaderFunctionArgs) => {
   requireAdmin();
-  requireWish(params.id);
+  requireWish(requireWishlist(params.slug), params.id);
   return null;
 };
 
@@ -42,27 +36,25 @@ const typed = (form: Record<string, unknown>): Values =>
   Object.fromEntries(inputs.map((name) => [name, typeof form[name] === "string" ? form[name] : ""])) as Values;
 
 // Values are checked before any image work, so a form with errors never leaves image files behind.
-const save = async (form: Form, item: WishItem | undefined): Promise<Response | Rejected> => {
+const save = async (wishlist: Wishlist, form: Form, item: WishItem | undefined): Promise<Response | Rejected> => {
   const parsed = wishSchema.safeParse(form);
   if (!parsed.success) return { errors: wishErrors(parsed.error), values: typed(form) };
   const prepared = await prepareFormImage(form);
   if ("errors" in prepared) return { errors: prepared.errors, values: typed(form) };
-  const id = await saveWish(firstWishlist().id, item, { ...parsed.data, image: prepared.image });
-  return redirect(`/admin/wishlist#item-${id}`);
+  const id = await saveWish(wishlist.id, item, { ...parsed.data, image: prepared.image });
+  return redirect(`/admin/w/${wishlist.slug}#item-${id}`);
 };
 
-const remove = async (item: WishItem | undefined): Promise<Response> => {
+const remove = async (wishlist: Wishlist, item: WishItem | undefined): Promise<Response> => {
   if (!item) throw new Response(null, { status: 400 });
   await removeWish(item);
-  return redirect("/admin/wishlist");
+  return redirect(`/admin/w/${wishlist.slug}`);
 };
 
-export const action = async ({ request, params }: ActionFunctionArgs) => {
-  requireAdmin();
-  const item = requireWish(params.id);
-  const form = Object.fromEntries(await request.formData());
-  return form.intent === "delete" ? remove(item) : save(form, item);
-};
+export const action = wishlistAction((wishlist, form, params) => {
+  const item = requireWish(wishlist, params.id);
+  return form.intent === "delete" ? remove(wishlist, item) : save(wishlist, form, item);
+});
 
 type Labels = Record<"title" | "link" | "note" | "price" | "image" | "imageUrl", string>;
 type ControlOf = (props: ControlProps & { name: string; defaultValue: string }) => ReactNode;
@@ -97,7 +89,8 @@ const WishFields = ({ errors, values, labels }: FieldsProps) => {
 
 export default function AdminWishlistItem({ params, actionData }: { params: Params; actionData?: Rejected }) {
   const { t } = useLingui();
-  const item = requireWish(params.id);
+  const wishlist = requireWishlist(params.slug);
+  const item = requireWish(wishlist, params.id);
   const { errors, values } = actionData ?? { errors: {}, values: typed({ ...item }) };
   const labels: Labels = {
     title: t({ id: "wishlist.field.title", message: "Title" }),
@@ -115,12 +108,12 @@ export default function AdminWishlistItem({ params, actionData }: { params: Para
   const { title, image } = item ?? { title: "", image: null };
   const editing = item !== undefined;
   const heading = editing ? title : t({ id: "wishlist.new.heading", message: "New wish" });
-  const name = t({ id: "wishlist.heading", message: "Wishlist" });
+  const name = wishlist.name;
   return (
     <div className="grid max-w-xl gap-6">
       <title>{t({ id: "items.form.title", message: `${heading} · ${name}` })}</title>
       <div className="grid gap-1">
-        <a href="/admin/wishlist">← {name}</a>
+        <a href={`/admin/w/${wishlist.slug}`}>← {name}</a>
         <h1>{heading}</h1>
       </div>
       <Card tone="ink">

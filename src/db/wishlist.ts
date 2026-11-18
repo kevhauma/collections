@@ -130,13 +130,13 @@ export const deleteWishItem = (id: number): string | null =>
   })();
 
 // Moves an item to `toRank` (clamped to 1..n) inside its wishlist and renumbers 1..n in one transaction, like
-// `moveWant`. False when there is no such item.
-export const moveWishItem = (id: number, toRank: number): boolean =>
+// `moveWant`. False when the item isn't on that wishlist.
+export const moveWishItem = (wishlistId: number, id: number, toRank: number): boolean =>
   db().transaction(() => {
     const ids = db()
-      .prepare("select id from wishlist_items where wishlist_id = (select wishlist_id from wishlist_items where id = ?) order by rank")
+      .prepare("select id from wishlist_items where wishlist_id = ? order by rank")
       .pluck()
-      .all(id) as number[];
+      .all(wishlistId) as number[];
     if (!ids.includes(id)) return false;
     const setRank = db().prepare("update wishlist_items set rank = ? where id = ?");
     moveInList(ids, ids.indexOf(id), toRank - 1).forEach((itemId, index) => setRank.run(index + 1, itemId));

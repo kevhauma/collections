@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runWithContext } from "../../context";
+import { rejected } from "../collections/form";
 import { wishErrors } from "./form";
-import { wishlistIntentSchema, wishSchema } from "./validation";
+import { parseWishlistSettings, wishMoveSchema, wishSchema } from "./validation";
 
 const keysOf = (input: Record<string, unknown>) => {
   const parsed = wishSchema.safeParse(input);
@@ -53,24 +54,51 @@ describe("wishSchema", () => {
   });
 });
 
-describe("wishlistIntentSchema", () => {
+describe("wishMoveSchema", () => {
   it("parses a typed rank move", () => {
-    expect(wishlistIntentSchema.parse({ intent: "move", itemId: "12", rank: "1" })).toEqual({ intent: "move", itemId: 12, rank: 1 });
+    expect(wishMoveSchema.parse({ intent: "move", itemId: "12", rank: "1" })).toEqual({ itemId: 12, rank: 1 });
   });
 
   it("refuses a move without a whole-number rank or item", () => {
-    expect(wishlistIntentSchema.safeParse({ intent: "move", itemId: "12", rank: "" }).success).toBe(false);
-    expect(wishlistIntentSchema.safeParse({ intent: "move", itemId: "12", rank: "1.5" }).success).toBe(false);
-    expect(wishlistIntentSchema.safeParse({ intent: "move", itemId: "x", rank: "1" }).success).toBe(false);
+    expect(wishMoveSchema.safeParse({ itemId: "12", rank: "" }).success).toBe(false);
+    expect(wishMoveSchema.safeParse({ itemId: "12", rank: "1.5" }).success).toBe(false);
+    expect(wishMoveSchema.safeParse({ itemId: "x", rank: "1" }).success).toBe(false);
+  });
+});
+
+describe("parseWishlistSettings", () => {
+  const taken = new Set(["house"]);
+  const issues = (form: Record<string, string>) => {
+    const parsed = parseWishlistSettings(form, taken);
+    return parsed.success ? [] : parsed.error.issues.map((issue) => `${String(issue.path[0])}:${issue.message}`);
+  };
+
+  it("trims name and slug and reads both checkboxes ticked", () => {
+    expect(parseWishlistSettings({ name: " Birthday ", slug: " birthday ", isPublic: "on", showReminders: "on" }, taken)).toMatchObject({
+      success: true,
+      data: { name: "Birthday", slug: "birthday", isPublic: 1, showReminders: 1 },
+    });
   });
 
-  it("reads the public checkbox: ticked, unticked (absent) and forged", () => {
-    expect(wishlistIntentSchema.parse({ intent: "visibility", isPublic: "on" })).toEqual({ intent: "visibility", isPublic: true });
-    expect(wishlistIntentSchema.parse({ intent: "visibility" })).toEqual({ intent: "visibility", isPublic: false });
-    expect(wishlistIntentSchema.safeParse({ intent: "visibility", isPublic: "yes" }).success).toBe(false);
+  it("reads absent checkboxes as unticked", () => {
+    expect(parseWishlistSettings({ name: "Birthday", slug: "birthday" }, taken)).toMatchObject({
+      data: { isPublic: 0, showReminders: 0 },
+    });
   });
 
-  it("refuses an unknown intent", () => {
-    expect(wishlistIntentSchema.safeParse({ intent: "toString" }).success).toBe(false);
+  it("refuses an empty name, a malformed, reserved or taken slug, and a forged checkbox", () => {
+    expect(issues({ name: " ", slug: "birthday" })).toEqual(["name:name"]);
+    expect(issues({ name: "B", slug: "Birth Day" })).toEqual(["slug:format"]);
+    expect(issues({ name: "B", slug: "admin" })).toEqual(["slug:reserved"]);
+    expect(issues({ name: "B", slug: "house" })).toEqual(["slug:wishlistTaken"]);
+    expect(issues({ name: "B", slug: "b", isPublic: "yes" }).length).toBe(1);
+  });
+
+  it("names the other wishlist in the taken message", () => {
+    const parsed = parseWishlistSettings({ name: "B", slug: "house" }, taken);
+    const errors = runWithContext({ request: new Request("http://localhost/"), locale: "en", setCookies: [] }, () =>
+      rejected(parsed.error!, { name: "B", slug: "house" }).errors,
+    );
+    expect(errors).toEqual({ slug: "Another wishlist already uses this address." });
   });
 });
