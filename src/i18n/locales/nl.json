@@ -234,6 +234,7 @@
   "collections.settings.saved": "Opgeslagen.",
   "settings.saved": "Opgeslagen.",
   "items.search": "Zoeken",
+  "items.filter.toggle": "Zoeken & filteren",
   "setup.submit": "Wachtwoord instellen",
   "setup.title": "Instellen · Hoardr",
   "collections.settings.heading": "Instellingen",

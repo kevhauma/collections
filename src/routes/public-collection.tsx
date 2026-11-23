@@ -46,8 +46,10 @@ export default function PublicCollection({ params }: { params: Params }) {
     <div className="grid gap-sq">
       <title>{titles[status]}</title>
       <LinkPreview title={titles[status]} image={collection.image ?? firstImage(collection.id, status)} />
-      <h1>{name}</h1>
-      <CollectionPicture image={collection.image} name={name} size="page" />
+      <div className="flex items-center gap-4">
+        <CollectionPicture image={collection.image} name={name} size="card" />
+        <h1>{name}</h1>
+      </div>
       <CollectionItems
         mode="public"
         collection={collection}

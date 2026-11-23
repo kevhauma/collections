@@ -234,6 +234,7 @@
   "collections.settings.saved": "Saved.",
   "settings.saved": "Saved.",
   "items.search": "Search",
+  "items.filter.toggle": "Search & filter",
   "setup.submit": "Set password",
   "setup.title": "Set up · Hoardr",
   "collections.settings.heading": "Settings",

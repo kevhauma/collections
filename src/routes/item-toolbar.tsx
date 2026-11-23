@@ -83,9 +83,18 @@ export const ItemToolbar = ({ params, fields, titleFieldId, status, resetHref, v
     table: t({ id: "collections.view.table", message: "Table" }),
     grid: t({ id: "collections.view.grid", message: "Grid" }),
   };
+  // Folded shut by default to keep the items front and centre; open when a search or filter is already in effect.
+  const active = params.q !== "" || params.group !== undefined || filterableFields(fields).some((field) => filterInput(params, field.id) !== "");
   return (
     <div className="grid gap-sq">
-      <form method="get" role="search" data-submit-once className="group flex flex-wrap items-end gap-x-3 gap-y-sq">
+      <details open={active} className="group/filter grid gap-sq">
+        <summary className="flex min-h-11 w-fit cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+          <svg aria-hidden="true" viewBox="0 0 16 16" className="size-4 shrink-0 transition-transform group-open/filter:rotate-90">
+            <path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          {t({ id: "items.filter.toggle", message: "Search & filter" })}
+        </summary>
+        <form method="get" role="search" data-submit-once className="group flex flex-wrap items-end gap-x-3 gap-y-sq">
         <input type="hidden" name="view" value={params.view} />
         <FormField id="list-q" label={t({ id: "items.search", message: "Search" })} className="min-w-52 flex-1">
           {(control) => <Input {...control} type="search" name="q" defaultValue={params.q} maxLength={maxQueryLength} />}
@@ -120,7 +129,8 @@ export const ItemToolbar = ({ params, fields, titleFieldId, status, resetHref, v
           </Button>
           <a href={resetHref}>{t({ id: "items.filter.reset", message: "Reset" })}</a>
         </div>
-      </form>
+        </form>
+      </details>
       <TabLinks
         variant="nav"
         label={t({ id: "items.view.label", message: "View" })}

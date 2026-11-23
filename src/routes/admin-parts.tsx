@@ -29,8 +29,9 @@ export const AdminListCard = ({ name, image, isPublic, count, children }: Listed
 );
 
 // A list page's heading: the name, its visibility and the page's buttons.
-export const AdminPageHeading = ({ name, isPublic, children }: Listed & { children: ReactNode }) => (
-  <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
+export const AdminPageHeading = ({ name, isPublic, image, children }: Listed & { image?: string | null; children: ReactNode }) => (
+  <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+    {image && <CollectionPicture image={image} name={name} size="card" />}
     <h1>{name}</h1>
     <VisibilityBadge isPublic={isPublic} />
     <div className="flex flex-wrap gap-2 sm:ml-auto">{children}</div>

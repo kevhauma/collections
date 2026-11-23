@@ -13,7 +13,6 @@ import { AdminPageHeading } from "./admin-parts";
 import { CollectionItems, statusOf } from "./collection-items";
 import { moveWantAction } from "./item-actions";
 import { listHref } from "./item-paths";
-import { CollectionPicture } from "./collection-picture";
 
 // /admin/c/:slug (have) and /admin/c/:slug/want (TICKET-ITM-05): the items as a table or grid, with search, sort and
 // filters in the query string, and want reordering (TICKET-ITM-03).
@@ -56,7 +55,7 @@ export default function AdminCollection({ params }: { params: Params }) {
   return (
     <div className="grid gap-sq">
       <title>{t({ id: "collections.page.title", message: `${name} · Hoardr` })}</title>
-      <AdminPageHeading name={name} isPublic={collection.isPublic}>
+      <AdminPageHeading name={name} isPublic={collection.isPublic} image={collection.image}>
         <LinkButton href={`/admin/c/${slug}/fields`} size="sm">
           <Trans id="collections.link.fields">Fields</Trans>
         </LinkButton>
@@ -64,7 +63,6 @@ export default function AdminCollection({ params }: { params: Params }) {
           <Trans id="collections.link.settings">Settings</Trans>
         </LinkButton>
       </AdminPageHeading>
-      <CollectionPicture image={collection.image} name={name} size="page" />
       <CollectionItems
         mode="admin"
         collection={collection}
