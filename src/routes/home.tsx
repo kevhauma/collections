@@ -1,10 +1,14 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { listPublic } from "../db/collections";
+import { listPublic, listPublicPreviews, type Preview } from "../db/collections";
 import { listPublicWishlists } from "../db/wishlist";
+import { thumbUrl } from "../features/images/shared";
+import { postItLook } from "../features/items/post-it-look";
 import { formatNumber } from "../i18n";
 import { LinkButton } from "../ui/button";
 import { Card } from "../ui/card";
 import { EmptyState } from "../ui/empty-state";
+import { PostIt } from "../ui/post-it";
+import { PictureShelf } from "../ui/picture-shelf";
 import { CollectionPicture } from "./collection-picture";
 
 // / (TICKET-PUB-01): the collections the owner has made public, below the public wishlists (TICKET-WSH-05, one card
@@ -30,32 +34,48 @@ const WishlistCard = ({ wishlist }: { wishlist: Wishlists[number] }) => {
   );
 };
 
-const CollectionCard = ({ collection }: { collection: Shared["collections"][number] }) => {
+// A pictured item on a collection's shelf: a small post-it, coloured and turned like its own on the list pages.
+const Thumb = ({ preview }: { preview: Preview }) => {
+  const { color, tilt } = postItLook(preview.id);
+  return (
+    <PostIt color={color} tilt={tilt} fastening="none" className="size-11 p-[3px]">
+      <img src={thumbUrl(preview.image)} alt={preview.title ?? ""} width={300} height={300} loading="lazy" className="size-full object-cover" />
+    </PostIt>
+  );
+};
+
+const CollectionCard = ({ collection, previews }: { collection: Shared["collections"][number]; previews: Preview[] }) => {
   const { t } = useLingui();
-  const haveCount = formatNumber(collection.haveCount);
-  const wantCount = formatNumber(collection.wantCount);
+  const shelves = [
+    { href: `/${collection.slug}`, label: t({ id: "items.tab.have", message: "Have" }), count: collection.haveCount, status: "have" },
+    { href: `/${collection.slug}/want`, label: t({ id: "items.tab.want", message: "Want" }), count: collection.wantCount, status: "want" },
+  ].map((shelf) => ({ ...shelf, items: previews.filter((preview) => preview.status === shelf.status).slice(0, 5) }));
   return (
     <Card heading={collection.name}>
       <div className="flex items-start gap-4">
         <CollectionPicture image={collection.image} name={collection.name} size="card" />
         {/* Named after the collection so the repeated link texts stay distinguishable. */}
-        <nav aria-label={collection.name} className="flex min-w-0 flex-1 flex-wrap gap-2">
-          <LinkButton href={`/${collection.slug}`} size="sm">
-            {t({ id: "items.tab.haveCount", message: `Have · ${haveCount}` })}
-          </LinkButton>
-          <LinkButton href={`/${collection.slug}/want`} size="sm">
-            {t({ id: "items.tab.wantCount", message: `Want · ${wantCount}` })}
-          </LinkButton>
+        <nav aria-label={collection.name} className="grid min-w-0 flex-1">
+          {shelves.map(({ href, label, count, items }) => {
+            const more = formatNumber(count - items.length);
+            return (
+              <PictureShelf key={href} href={href} label={label} more={count > items.length && `+${more}`}>
+                {items.map((preview) => (
+                  <Thumb key={preview.id} preview={preview} />
+                ))}
+              </PictureShelf>
+            );
+          })}
         </nav>
       </div>
     </Card>
   );
 };
 
-type Shared = { collections: ReturnType<typeof listPublic>; wishlists: Wishlists };
+type Shared = { collections: ReturnType<typeof listPublic>; wishlists: Wishlists; previews: Preview[] };
 
 // The wishlist cards, then the collection cards; "Nothing shared yet" only when nothing is public.
-const SharedCards = ({ collections, wishlists }: Shared) => {
+const SharedCards = ({ collections, wishlists, previews }: Shared) => {
   const { t } = useLingui();
   if (wishlists.length + collections.length === 0) return <EmptyState title={t({ id: "home.empty", message: "Nothing shared yet" })} />;
   return (
@@ -70,7 +90,7 @@ const SharedCards = ({ collections, wishlists }: Shared) => {
       <ul className="grid items-start gap-x-8 gap-y-10 empty:hidden sm:grid-cols-2">
         {collections.map((collection) => (
           <li key={collection.id}>
-            <CollectionCard collection={collection} />
+            <CollectionCard collection={collection} previews={previews.filter((preview) => preview.collectionId === collection.id)} />
           </li>
         ))}
       </ul>
@@ -90,7 +110,7 @@ export default function Home() {
       <h1>
         <Trans id="home.heading">Shared collections</Trans>
       </h1>
-      <SharedCards collections={listPublic()} wishlists={listPublicWishlists()} />
+      <SharedCards collections={listPublic()} wishlists={listPublicWishlists()} previews={listPublicPreviews(5)} />
     </div>
   );
 }

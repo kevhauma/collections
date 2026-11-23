@@ -8,6 +8,7 @@ import {
   getCollectionBySlug,
   listCollections,
   listPublic,
+  listPublicPreviews,
   listWishlistReminders,
   listSlugs,
   setItemImage,
@@ -156,6 +157,33 @@ describe("listPublic", () => {
     ]);
     updateCollection(zines.id, { ...zines, isPublic: 0 });
     expect(listPublic().some((collection) => collection.slug === "zines")).toBe(false);
+  });
+});
+
+describe("listPublicPreviews", () => {
+  it("pictures the top-ranked wants and the newest haves of public collections only, skipping items without a picture", () => {
+    const make = (slug: string, isPublic: 0 | 1) => {
+      createCollection(slug, slug, "Title");
+      const collection = getCollectionBySlug(slug)!;
+      updateCollection(collection.id, { ...collection, isPublic });
+      return collection;
+    };
+    const shown = make("p-shown", 1);
+    const hidden = make("p-hidden", 0);
+    const title = String(shown.titleFieldId);
+    createItem(shown.id, { status: "want", values: { [title]: "First" }, image: "w1" });
+    createItem(shown.id, { status: "want", values: {}, image: null });
+    createItem(shown.id, { status: "want", values: {}, image: "w3" });
+    createItem(shown.id, { status: "want", values: {}, image: "w4" });
+    ["h1", "h2", "h3"].forEach((image) => createItem(shown.id, { status: "have", quantity: 1, values: {}, image }));
+    createItem(hidden.id, { status: "want", values: {}, image: "secret" });
+    const previews = listPublicPreviews(2).filter((preview) => [shown.id, hidden.id].includes(preview.collectionId));
+    expect(previews.map(({ status, image, rank, title }) => [status, image, rank, title])).toEqual([
+      ["have", "h3", null, null],
+      ["have", "h2", null, null],
+      ["want", "w1", 1, "First"],
+      ["want", "w3", 3, null],
+    ]);
   });
 });
 

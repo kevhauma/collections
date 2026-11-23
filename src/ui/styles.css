@@ -247,6 +247,38 @@
   }
 }
 
+/* Up to five 44px post-its overlapping in a row (PictureShelf), straightening and spreading out while a pointer rests
+   on the link holding them; touch and reduced motion keep them overlapped. The fan fills the rest of the row and the
+   overlap grows when that's narrow (a 360px phone), so five post-its and a "+N" (the 260px) never push the card wider. */
+@utility picture-fan {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  container-type: inline-size;
+  & > .postit-corner {
+    transition:
+      margin 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+      translate 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+      rotate 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  & > .postit-corner + .postit-corner {
+    margin-inline-start: clamp(-30px, (100cqi - 260px) / 4, -13px);
+  }
+  & > .postit-corner:nth-child(even) {
+    translate: 0 3px;
+  }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    :is(a:hover, a:focus-visible) > & > .postit-corner {
+      translate: 0 -3px;
+      rotate: 0deg;
+    }
+    :is(a:hover, a:focus-visible) > & > .postit-corner + .postit-corner {
+      margin-inline-start: clamp(-30px, (100cqi - 260px) / 4, 6px);
+    }
+  }
+}
+
 /* The red pen on hover (TICKET-UI-05): HoverMark's loop or X, just past the control's edges, drawn in one quick
    stroke while a pointer rests on it and gone at once when it leaves. Each stroke has pathLength 1, so a dash of
    --stroke and an offset sliding from --stroke to 0 draws it from its start. Touch and reduced motion keep the colour

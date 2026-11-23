@@ -56,6 +56,23 @@ export const listCollections = (): CollectionSummary[] => summaries(false);
 // Public collections only, for the visitors' index (TICKET-PUB-01). Private ones don't show up in any form.
 export const listPublic = (): CollectionSummary[] => summaries(true);
 
+export type Preview = { collectionId: number; status: "have" | "want"; id: number; image: string; title: string | null; rank: number | null };
+
+// The pictured items on the visitors' index cards: per public collection, the top-ranked wants and the newest haves.
+// Items without their own picture are skipped, so the collection's default item image never repeats down a row.
+export const listPublicPreviews = (perStatus: number): Preview[] =>
+  db()
+    .prepare(
+      `select collectionId, status, id, image, title, rank from (
+         select i.collection_id as collectionId, i.status, i.id, i.image, i.rank,
+           json_extract(i.values_json, '$."' || c.title_field_id || '"') as title,
+           row_number() over (partition by i.collection_id, i.status order by i.rank, i.created_at desc, i.id desc) as n
+         from items i join collections c on c.id = i.collection_id
+         where c.is_public = 1 and i.image is not null)
+       where n <= ? order by collectionId, status, n`,
+    )
+    .all(perStatus) as Preview[];
+
 // The reminder cards on the public wishlist (TICKET-WSH-06): public collections with wants that haven't opted out.
 export const listWishlistReminders = (): CollectionSummary[] =>
   listPublic().filter((collection) => collection.showOnWishlist === 1 && collection.wantCount > 0);
