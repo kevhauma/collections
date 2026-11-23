@@ -11,15 +11,21 @@ export type Wishlist = {
   isPublic: 0 | 1;
   // Whether the collections' want lists are reminded of on its public page (TICKET-WSH-06).
   showReminders: 0 | 1;
-};
-
-type WishlistSummary = Wishlist & {
-  itemCount: number;
-  // The first image by rank, for its card.
+  // The cover picture (image id, files as for item images), shown on its card and above its items.
   image: string | null;
+  // The range that picks the in-budget ideas on its public page; null bounds are open-ended.
+  minPrice: number | null;
+  maxPrice: number | null;
 };
 
-export type WishlistSettings = Omit<Wishlist, "id">;
+type WishlistSummary = Wishlist & { itemCount: number };
+
+// The export's shape (db/export.ts) depends on this staying the four core settings; the cover and price range are
+// edited through `WishlistEdit` instead.
+export type WishlistSettings = Pick<Wishlist, "name" | "slug" | "isPublic" | "showReminders">;
+
+// What the settings form saves besides the cover image (which `updateWishlist` takes separately).
+export type WishlistEdit = WishlistSettings & Pick<Wishlist, "minPrice" | "maxPrice">;
 
 export type WishItem = {
   id: number;
@@ -36,15 +42,15 @@ export type WishItem = {
 // What a save writes. Rank is never written by a save: a new item goes to the bottom. `image` undefined keeps it.
 export type WishWrite = Pick<WishItem, "title" | "link" | "note" | "price"> & { image?: string | null };
 
-const wishlistColumns = "id, name, slug, is_public as isPublic, show_reminders as showReminders";
+const wishlistColumns =
+  "id, name, slug, is_public as isPublic, show_reminders as showReminders, image, min_price as minPrice, max_price as maxPrice";
 const columns = "id, wishlist_id as wishlistId, title, link, note, price, image, rank";
 
 const summaries = (publicOnly: boolean): WishlistSummary[] =>
   db()
     .prepare(
       `select ${wishlistColumns},
-         (select count(*) from wishlist_items i where i.wishlist_id = w.id) as itemCount,
-         (select image from wishlist_items i where i.wishlist_id = w.id and image is not null order by rank limit 1) as image
+         (select count(*) from wishlist_items i where i.wishlist_id = w.id) as itemCount
        from wishlists w where is_public = 1 or not ? order by name collate nocase`,
     )
     .all(publicOnly ? 1 : 0) as WishlistSummary[];
@@ -73,23 +79,29 @@ export const listWishlistSlugs = (): Set<string> =>
 export const createWishlist = (name: string, slug: string): number =>
   Number(db().prepare("insert into wishlists (name, slug) values (?, ?)").run(name, slug).lastInsertRowid);
 
-export const updateWishlist = (id: number, settings: WishlistSettings): void => {
+// `image`: a new cover's id, null to remove it, undefined to keep it (same convention as collections).
+export const updateWishlist = (id: number, settings: WishlistEdit, image?: string | null): void => {
   db()
     .prepare(
       `update wishlists set name = @name, slug = @slug, is_public = @isPublic, show_reminders = @showReminders,
-         updated_at = unixepoch() where id = @id`,
+         min_price = @minPrice, max_price = @maxPrice,
+         image = iif(@keepImage, image, @image), updated_at = unixepoch() where id = @id`,
     )
-    .run({ ...settings, id });
+    .run({ name: settings.name, slug: settings.slug, isPublic: settings.isPublic, showReminders: settings.showReminders,
+      minPrice: settings.minPrice, maxPrice: settings.maxPrice, id, image: image ?? null, keepImage: image === undefined ? 1 : 0 });
 };
 
-// Its items go with it through ON DELETE CASCADE. Returns their image ids, whose files the caller deletes after this
-// commits.
+// Its items go with it through ON DELETE CASCADE. Returns the cover and its items' image ids, whose files the caller
+// deletes after this commits.
 export const deleteWishlist = (id: number): string[] =>
   db().transaction(() => {
     const images = db()
-      .prepare("select image from wishlist_items where wishlist_id = ? and image is not null")
+      .prepare(
+        `select image from wishlists where id = @id and image is not null
+         union all select image from wishlist_items where wishlist_id = @id and image is not null`,
+      )
       .pluck()
-      .all(id) as string[];
+      .all({ id }) as string[];
     db().prepare("delete from wishlists where id = ?").run(id);
     return images;
   })();

@@ -3,10 +3,13 @@ import { data, type LoaderFunctionArgs, type Params } from "react-router";
 import { listWishlistReminders } from "../db/collections";
 import { getPublicWishlist, listWishlist, type WishItem, type Wishlist } from "../db/wishlist";
 import { formatNumber } from "../i18n";
+import { priceSuggestions, type Suggestion } from "../features/wishlist/suggestions";
 import { wishView } from "../features/wishlist/view";
+import { thumbUrl } from "../features/images/shared";
 import { LinkButton } from "../ui/button";
 import { Card } from "../ui/card";
 import { EmptyState } from "../ui/empty-state";
+import { PostIt } from "../ui/post-it";
 import { CollectionPicture } from "./collection-picture";
 import { ItemGrid } from "./item-views";
 import { LinkPreview } from "./public-collection";
@@ -86,8 +89,52 @@ const Wishes = ({ wishes, slug }: { wishes: WishItem[]; slug: string }) => {
 // The collection reminders, only on a wishlist that has them on.
 const remindersOf = (wishlist: Wishlist): Reminder[] => (wishlist.showReminders ? listWishlistReminders() : []);
 
-// The link preview's picture: the first wish that has one.
-const previewImage = (wishes: WishItem[]) => wishes.find((wish) => wish.image)?.image ?? undefined;
+// How many in-budget ideas show before the "show more" disclosure, and how many are fetched in all (the disclosure
+// holds the rest). shortcut: more than this many matches are dropped; raise it or paginate if a budget ever overflows it.
+const previewCount = 10;
+const maxSuggestions = 50;
+
+// Small tiles, five across on a wide screen, each linking to its collection's want list.
+const SuggestionTiles = ({ suggestions }: { suggestions: Suggestion[] }) => (
+  <ul className="grid grid-cols-3 gap-4 sm:grid-cols-5">
+    {suggestions.map((suggestion, index) => (
+      <li key={`${suggestion.slug}-${suggestion.name}-${index}`}>
+        <a
+          href={`/${suggestion.slug}/want`}
+          aria-label={`${suggestion.name} — ${suggestion.collectionName}`}
+          className="grid justify-items-center gap-1 text-center"
+        >
+          <PostIt size="sm" tilt={index % 2 === 0 ? "right" : "left"} fastening="paperclip">
+            {suggestion.image && <img src={thumbUrl(suggestion.image)} alt="" className="size-full object-cover" />}
+          </PostIt>
+          <span className="text-sm">{suggestion.name}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+);
+
+// In-budget ideas from the admin's collections, only on a wishlist that has a price range and some matches.
+const InBudget = ({ wishlist }: { wishlist: Wishlist }) => {
+  const { t } = useLingui();
+  if (wishlist.minPrice === null && wishlist.maxPrice === null) return false;
+  const suggestions = priceSuggestions(wishlist.minPrice, wishlist.maxPrice, maxSuggestions);
+  const rest = suggestions.slice(previewCount);
+  return (
+    suggestions.length > 0 && (
+      <section className="grid gap-sq">
+        <h2>{t({ id: "wishlist.inBudget.heading", message: "Ideas in my budget" })}</h2>
+        <SuggestionTiles suggestions={suggestions.slice(0, previewCount)} />
+        {rest.length > 0 && (
+          <details className="grid gap-sq">
+            <summary className="cursor-pointer">{t({ id: "wishlist.inBudget.more", message: "Show more" })}</summary>
+            <SuggestionTiles suggestions={rest} />
+          </details>
+        )}
+      </section>
+    )
+  );
+};
 
 export default function PublicWishlist({ params }: { params: Params }) {
   const { t } = useLingui();
@@ -98,10 +145,12 @@ export default function PublicWishlist({ params }: { params: Params }) {
   return (
     <div className="grid gap-sq-2">
       <title>{title}</title>
-      <LinkPreview title={title} image={previewImage(wishes)} />
+      <LinkPreview title={title} image={wishlist.image ?? undefined} />
       <h1>{title}</h1>
+      <CollectionPicture image={wishlist.image} name={title} size="page" />
       <Reminders reminders={reminders} />
       <Wishes wishes={wishes} slug={wishlist.slug} />
+      <InBudget wishlist={wishlist} />
       {wishes.length + reminders.length === 0 && (
         <EmptyState title={t({ id: "wishlist.empty", message: "Nothing on the wishlist yet" })} />
       )}

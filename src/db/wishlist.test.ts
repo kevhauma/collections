@@ -148,20 +148,30 @@ describe("wishlist items", () => {
 
 describe("wishlists", () => {
   it("creates a private wishlist without reminders, found by id and slug", () => {
-    expect(getWishlist(b)).toEqual({ id: b, name: "Birthday", slug: "birthday", isPublic: 0, showReminders: 0 });
+    expect(getWishlist(b)).toEqual({
+      id: b,
+      name: "Birthday",
+      slug: "birthday",
+      isPublic: 0,
+      showReminders: 0,
+      image: null,
+      minPrice: null,
+      maxPrice: null,
+    });
     expect(getWishlistBySlug("birthday")?.id).toBe(b);
     expect(getWishlistBySlug("nope")).toBeUndefined();
   });
 
-  it("lists wishlists by name, case-insensitive, with item count and the first image by rank", () => {
+  it("lists wishlists by name, case-insensitive, with item count and the cover image", () => {
     createWishlist("apples", "apples");
     add("A");
-    add("B", "img-b");
-    add("C", "img-c");
+    add("B");
+    add("C");
+    updateWishlist(b, { name: "Birthday", slug: "birthday", isPublic: 0, showReminders: 0, minPrice: null, maxPrice: null }, "cover-b");
     expect(listWishlists().map(({ name, itemCount, image }) => ({ name, itemCount, image }))).toEqual([
       { name: "apples", itemCount: 0, image: null },
-      { name: "Birthday", itemCount: 0, image: null },
-      { name: "Wishlist", itemCount: 3, image: "img-b" },
+      { name: "Birthday", itemCount: 0, image: "cover-b" },
+      { name: "Wishlist", itemCount: 3, image: null },
     ]);
   });
 
@@ -183,9 +193,18 @@ describe("wishlists", () => {
   });
 
   it("updates name, slug and both flags", () => {
-    updateWishlist(b, { name: "House", slug: "house", isPublic: 1, showReminders: 1 });
-    expect(getWishlist(b)).toEqual({ id: b, name: "House", slug: "house", isPublic: 1, showReminders: 1 });
-    updateWishlist(b, { name: "House", slug: "house", isPublic: 0, showReminders: 0 });
+    updateWishlist(b, { name: "House", slug: "house", isPublic: 1, showReminders: 1, minPrice: 5, maxPrice: 50 });
+    expect(getWishlist(b)).toEqual({
+      id: b,
+      name: "House",
+      slug: "house",
+      isPublic: 1,
+      showReminders: 1,
+      image: null,
+      minPrice: 5,
+      maxPrice: 50,
+    });
+    updateWishlist(b, { name: "House", slug: "house", isPublic: 0, showReminders: 0, minPrice: null, maxPrice: null });
     expect(getWishlist(b)).toMatchObject({ isPublic: 0, showReminders: 0 });
   });
 

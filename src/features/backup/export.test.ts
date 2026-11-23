@@ -92,7 +92,7 @@ const setup = async () => {
     await sharp({ create: { width: 400, height: 400, channels: 3, background: "#7bd389" } }).png().toBuffer(),
     uploads,
   );
-  updateWishlist(1, { name: "Wishlist", slug: "wishlist", isPublic: 1, showReminders: 1 });
+  updateWishlist(1, { name: "Wishlist", slug: "wishlist", isPublic: 1, showReminders: 1, minPrice: null, maxPrice: null });
   createWishItem(1, { title: "Lamp", link: "https://shop.example/lamp", note: 'Brass, "big" one', price: "€25", image: lamp });
   createWishItem(1, { title: "Mug", link: null, note: null, price: null, image: "lost-mug" });
   const cake = await processImage(
