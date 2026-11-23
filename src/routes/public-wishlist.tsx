@@ -115,7 +115,6 @@ export default function PublicWishlist({ params }: { params: Params }) {
       <Wishes wishes={wishes} slug={wishlist.slug} />
       {groups.length > 0 && (
         <section className="grid gap-sq-2">
-          <h2>{t({ id: "wishlist.reminders.heading", message: "More wants in my collections" })}</h2>
           {groups.map((group) => (
             <CollectionWants key={group.slug} group={group} />
           ))}
