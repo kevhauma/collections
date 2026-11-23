@@ -7,6 +7,7 @@ import { postItLook } from "../features/items/post-it-look";
 import { isHttpUrl } from "../features/items/schema";
 import { imageUrl, thumbUrl } from "../features/images/shared";
 import { formatDate, formatNumber } from "../i18n";
+import { LinkButton } from "../ui/button";
 import { Dialog } from "../ui/dialog";
 import { HoverMark } from "../ui/hover-mark";
 import { PostIt } from "../ui/post-it";
@@ -30,6 +31,9 @@ export type ItemViewProps = {
   titleFieldId: number;
   // The url field the title links to (TICKET-COL-09), only when it's one of `fields` and still a url field.
   titleLinkFieldId?: number;
+  // A field featured in the enlarged-picture header beside the title (e.g. the wishlist's price); kept out of the
+  // side panel so it isn't shown twice.
+  featuredFieldId?: number;
   // The collection's default item image (TICKET-COL-08), for items without one.
   itemImage?: string | null;
   // Makes row and dialog ids unique when an item shows in several groups (TICKET-ITM-06), e.g. "-g2".
@@ -123,9 +127,12 @@ const Title = ({ mode, itemsBase, titleFieldId, titleLinkFieldId, item }: TitleP
 type ThumbnailProps = {
   item: Item;
   alt: string;
-  // The fields shown beside the enlarged picture; the title field and blank values are left out.
+  // The fields shown beside the enlarged picture; the title and featured fields and blank values are left out.
   fields: Field[];
   titleFieldId: number;
+  // Promoted into the picture header (TICKET-UI-10): a source link and a featured field (e.g. the price).
+  titleLinkFieldId?: number;
+  featuredFieldId?: number;
   fallback?: string | null;
   idScope?: string;
   className?: string;
@@ -148,12 +155,30 @@ const PictureFields = ({ item, fields }: { item: Item; fields: Field[] }) => (
   </dl>
 );
 
+// The enlarged picture's header: the title, a featured field (e.g. the price) and a source link button that reuses the
+// title's link field (TICKET-UI-10). `font-sans` and sizes reset the dialog's big hand font for the extras.
+const PictureHeader = ({ title, featured, source }: { title: string; featured: ReactNode; source?: string }) => {
+  const { t } = useLingui();
+  return (
+    <span className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+      <span>{title}</span>
+      {featured && <span className="font-sans text-xl text-ink-soft">{featured}</span>}
+      {source && (
+        <LinkButton href={source} rel="noreferrer" size="sm" variant="ghost" className="font-sans">
+          ↗ {t({ id: "items.picture.link", message: "Open link" })}
+        </LinkButton>
+      )}
+    </span>
+  );
+};
+
 // The item's picture opens at display size in a native dialog (TICKET-UI-08): invoker commands and `closedby="any"`
 // (Escape, the × and a backdrop click), so it works without JS and on public pages. `details`, when present, sits
-// beside the picture (TICKET-UI-10).
-type EnlargeableProps = { item: Item; image: string; title: string; idScope?: string; details?: ReactNode; children: ReactNode };
+// beside the picture (TICKET-UI-10). The content scrolls within the viewport so a tall picture plus its fields never
+// overflow a phone screen.
+type EnlargeableProps = { item: Item; image: string; title: string; header?: ReactNode; idScope?: string; details?: ReactNode; children: ReactNode };
 
-const Enlargeable = ({ item, image, title, idScope = "", details, children }: EnlargeableProps) => {
+const Enlargeable = ({ item, image, title, header, idScope = "", details, children }: EnlargeableProps) => {
   const { t } = useLingui();
   const dialog = `picture${idScope}-${item.id}`;
   return (
@@ -170,13 +195,19 @@ const Enlargeable = ({ item, image, title, idScope = "", details, children }: En
       </button>
       <Dialog
         id={dialog}
-        title={title}
+        title={header ?? title}
         closeLabel={t({ id: "items.picture.close", message: "Close" })}
         closedby="any"
         className="w-[min(48rem,calc(100vw-2rem))]"
       >
-        <div className={details ? "grid gap-5 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] sm:items-start" : ""}>
-          <img src={imageUrl(image)} alt={title} loading="lazy" className="max-h-[75dvh] w-full object-contain" />
+        <div
+          className={
+            details
+              ? "grid max-h-[72dvh] gap-5 overflow-y-auto sm:max-h-none sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] sm:items-start sm:overflow-visible"
+              : "max-h-[72dvh] overflow-y-auto"
+          }
+        >
+          <img src={imageUrl(image)} alt={title} loading="lazy" className="max-h-[60dvh] w-full object-contain" />
           {details}
         </div>
       </Dialog>
@@ -188,25 +219,29 @@ const Enlargeable = ({ item, image, title, idScope = "", details, children }: En
 // default item image (decorative, not a picture of this item, so no alt and nothing to enlarge, TICKET-COL-08) or the
 // blank post-it. Pinned, taped or clipped by a hash of the id (TICKET-UI-09). Exported so the public wishlist's
 // collection grids reuse the same enlarge-with-fields behaviour.
-export const Thumbnail = ({ item, alt, fields, titleFieldId, fallback, idScope, className, size }: ThumbnailProps) => {
+export const Thumbnail = ({ item, alt, fields, titleFieldId, titleLinkFieldId, featuredFieldId, fallback, idScope, className, size }: ThumbnailProps) => {
   const postIt = (image: string | null | undefined, imageAlt: string) => (
     <PostIt size={size} {...postItLook(item.id)} className={className}>
       {image && <img src={thumbUrl(image)} alt={imageAlt} loading="lazy" className="size-full object-cover" />}
     </PostIt>
   );
-  const detailFields = fields.filter((field) => field.id !== titleFieldId && !isBlank(item.values[field.id]));
-  return item.image ? (
+  if (!item.image) return postIt(fallback, "");
+  const featuredField = featuredFieldId === undefined ? undefined : fields.find((field) => field.id === featuredFieldId);
+  const featured = featuredField && !isBlank(item.values[featuredField.id]) ? <FieldValue field={featuredField} value={item.values[featuredField.id]} /> : null;
+  const detailFields = fields.filter(
+    (field) => field.id !== titleFieldId && field.id !== featuredFieldId && !isBlank(item.values[field.id]),
+  );
+  return (
     <Enlargeable
       item={item}
       image={item.image}
       title={alt}
+      header={<PictureHeader title={alt} featured={featured} source={sourceOf(item, titleLinkFieldId)} />}
       idScope={idScope}
       details={detailFields.length > 0 ? <PictureFields item={item} fields={detailFields} /> : undefined}
     >
       {postIt(item.image, alt)}
     </Enlargeable>
-  ) : (
-    postIt(fallback, "")
   );
 };
 
@@ -305,6 +340,8 @@ const TableCells = ({ item, ...props }: ItemViewProps & { item: Item }) => (
         alt={titleOf(item, props.titleFieldId)}
         fields={props.fields}
         titleFieldId={props.titleFieldId}
+        titleLinkFieldId={props.titleLinkFieldId}
+        featuredFieldId={props.featuredFieldId}
         fallback={props.itemImage}
         idScope={props.idScope}
         size="sm"
@@ -387,6 +424,8 @@ const GridCard = ({ item, shown, titleField, ...props }: ItemViewProps & { item:
       alt={titleOf(item, props.titleFieldId)}
       fields={props.fields}
       titleFieldId={props.titleFieldId}
+      titleLinkFieldId={props.titleLinkFieldId}
+      featuredFieldId={props.featuredFieldId}
       fallback={props.itemImage}
       idScope={props.idScope}
       size="md"

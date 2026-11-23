@@ -1,12 +1,12 @@
 import { useLingui } from "@lingui/react/macro";
 import { data, type LoaderFunctionArgs, type Params } from "react-router";
-import type { Item } from "../db/items";
+import type { Field } from "../db/fields";
 import { getPublicWishlist, listWishlist, type WishItem, type Wishlist } from "../db/wishlist";
 import { wishlistSuggestions, type CollectionSuggestions } from "../features/wishlist/suggestions";
 import { wishView } from "../features/wishlist/view";
 import { EmptyState } from "../ui/empty-state";
 import { CollectionPicture } from "./collection-picture";
-import { ItemGrid, Thumbnail } from "./item-views";
+import { ItemGrid } from "./item-views";
 import { LinkPreview } from "./public-collection";
 
 // /wishlist/:slug (TICKET-WSH-04, one page per wishlist since TICKET-WSH-10): a wishlist for visitors, laid out like
@@ -42,61 +42,43 @@ const Wishes = ({ wishes, slug }: { wishes: WishItem[]; slug: string }) => {
         items={view.items}
         titleFieldId={view.titleFieldId}
         titleLinkFieldId={view.linkFieldId}
+        featuredFieldId={view.priceFieldId}
         itemsBase={`/admin/w/${slug}/items`}
       />
     )
   );
 };
 
-// How many of each collection's in-budget wants show before the "show more" reveal.
-const previewCount = 10;
-
-const titleOf = (item: Item, titleFieldId: number) => String(item.values[titleFieldId] ?? "");
-
-// Small tiles, five across on a wide screen: each want's picture (enlarging to its public fields, TICKET-UI-10) and
-// name. `idScope` is the collection slug so dialog ids stay unique across collections on the page.
-const SuggestionTiles = ({ group, items }: { group: CollectionSuggestions; items: Item[] }) => (
-  <ul className="grid grid-cols-3 gap-4 sm:grid-cols-5">
-    {items.map((item) => {
-      const title = titleOf(item, group.titleFieldId);
-      return (
-        <li key={item.id} className="grid justify-items-center gap-1 text-center">
-          <Thumbnail
-            item={item}
-            alt={title}
-            fields={group.fields}
-            titleFieldId={group.titleFieldId}
-            fallback={group.itemImage}
-            idScope={`-${group.slug}`}
-            size="sm"
-          />
-          <span className="text-sm">{title}</span>
-        </li>
-      );
-    })}
-  </ul>
-);
+// The price field first among the shown fields, so the card features it like the wishlist's own items do.
+const cardFields = (group: CollectionSuggestions): Field[] => {
+  const title = group.fields.find((field) => field.id === group.titleFieldId)!;
+  const price = group.fields.find((field) => field.id === group.priceFieldId);
+  const rest = group.fields.filter((field) => field.id !== group.titleFieldId && field.id !== group.priceFieldId);
+  return [title, ...(price ? [price] : []), ...rest];
+};
 
 // One collection's in-budget wants, replacing its old reminder card (TICKET-WSH-06): its name links to the full want
-// list, and "show more" reveals the wants past the first few in place.
-const CollectionWants = ({ group }: { group: CollectionSuggestions }) => {
-  const { t } = useLingui();
-  const rest = group.items.slice(previewCount);
-  return (
-    <section className="grid gap-sq" aria-label={group.name}>
-      <h3>
-        <a href={`/${group.slug}/want`}>{group.name}</a>
-      </h3>
-      <SuggestionTiles group={group} items={group.items.slice(0, previewCount)} />
-      {rest.length > 0 && (
-        <details className="grid gap-sq">
-          <summary className="cursor-pointer">{t({ id: "wishlist.collection.more", message: "Show more" })}</summary>
-          <SuggestionTiles group={group} items={rest} />
-        </details>
-      )}
-    </section>
-  );
-};
+// list, the wants laid out like the wishlist's own items. Their collection rank would be meaningless here, so it's
+// cleared off the post-its.
+const CollectionWants = ({ group }: { group: CollectionSuggestions }) => (
+  <section className="grid gap-sq" aria-label={group.name}>
+    <h3>
+      <a href={`/${group.slug}/want`}>{group.name}</a>
+    </h3>
+    <ItemGrid
+      mode="public"
+      status="want"
+      fields={cardFields(group)}
+      items={group.items.map((item) => ({ ...item, rank: null }))}
+      titleFieldId={group.titleFieldId}
+      titleLinkFieldId={group.titleLinkFieldId ?? undefined}
+      featuredFieldId={group.priceFieldId ?? undefined}
+      itemImage={group.itemImage}
+      idScope={`-${group.slug}`}
+      itemsBase={`/${group.slug}`}
+    />
+  </section>
+);
 
 export default function PublicWishlist({ params }: { params: Params }) {
   const { t } = useLingui();

@@ -43,4 +43,6 @@ export const wishView = (wishes: WishItem[], shown: Array<[WishField, string]>) 
   titleFieldId: wishFieldIds.title,
   // For the public page, whose titles open the item's link (TICKET-WSH-04).
   linkFieldId: wishFieldIds.link,
+  // Featured in the enlarged-picture header (TICKET-UI-10).
+  priceFieldId: wishFieldIds.price,
 });

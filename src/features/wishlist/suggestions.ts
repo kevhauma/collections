@@ -11,11 +11,15 @@ export type CollectionSuggestions = {
   slug: string;
   name: string;
   titleFieldId: number;
+  // The url field the title links to (TICKET-COL-09), when public.
+  titleLinkFieldId: number | null;
+  // The detected price field, featured on the card and in the picture header; null when the collection has none.
+  priceFieldId: number | null;
   // The collection's default item image (TICKET-COL-08), for wants without a picture.
   itemImage: string | null;
-  // Public fields in position order, for the enlarged-picture panel.
+  // Public fields in position order, for the card and the enlarged-picture panel.
   fields: Field[];
-  // Every in-budget want, oldest first; the page shows the first few and reveals the rest.
+  // Every in-budget want, oldest first.
   items: Item[];
 };
 
@@ -51,12 +55,16 @@ export const wishlistSuggestions = (min: number | null, max: number | null): Col
       return amount !== null && inRange(amount, min, max);
     });
     if (items.length === 0) continue;
+    const publicFields = fields.filter((field) => field.isPublic === 1);
+    const titleLinkPublic = publicFields.some((field) => field.id === collection.titleLinkFieldId);
     groups.push({
       slug: collection.slug,
       name: collection.name,
       titleFieldId: collection.titleFieldId,
+      titleLinkFieldId: titleLinkPublic ? collection.titleLinkFieldId : null,
+      priceFieldId: priceField?.id ?? null,
       itemImage: collection.itemImage,
-      fields: fields.filter((field) => field.isPublic === 1),
+      fields: publicFields,
       items,
     });
   }
