@@ -123,17 +123,37 @@ const Title = ({ mode, itemsBase, titleFieldId, titleLinkFieldId, item }: TitleP
 type ThumbnailProps = {
   item: Item;
   alt: string;
+  // The fields shown beside the enlarged picture; the title field and blank values are left out.
+  fields: Field[];
+  titleFieldId: number;
   fallback?: string | null;
   idScope?: string;
   className?: string;
   size: "sm" | "md";
 };
 
-// The item's picture opens at display size in a native dialog (TICKET-UI-08): invoker commands and `closedby="any"`
-// (Escape, the × and a backdrop click), so it works without JS and on public pages.
-type EnlargeableProps = { item: Item; image: string; title: string; idScope?: string; children: ReactNode };
+// The item's other fields beside the enlarged picture (TICKET-UI-10): label and value for each, so a visitor can read
+// an item's details without leaving the grid. The caller passes only the fields to show (non-title, non-blank), and on
+// public pages those are already the public ones.
+const PictureFields = ({ item, fields }: { item: Item; fields: Field[] }) => (
+  <dl className="grid content-start gap-3">
+    {fields.map((field) => (
+      <div key={field.id} className="grid gap-0.5">
+        <dt className="text-sm text-ink-soft">{field.label}</dt>
+        <dd>
+          <FieldValue field={field} value={item.values[field.id]} />
+        </dd>
+      </div>
+    ))}
+  </dl>
+);
 
-const Enlargeable = ({ item, image, title, idScope = "", children }: EnlargeableProps) => {
+// The item's picture opens at display size in a native dialog (TICKET-UI-08): invoker commands and `closedby="any"`
+// (Escape, the × and a backdrop click), so it works without JS and on public pages. `details`, when present, sits
+// beside the picture (TICKET-UI-10).
+type EnlargeableProps = { item: Item; image: string; title: string; idScope?: string; details?: ReactNode; children: ReactNode };
+
+const Enlargeable = ({ item, image, title, idScope = "", details, children }: EnlargeableProps) => {
   const { t } = useLingui();
   const dialog = `picture${idScope}-${item.id}`;
   return (
@@ -155,23 +175,34 @@ const Enlargeable = ({ item, image, title, idScope = "", children }: Enlargeable
         closedby="any"
         className="w-[min(48rem,calc(100vw-2rem))]"
       >
-        <img src={imageUrl(image)} alt={title} loading="lazy" className="max-h-[75dvh] w-full object-contain" />
+        <div className={details ? "grid gap-5 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] sm:items-start" : ""}>
+          <img src={imageUrl(image)} alt={title} loading="lazy" className="max-h-[75dvh] w-full object-contain" />
+          {details}
+        </div>
       </Dialog>
     </>
   );
 };
 
-// The item's image on a post-it, which opens it large; without one, the collection's default item image (decorative,
-// not a picture of this item, so no alt and nothing to enlarge, TICKET-COL-08) or the blank post-it. Pinned, taped or
-// clipped by a hash of the id (TICKET-UI-09).
-const Thumbnail = ({ item, alt, fallback, idScope, className, size }: ThumbnailProps) => {
+// The item's image on a post-it, which opens it large with its other fields beside it; without one, the collection's
+// default item image (decorative, not a picture of this item, so no alt and nothing to enlarge, TICKET-COL-08) or the
+// blank post-it. Pinned, taped or clipped by a hash of the id (TICKET-UI-09). Exported so the public wishlist's
+// collection grids reuse the same enlarge-with-fields behaviour.
+export const Thumbnail = ({ item, alt, fields, titleFieldId, fallback, idScope, className, size }: ThumbnailProps) => {
   const postIt = (image: string | null | undefined, imageAlt: string) => (
     <PostIt size={size} {...postItLook(item.id)} className={className}>
       {image && <img src={thumbUrl(image)} alt={imageAlt} loading="lazy" className="size-full object-cover" />}
     </PostIt>
   );
+  const detailFields = fields.filter((field) => field.id !== titleFieldId && !isBlank(item.values[field.id]));
   return item.image ? (
-    <Enlargeable item={item} image={item.image} title={alt} idScope={idScope}>
+    <Enlargeable
+      item={item}
+      image={item.image}
+      title={alt}
+      idScope={idScope}
+      details={detailFields.length > 0 ? <PictureFields item={item} fields={detailFields} /> : undefined}
+    >
       {postIt(item.image, alt)}
     </Enlargeable>
   ) : (
@@ -269,7 +300,15 @@ const TableCells = ({ item, ...props }: ItemViewProps & { item: Item }) => (
     )}
     {/* Four squares tall, so a row with a picture stays on the grid. */}
     <Td className="h-sq-4 w-18">
-      <Thumbnail item={item} alt={titleOf(item, props.titleFieldId)} fallback={props.itemImage} idScope={props.idScope} size="sm" />
+      <Thumbnail
+        item={item}
+        alt={titleOf(item, props.titleFieldId)}
+        fields={props.fields}
+        titleFieldId={props.titleFieldId}
+        fallback={props.itemImage}
+        idScope={props.idScope}
+        size="sm"
+      />
     </Td>
     {props.fields.map((field) => (
       <Td key={field.id}>
@@ -346,6 +385,8 @@ const GridCard = ({ item, shown, titleField, ...props }: ItemViewProps & { item:
     <Thumbnail
       item={item}
       alt={titleOf(item, props.titleFieldId)}
+      fields={props.fields}
+      titleFieldId={props.titleFieldId}
       fallback={props.itemImage}
       idScope={props.idScope}
       size="md"
