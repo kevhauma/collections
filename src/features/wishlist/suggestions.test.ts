@@ -6,7 +6,7 @@ import { createCollection, getCollectionBySlug } from "../../db/collections";
 import { db } from "../../db/connection";
 import { createField, listFields } from "../../db/fields";
 import { createItem } from "../../db/items";
-import { priceAmount, priceSuggestions } from "./suggestions";
+import { priceAmount, wishlistSuggestions } from "./suggestions";
 
 beforeAll(() => {
   process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "collections-suggestions-"));
@@ -27,43 +27,45 @@ describe("priceAmount", () => {
   });
 });
 
-// A public collection shown on the wishlist, with a priced want item.
-const seed = (slug: string, price: number | string, { public: isPublic = true, priceAffix = true } = {}) => {
+// A public collection shown on the wishlist, with a priced want item per `prices` entry.
+const seed = (slug: string, prices: Array<number | string>, { public: isPublic = true, priceAffix = true } = {}) => {
   createCollection(slug, slug, "Title");
   const { id, titleFieldId } = getCollectionBySlug(slug)!;
   createField(id, { type: "number", label: "Price", options: null, required: 0, isPublic: 1, prefix: priceAffix ? "€" : null, suffix: null });
   const priceFieldId = listFields(id).find((field) => field.label === "Price")!.id;
-  createItem(id, { status: "want", values: { [titleFieldId]: `${slug}-want`, [priceFieldId]: price } });
+  prices.forEach((price, index) =>
+    createItem(id, { status: "want", values: { [titleFieldId]: `${slug}-${index}`, [priceFieldId]: price } }),
+  );
   db().prepare("update collections set is_public = ?, show_on_wishlist = 1 where id = ?").run(isPublic ? 1 : 0, id);
-  return id;
 };
 
-describe("priceSuggestions", () => {
-  it("keeps only priced want items inside the range, across the shown collections", () => {
-    seed("cheap", 10);
-    seed("fits", 50);
-    seed("dear", 500);
-    const names = priceSuggestions(20, 100, 50).map((suggestion) => suggestion.name);
-    expect(names).toEqual(["fits-want"]);
+describe("wishlistSuggestions", () => {
+  it("groups in-budget wants by collection", () => {
+    seed("a", [10, 50, 500]);
+    seed("b", [40]);
+    const groups = wishlistSuggestions(20, 100, 10);
+    expect(groups.map((group) => [group.slug, group.items.map((item) => item.name)])).toEqual([
+      ["a", ["a-1"]],
+      ["b", ["b-0"]],
+    ]);
   });
 
   it("treats null bounds as open-ended", () => {
-    seed("a", 5);
-    seed("b", 9000);
-    expect(priceSuggestions(null, null, 50)).toHaveLength(2);
-    expect(priceSuggestions(1000, null, 50).map((s) => s.name)).toEqual(["b-want"]);
+    seed("a", [5, 9000]);
+    const group = wishlistSuggestions(null, null, 10)[0]!;
+    expect(group.items).toHaveLength(2);
   });
 
-  it("ignores private collections and collections with no price field", () => {
-    seed("hidden", 50, { public: false });
-    seed("unpriced", 50, { priceAffix: false });
-    expect(priceSuggestions(0, 100, 50)).toEqual([]);
+  it("skips private collections and, under a budget, those without a price field", () => {
+    seed("hidden", [50], { public: false });
+    seed("unpriced", [50], { priceAffix: false });
+    expect(wishlistSuggestions(0, 100, 10)).toEqual([]);
   });
 
-  it("caps the result at the limit", () => {
-    seed("one", 50);
-    seed("two", 50);
-    seed("three", 50);
-    expect(priceSuggestions(0, 100, 2)).toHaveLength(2);
+  it("caps each collection at the limit and flags the rest", () => {
+    seed("many", [50, 50, 50]);
+    const group = wishlistSuggestions(0, 100, 2)[0]!;
+    expect(group.items).toHaveLength(2);
+    expect(group.more).toBe(true);
   });
 });

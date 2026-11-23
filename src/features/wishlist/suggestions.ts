@@ -2,11 +2,12 @@ import { getCollectionBySlug, listWishlistReminders } from "../../db/collections
 import { listFields, type Field } from "../../db/fields";
 import { listItems } from "../../db/items";
 
-// In-budget gift ideas for a public wishlist: want items drawn from the public collections shown on the wishlist
-// (TICKET-WSH-06, the same set as the reminders), whose price sits in the wishlist's range. Each collection's price
-// field is auto-detected; items are read with publicOnly, so private fields never reach a visitor.
+// The in-budget want items of each collection shown on a public wishlist (TICKET-WSH-06): per collection, its want
+// items whose price sits in the wishlist's range, so the page can show a few of each in place of a bare "Want" link.
+// Items are read with publicOnly, so private fields never reach a visitor.
 
-export type Suggestion = { slug: string; collectionName: string; name: string; image: string | null };
+export type SuggestionItem = { name: string; image: string | null };
+export type CollectionSuggestions = { slug: string; name: string; items: SuggestionItem[]; more: boolean };
 
 // A collection's price field: its first number field carrying a currency prefix or suffix (TICKET-COL-04).
 // shortcut: with several affixed number fields the first wins; add an explicit price-field setting if that bites.
@@ -24,23 +25,27 @@ export const priceAmount = (raw: unknown): number | null => {
 const inRange = (amount: number, min: number | null, max: number | null): boolean =>
   (min === null || amount >= min) && (max === null || amount <= max);
 
-// Up to `limit` matches, stopping as soon as that many are found.
+// Up to `limit` in-budget want items per collection, plus whether more were left out. A collection without a price
+// field only matches an open-ended range, since its items carry no comparable price.
 // shortcut: scans every want item of those collections in memory; fine for a personal hoard, add SQL paging past a few thousand.
-export const priceSuggestions = (min: number | null, max: number | null, limit: number): Suggestion[] => {
-  const suggestions: Suggestion[] = [];
+export const wishlistSuggestions = (min: number | null, max: number | null, limit: number): CollectionSuggestions[] => {
+  const groups: CollectionSuggestions[] = [];
   for (const summary of listWishlistReminders()) {
     const collection = getCollectionBySlug(summary.slug);
     if (!collection) continue;
     const priceField = priceFieldOf(listFields(collection.id));
-    if (!priceField) continue;
-    const items = listItems({ collectionId: collection.id, status: "want", publicOnly: true });
-    for (const item of items) {
+    const wants = listItems({ collectionId: collection.id, status: "want", publicOnly: true });
+    const inBudget = wants.filter((item) => {
+      if (!priceField) return min === null && max === null;
       const amount = priceAmount(item.values[String(priceField.id)]);
-      if (amount === null || !inRange(amount, min, max)) continue;
-      const name = String(item.values[String(collection.titleFieldId)] ?? "");
-      suggestions.push({ slug: collection.slug, collectionName: collection.name, name, image: item.image ?? collection.itemImage });
-      if (suggestions.length >= limit) return suggestions;
-    }
+      return amount !== null && inRange(amount, min, max);
+    });
+    if (inBudget.length === 0) continue;
+    const items = inBudget.slice(0, limit).map((item) => ({
+      name: String(item.values[String(collection.titleFieldId)] ?? ""),
+      image: item.image ?? collection.itemImage,
+    }));
+    groups.push({ slug: collection.slug, name: collection.name, items, more: inBudget.length > limit });
   }
-  return suggestions;
+  return groups;
 };
