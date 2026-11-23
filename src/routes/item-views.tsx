@@ -228,8 +228,9 @@ export const Thumbnail = ({ item, alt, fields, titleFieldId, titleLinkFieldId, f
   if (!item.image) return postIt(fallback, "");
   const featuredField = featuredFieldId === undefined ? undefined : fields.find((field) => field.id === featuredFieldId);
   const featured = featuredField && !isBlank(item.values[featuredField.id]) ? <FieldValue field={featuredField} value={item.values[featuredField.id]} /> : null;
+  // The title, the featured field and the source-link field are already in the header, so they stay out of the panel.
   const detailFields = fields.filter(
-    (field) => field.id !== titleFieldId && field.id !== featuredFieldId && !isBlank(item.values[field.id]),
+    (field) => field.id !== titleFieldId && field.id !== featuredFieldId && field.id !== titleLinkFieldId && !isBlank(item.values[field.id]),
   );
   return (
     <Enlargeable

@@ -64,6 +64,8 @@ export default function AdminWishlist({ params }: { params: Params }) {
           fields={view.fields}
           items={view.items}
           titleFieldId={view.titleFieldId}
+          titleLinkFieldId={view.linkFieldId}
+          featuredFieldId={view.priceFieldId}
           itemsBase={`${base}/items`}
           ranking={{ draggable: true, count: wishes.length, onMove: moveWishItemAction.bind(null, wishlist.slug) }}
         />
