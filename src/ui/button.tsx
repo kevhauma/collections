@@ -9,8 +9,8 @@ const button = cva(
     variants: {
       variant: {
         primary: "bg-ink text-paper [--ink-echo:none] hover:bg-ink-soft",
-        secondary: "text-ink hover:bg-grid",
-        ghost: "text-ink before:hidden after:hidden hover:bg-grid",
+        secondary: "text-ink",
+        ghost: "text-ink before:hidden after:hidden",
         danger: "text-red-pen [--ink-line:var(--color-red-pen)] hover:bg-red-pen/10",
       },
       size: {
