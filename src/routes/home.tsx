@@ -39,9 +39,11 @@ const CollectionCard = ({ collection, previews }: { collection: Shared["collecti
   const shelves = [
     { href: `/${collection.slug}`, label: t({ id: "items.tab.have", message: "Have" }), count: collection.haveCount, status: "have" },
     { href: `/${collection.slug}/want`, label: t({ id: "items.tab.want", message: "Want" }), count: collection.wantCount, status: "want" },
-  ].map((shelf) => ({ ...shelf, items: previews.filter((preview) => preview.status === shelf.status).slice(0, 5) }));
+  ]
+    .filter((shelf) => shelf.count > 0)
+    .map((shelf) => ({ ...shelf, items: previews.filter((preview) => preview.status === shelf.status).slice(0, 5) }));
   return (
-    <Card heading={collection.name}>
+    <Card heading={collection.name} className="h-full">
       <div className="flex items-start gap-4">
         <CollectionPicture image={collection.image} name={collection.name} size="card" />
         {/* Named after the collection so the repeated link texts stay distinguishable. */}
@@ -77,7 +79,7 @@ const SharedCards = ({ collections, wishlists, previews }: Shared) => {
           </li>
         ))}
       </ul>
-      <ul className="grid items-start gap-x-8 gap-y-10 empty:hidden sm:grid-cols-2">
+      <ul className="grid gap-x-8 gap-y-10 empty:hidden sm:grid-cols-2">
         {collections.map((collection) => (
           <li key={collection.id}>
             <CollectionCard collection={collection} previews={previews.filter((preview) => preview.collectionId === collection.id)} />
