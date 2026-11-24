@@ -4,7 +4,6 @@ import { listPublicWishlists } from "../db/wishlist";
 import { thumbUrl } from "../features/images/shared";
 import { postItLook } from "../features/items/post-it-look";
 import { formatNumber } from "../i18n";
-import { LinkButton } from "../ui/button";
 import { Card } from "../ui/card";
 import { EmptyState } from "../ui/empty-state";
 import { PostIt } from "../ui/post-it";
@@ -17,22 +16,13 @@ import { CollectionPicture } from "./collection-picture";
 
 type Wishlists = ReturnType<typeof listPublicWishlists>;
 
-// Full width above the collection cards, so they're the first thing a visitor sees.
-const WishlistCard = ({ wishlist }: { wishlist: Wishlists[number] }) => {
-  const { t } = useLingui();
-  const count = formatNumber(wishlist.itemCount);
-  return (
-    <Card heading={wishlist.name}>
-      {/* Named after the wishlist so the repeated link texts stay distinguishable. */}
-      <nav aria-label={wishlist.name} className="flex items-start gap-4">
-        <CollectionPicture image={wishlist.image} name={wishlist.name} size="card" />
-        <LinkButton href={`/wishlist/${wishlist.slug}`} variant="primary">
-          {t({ id: "home.wishlist.count", message: `Wishlist · ${count}` })}
-        </LinkButton>
-      </nav>
-    </Card>
-  );
-};
+// Just the cover image and name, so the wishlists stay secondary to the collections below them.
+const WishlistCard = ({ wishlist }: { wishlist: Wishlists[number] }) => (
+  <a href={`/wishlist/${wishlist.slug}`} className="flex items-center gap-4">
+    <CollectionPicture image={wishlist.image} name={wishlist.name} size="reminder" />
+    <span className="min-w-0 truncate font-medium">{wishlist.name}</span>
+  </a>
+);
 
 // A pictured item on a collection's shelf: a small post-it, coloured and turned like its own on the list pages.
 const Thumb = ({ preview }: { preview: Preview }) => {
@@ -80,7 +70,7 @@ const SharedCards = ({ collections, wishlists, previews }: Shared) => {
   if (wishlists.length + collections.length === 0) return <EmptyState title={t({ id: "home.empty", message: "Nothing shared yet" })} />;
   return (
     <>
-      <ul className="grid gap-8 empty:hidden">
+      <ul className="grid gap-4 empty:hidden sm:grid-cols-2">
         {wishlists.map((wishlist) => (
           <li key={wishlist.id}>
             <WishlistCard wishlist={wishlist} />
