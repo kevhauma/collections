@@ -21,7 +21,7 @@ type Wishlists = ReturnType<typeof listPublicWishlists>;
 // The link stretches over the whole card (TICKET-WSH-10) and carries the red-pen hover loop.
 const WishlistCard = ({ wishlist }: { wishlist: Wishlists[number] }) => (
   <Card heading={wishlist.name} className="h-full">
-    <a href={`/wishlist/${wishlist.slug}`} aria-label={wishlist.name} className="absolute inset-0">
+    <a href={`/wishlist/${wishlist.slug}`} aria-label={wishlist.name} className="absolute inset-0 z-10">
       <HoverMark />
     </a>
     <div className="flex justify-center">
