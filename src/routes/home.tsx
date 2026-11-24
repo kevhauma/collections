@@ -6,6 +6,7 @@ import { postItLook } from "../features/items/post-it-look";
 import { formatNumber } from "../i18n";
 import { Card } from "../ui/card";
 import { EmptyState } from "../ui/empty-state";
+import { HoverMark } from "../ui/hover-mark";
 import { PostIt } from "../ui/post-it";
 import { PictureShelf } from "../ui/picture-shelf";
 import { CollectionPicture } from "./collection-picture";
@@ -17,11 +18,15 @@ import { CollectionPicture } from "./collection-picture";
 type Wishlists = ReturnType<typeof listPublicWishlists>;
 
 // Just the name (the card's red tab) over the cover image, so the wishlists stay secondary to the collections below.
+// The link stretches over the whole card (TICKET-WSH-10) and carries the red-pen hover loop.
 const WishlistCard = ({ wishlist }: { wishlist: Wishlists[number] }) => (
   <Card heading={wishlist.name} className="h-full">
-    <a href={`/wishlist/${wishlist.slug}`} aria-label={wishlist.name} className="flex justify-center">
-      <CollectionPicture image={wishlist.image} name={wishlist.name} size="card" />
+    <a href={`/wishlist/${wishlist.slug}`} aria-label={wishlist.name} className="absolute inset-0">
+      <HoverMark />
     </a>
+    <div className="flex justify-center">
+      <CollectionPicture image={wishlist.image} name={wishlist.name} size="card" />
+    </div>
   </Card>
 );
 
