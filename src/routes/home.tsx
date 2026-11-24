@@ -16,12 +16,13 @@ import { CollectionPicture } from "./collection-picture";
 
 type Wishlists = ReturnType<typeof listPublicWishlists>;
 
-// Just the cover image and name, so the wishlists stay secondary to the collections below them.
+// Just the name (the card's red tab) over the cover image, so the wishlists stay secondary to the collections below.
 const WishlistCard = ({ wishlist }: { wishlist: Wishlists[number] }) => (
-  <a href={`/wishlist/${wishlist.slug}`} className="flex items-center gap-4">
-    <CollectionPicture image={wishlist.image} name={wishlist.name} size="reminder" />
-    <span className="min-w-0 truncate font-medium">{wishlist.name}</span>
-  </a>
+  <Card heading={wishlist.name} className="h-full">
+    <a href={`/wishlist/${wishlist.slug}`} aria-label={wishlist.name} className="flex justify-center">
+      <CollectionPicture image={wishlist.image} name={wishlist.name} size="card" />
+    </a>
+  </Card>
 );
 
 // A pictured item on a collection's shelf: a small post-it, coloured and turned like its own on the list pages.
@@ -72,7 +73,7 @@ const SharedCards = ({ collections, wishlists, previews }: Shared) => {
   if (wishlists.length + collections.length === 0) return <EmptyState title={t({ id: "home.empty", message: "Nothing shared yet" })} />;
   return (
     <>
-      <ul className="grid gap-4 empty:hidden sm:grid-cols-2">
+      <ul className="flex flex-wrap gap-x-8 gap-y-10 empty:hidden">
         {wishlists.map((wishlist) => (
           <li key={wishlist.id}>
             <WishlistCard wishlist={wishlist} />
